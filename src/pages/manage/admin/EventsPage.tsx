@@ -1,12 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { apiFetch, errorMessage } from '../../../lib/api'
+import { mdhm } from '../../../lib/format'
 import type { List } from '../../../lib/types'
 import { Notice, PageHead, Panel } from '../common'
 import { useManage } from '../context'
 import type { AdminShop } from './ShopsPage'
 
-type Event = { id: number; name: string; starts_on: string; ends_on: string; is_current: boolean }
+type Event = {
+  id: number
+  name: string
+  starts_on: string
+  ends_on: string
+  is_current: boolean
+  /** 中止した時刻（中止中でなければ null） */
+  paused_at: string | null
+  pause_message: string
+}
 type EventShop = { shop_id: number; slug: string; name: string; order_prefix: string; is_active: boolean }
 
 /** システム管理者: 開催回の作成・「今の開催回」の切り替え・出店する店舗と整理番号の頭文字。 */
@@ -47,9 +57,12 @@ export function EventsPage() {
     }
   }
 
+  const current = events.data?.find((e) => e.is_current)
+
   return (
     <div className="mpage">
       <PageHead title="開催回" />
+      {current && <PauseControl event={current} />}
       <Panel title="開催回の一覧">
         <Notice error={error} />
         <div className="table-wrap">
@@ -74,7 +87,9 @@ export function EventsPage() {
                   <td className="mono">
                     {ev.starts_on} 〜 {ev.ends_on}
                   </td>
-                  <td>{ev.is_current ? <span className="tag tag-strong">開催中</span> : ''}</td>
+                  <td>
+                    {ev.is_current && (ev.paused_at != null ? <span className="tag tag-strong">中止中</span> : <span className="tag tag-strong">開催中</span>)}
+                  </td>
                   <td style={{ textAlign: 'right' }}>
                     {!ev.is_current && (
                       <button
@@ -119,6 +134,90 @@ export function EventsPage() {
         </form>
       </Panel>
     </div>
+  )
+}
+
+/** 今の開催回の、注文の受け付けの中止・再開。雨天・事故などで全店をまとめて止める。 */
+function PauseControl({ event }: { event: Event }) {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  // 古いサーバーは paused_at を返さない（undefined）ので、null と同じに扱う
+  const paused = event.paused_at != null
+
+  const run = async (action: 'pause' | 'resume') => {
+    setBusy(true)
+    setError(null)
+    try {
+      await apiFetch(`/api/admin/events/${event.id}/${action}`, {
+        method: 'POST',
+        token,
+        body: action === 'pause' ? { message: message.trim() } : undefined,
+      })
+      setMessage('')
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'events'] })
+    } catch (err) {
+      setError(errorMessage(err))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <Panel title="注文の受け付け">
+      <div className="stack" style={{ gap: 12 }}>
+        {paused ? (
+          <>
+            <p>
+              <span className="tag tag-strong">中止中</span>
+              <span className="sub" style={{ marginLeft: 10, fontSize: 13 }}>
+                {mdhm(event.paused_at)} から、全店で新しい注文を止めています。
+              </span>
+            </p>
+            {event.pause_message && <p className="sub" style={{ fontSize: 13 }}>お知らせ: {event.pause_message}</p>}
+            <div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={busy}
+                onClick={() => window.confirm(`「${event.name}」の注文の受け付けを再開しますか？`) && void run('resume')}
+              >
+                受け付けを再開する
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <p className="sub" style={{ fontSize: 13 }}>
+              中止すると、全店で Web 注文・レジ注文を止めます。受け付け済みの注文の調理・お渡しは続けられます。
+            </p>
+            <label className="field">
+              <span className="field-label">お客様に出すお知らせ（任意・200文字まで）</span>
+              <input
+                className="input"
+                value={message}
+                maxLength={200}
+                placeholder="例: 雨のため、ただいま販売を中止しています。再開までお待ちください。"
+                onChange={(e) => setMessage(e.target.value)}
+              />
+            </label>
+            <div>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={busy}
+                onClick={() => window.confirm(`「${event.name}」の注文の受け付けを、全店で中止しますか？`) && void run('pause')}
+              >
+                受け付けを中止する
+              </button>
+            </div>
+          </>
+        )}
+        <Notice error={error} />
+      </div>
+    </Panel>
   )
 }
 

@@ -71,6 +71,7 @@ const messages: Record<string, string> = {
   unauthorized: 'ログインしてください。',
   forbidden: 'この操作はできません。',
   shop_not_open: 'このお店は、いま注文を受け付けていません。',
+  event_paused: 'ただいま注文の受け付けを中止しています。',
   item_unavailable: '売り切れになった品があります。お品書きを確かめてください。',
   option_unavailable: '売り切れになった選択肢があります。選び直してください。',
   invalid_options: '選択肢の選び方を確かめてください。',

@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
 import { OptionPicker } from '../../components/OptionPicker'
+import { PausedNotice } from '../../components/PausedNotice'
 import { Sheet } from '../../components/Sheet'
 import { TerminalLine } from '../../components/Terminal'
 import { VerticalLabel } from '../../components/VerticalLabel'
@@ -74,6 +75,8 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
     } catch (e) {
       setError(errorMessage(e))
       void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
+      // 中止になっていたら、上部のお知らせをすぐ出す
+      void queryClient.invalidateQueries({ queryKey: ['staff', slug, 'shop'] })
     } finally {
       setSending(false)
     }
@@ -93,6 +96,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
         command={soldOutMode ? '売り切れを設定しています' : '会計を待っています'}
         aside={shop?.event_name}
       />
+      {shop?.paused && <PausedNotice message={shop.pause_message} staff />}
       <div className="pos">
         <section aria-label="商品">
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
@@ -214,10 +218,10 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
           <button
             type="button"
             className="btn btn-primary btn-block"
-            disabled={lines.length === 0 || change < 0 || sending || soldOutMode}
+            disabled={lines.length === 0 || change < 0 || sending || soldOutMode || shop?.paused}
             onClick={submit}
           >
-            会計を確定
+            {shop?.paused ? '中止中のため会計できません' : '会計を確定'}
           </button>
         </aside>
       </div>

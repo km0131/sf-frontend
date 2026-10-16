@@ -8,6 +8,7 @@ import { storeStyle } from '../../lib/colors'
 import { waitLabel } from '../../lib/format'
 import { myOrders } from '../../lib/session'
 import type { PublicShopList } from '../../lib/types'
+import { PausedNotice } from '../../components/PausedNotice'
 import { OrderNumberLookup } from './OrderNumberLookup'
 
 /** お客様: 出店している店の一覧と、それぞれの待ち状況。 */
@@ -24,6 +25,7 @@ export function ShopListPage() {
     <div className="page-sp">
       <Header name={title} seal="祭" />
       <TerminalLine command="お店を表示" aside={data ? `${data.items.length}店` : undefined} />
+      {data?.event?.paused && <PausedNotice message={data.event.pause_message} />}
       <OrderNumberLookup />
 
       {remembered.length > 0 && (

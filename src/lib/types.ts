@@ -17,7 +17,8 @@ export type PublicShop = {
 }
 
 export type PublicShopList = {
-  event: { id: number; name: string } | null
+  /** paused は学園祭が中止中か（新しい注文は受け付けない）。pause_message はそのお知らせ */
+  event: { id: number; name: string; paused: boolean; pause_message: string } | null
   items: PublicShop[]
 }
 
@@ -71,6 +72,8 @@ export type PublicMenu = {
     event_name: string
     waiting_count: number
     estimated_wait_minutes: number | null
+    paused: boolean
+    pause_message: string
   }
   categories: Category[]
   items: MenuItem[]
@@ -135,6 +138,8 @@ export type LoginResponse = {
 }
 
 export type StaffShop = ShopInfo & {
+  paused: boolean
+  pause_message: string
   order_prefix: string
   event_name: string
 }
