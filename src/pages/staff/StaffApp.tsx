@@ -52,6 +52,8 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
   const { data: shop } = useQuery({
     queryKey: ['staff', slug, 'shop'],
     queryFn: () => apiFetch<StaffShop>('/api/staff/shop', { token }),
+    // 学園祭の中止・再開をすぐ画面に出す
+    refetchInterval: 15000,
   })
 
   // リアルタイム配信：注文の変化を一覧に反映する

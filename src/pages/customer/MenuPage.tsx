@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { OptionPicker } from '../../components/OptionPicker'
 import { Sheet } from '../../components/Sheet'
+import { PausedNotice } from '../../components/PausedNotice'
 import { TerminalLine } from '../../components/Terminal'
 import { Turnstile } from '../../components/Turnstile'
 import { VerticalLabel } from '../../components/VerticalLabel'
@@ -65,7 +66,7 @@ export function MenuPage() {
   let seq = 0
 
   const plus = (item: MenuItem) => {
-    if (count >= webMaxQuantity) return
+    if (count >= webMaxQuantity || shop.paused) return
     if (item.option_groups.length > 0) setPicking(item)
     else setLines((prev) => addLine(pruneLines(prev, items), item.id, [], 1))
   }
@@ -77,6 +78,12 @@ export function MenuPage() {
         command="お品書きを表示"
         aside={`待ち ${shop.waiting_count}組 ${waitLabel(shop.estimated_wait_minutes)}`}
       />
+      <div className="row" style={{ paddingTop: 12 }}>
+        <Link to="/" className="btn btn-text">
+          ‹ お店の一覧に戻る
+        </Link>
+      </div>
+      {shop.paused && <PausedNotice message={shop.pause_message} />}
 
       <section className="intro fade-in">
         <VerticalLabel text="お品書き" note={shop.description || 'ご注文はおひとり様 5点まで'} />
@@ -128,7 +135,7 @@ export function MenuPage() {
                             type="button"
                             className="qty"
                             aria-label={`${item.name}を増やす`}
-                            disabled={count >= webMaxQuantity}
+                            disabled={count >= webMaxQuantity || shop.paused}
                             onClick={() => plus(item)}
                           >
                             +
@@ -151,8 +158,8 @@ export function MenuPage() {
           <span className="term-cmd">＞ {count}品を選択中</span>
           <span className="term-aside">合計 {yen(total)}</span>
         </div>
-        <button type="button" className="btn btn-primary btn-block" disabled={count === 0} onClick={() => setCheckout(true)}>
-          注文する
+        <button type="button" className="btn btn-primary btn-block" disabled={count === 0 || shop.paused} onClick={() => setCheckout(true)}>
+          {shop.paused ? '注文の受け付けを中止しています' : '注文する'}
         </button>
       </footer>
 
@@ -221,7 +228,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
       navigate(`/o/${res.public_token}`, { replace: true })
     } catch (e) {
       setError(errorMessage(e))
-      if (e instanceof ApiError && (e.code === 'item_unavailable' || e.code === 'option_unavailable')) {
+      if (e instanceof ApiError && (e.code === 'item_unavailable' || e.code === 'option_unavailable' || e.code === 'event_paused')) {
         void queryClient.invalidateQueries({ queryKey: ['menu', slug] })
       }
     } finally {

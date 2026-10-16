@@ -120,6 +120,15 @@ export function OrderStatusPage() {
 
         <Log entries={log} waiting={waitingText[o.status]} />
 
+        <div className="stack" style={{ gap: 10 }}>
+          <Link to={`/s/${o.shop.slug}`} className="btn btn-primary btn-block">
+            {o.shop.name}のお品書きに戻る
+          </Link>
+          <Link to="/" className="btn btn-secondary btn-block">
+            ほかのお店を見る
+          </Link>
+        </div>
+
         <p className="field-hint">
           このページは自動で更新されます。閉じてしまっても、
           <Link to="/">お店の一覧</Link>の「ご注文中」から戻れます。
