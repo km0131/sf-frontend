@@ -1,0 +1,170 @@
+// API の型（バックエンドのレスポンスに合わせる）
+
+export type ShopColor = 'yamabuki' | 'seiji' | 'sakuranezumi' | 'sabiasagi'
+
+export type OrderStatus = 'waiting' | 'cooking' | 'ready' | 'done' | 'cancelled'
+
+export type Role = 'system_admin' | 'shop_manager' | 'staff'
+
+export type PublicShop = {
+  slug: string
+  name: string
+  description: string
+  color: ShopColor
+  order_prefix: string
+  waiting_count: number
+  estimated_wait_minutes: number | null
+}
+
+export type PublicShopList = {
+  event: { id: number; name: string } | null
+  items: PublicShop[]
+}
+
+export type Category = {
+  id: number
+  name: string
+  sort_order: number
+}
+
+export type MenuOption = {
+  id: number
+  name: string
+  price_delta: number
+  is_available: boolean
+  sort_order: number
+}
+
+export type OptionGroup = {
+  id: number
+  name: string
+  required: boolean
+  max_select: number
+  /** まとめ値段（bundle_count 個選ぶと追加料金が合わせて bundle_price 円）。なければ null */
+  bundle_count: number | null
+  bundle_price: number | null
+  sort_order: number
+  options: MenuOption[]
+}
+
+export type MenuItem = {
+  id: number
+  category_id: number | null
+  name: string
+  description: string
+  price: number
+  image_url: string | null
+  is_available: boolean
+  is_archived: boolean
+  sort_order: number
+  option_groups: OptionGroup[]
+  updated_at: string
+}
+
+export type PublicMenu = {
+  shop: {
+    slug: string
+    name: string
+    description: string
+    color: ShopColor
+    order_prefix: string
+    event_name: string
+    waiting_count: number
+    estimated_wait_minutes: number | null
+  }
+  categories: Category[]
+  items: MenuItem[]
+}
+
+export type OptionSnapshot = {
+  group: string
+  name: string
+  price_delta: number
+}
+
+export type OrderItem = {
+  menu_item_id: number | null
+  name: string
+  unit_price: number
+  quantity: number
+  options: OptionSnapshot[]
+  subtotal: number
+}
+
+export type Order = {
+  id: string
+  order_no: string
+  channel: 'web' | 'pos'
+  status: OrderStatus
+  customer_name: string | null
+  total: number
+  paid: boolean
+  cancel_reason: string | null
+  created_at: string
+  paid_at: string | null
+  cooking_at: string | null
+  ready_at: string | null
+  done_at: string | null
+  cancelled_at: string | null
+  items: OrderItem[]
+}
+
+export type CustomerOrder = Order & {
+  shop: { slug: string; name: string; color: ShopColor }
+  waiting_ahead: number
+  estimated_wait_minutes: number | null
+}
+
+export type ManagerOrder = Order & {
+  email: string | null
+}
+
+export type ShopInfo = {
+  id: number
+  slug: string
+  name: string
+  color: ShopColor
+}
+
+export type LoginResponse = {
+  token: string
+  expires_at: string
+  role: Role
+  user?: { id: number; email: string; display_name: string }
+  shop?: ShopInfo
+}
+
+export type StaffShop = ShopInfo & {
+  order_prefix: string
+  event_name: string
+}
+
+export type DisplaySnapshot = {
+  shop: string
+  color: ShopColor
+  preparing: string[]
+  ready: string[]
+}
+
+export type List<T> = { items: T[] }
+
+/** 番号での状態確認（GET /api/order-status）。注文の中身やお名前は含まない。 */
+export type NumberStatus = {
+  order_no: string
+  status: OrderStatus
+  shop: { slug: string; name: string; color: ShopColor }
+  waiting_ahead: number
+  estimated_wait_minutes: number | null
+}
+
+/** 全店舗の大画面（GET /api/display）。店ごとの番号一覧で、頭文字の順。 */
+export type AllDisplaySnapshot = {
+  shops: {
+    slug: string
+    name: string
+    color: ShopColor
+    order_prefix: string
+    preparing: string[]
+    ready: string[]
+  }[]
+}

@@ -1,0 +1,329 @@
+/* ===== スタッフ画面（タブレット横向き 1180×820 を想定） ===== */
+.staff-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.staff-tab {
+  min-height: var(--tap-min);
+  padding: 0 16px;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  background: transparent;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  color: var(--c-ink-sub);
+  cursor: pointer;
+  transition: color var(--dur-hover), border-color var(--dur-hover);
+}
+
+.staff-tab[aria-current='page'] {
+  color: var(--c-shion-deep);
+  border-bottom-color: var(--c-shion-deep);
+}
+
+.conn {
+  font-family: var(--f-mono);
+  font-size: 11px;
+  color: var(--c-ink-sub);
+  white-space: nowrap;
+}
+
+/* 注文帳：3列 */
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 36px;
+  padding-top: 28px;
+}
+
+@media (max-width: 900px) {
+  .board {
+    grid-template-columns: 1fr;
+  }
+}
+
+.col-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--c-shion);
+}
+
+.col-num {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--c-shion-deep);
+  letter-spacing: 0.2em;
+}
+
+.col-title {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 19px;
+  letter-spacing: 0.25em;
+}
+
+.col-count {
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: 13px;
+  color: var(--c-ink-sub);
+}
+
+.col-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ocard-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ocard-meta {
+  margin-left: auto;
+  text-align: right;
+  font-family: var(--f-mono);
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--c-ink-sub);
+}
+
+.ocard-items {
+  margin: 10px 0 14px;
+  padding: 8px 0;
+  border-top: 1px solid var(--c-line);
+  border-bottom: 1px solid var(--c-line);
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.ocard-items .mincho {
+  font-size: 16px;
+}
+
+.ocard-foot {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* レジ */
+.pos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 380px;
+  gap: 36px;
+  padding-top: 28px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .pos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.pos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.pos-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 96px;
+  padding: 14px 16px;
+  background: var(--c-card);
+  border: 1px solid var(--c-card-line);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur-hover);
+}
+
+.pos-item:hover:not(:disabled) {
+  border-color: var(--c-shion-deep);
+}
+
+.pos-item:disabled {
+  cursor: not-allowed;
+}
+
+.pos-item.is-soldout {
+  opacity: 0.45;
+}
+
+.pos-item-name {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.pos-cart {
+  position: sticky;
+  top: 16px;
+}
+
+.money {
+  font-family: var(--f-mono);
+  font-size: 26px;
+  line-height: 1.3;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.keys .btn {
+  padding: 0;
+  font-family: var(--f-mono);
+  font-weight: 400;
+  letter-spacing: 0;
+  font-size: 13px;
+  border-color: var(--c-qty-line);
+}
+
+/* 大画面 */
+.display {
+  min-height: 100dvh;
+  padding: 0 var(--gutter-pc) 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+.display-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 56px;
+  padding-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .display-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ready-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 48px;
+}
+
+.ready-no {
+  font-family: var(--f-mono);
+  font-size: clamp(56px, 7vw, 112px);
+  line-height: 1.1;
+}
+
+.ready-no .call-line {
+  width: 56px;
+}
+
+.prep-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  font-family: var(--f-mono);
+  font-size: clamp(22px, 2.4vw, 34px);
+  color: var(--c-ink-sub);
+}
+
+/* できあがったばかりの番号：ふわっと表示し、店舗色の線をゆっくり伸ばす（点滅はしない） */
+.just-ready {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: in 1.6s var(--ease) forwards;
+}
+
+.just-ready .call-line {
+  transform-origin: left;
+  animation: grow 2.8s var(--ease);
+}
+
+/* 全店舗の大画面：店ごとに列を並べる */
+.all-display {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px 48px;
+  align-content: start;
+  padding-top: 32px;
+}
+
+.all-display-shop {
+  border-top: 2px solid var(--c-store);
+  padding-top: 16px;
+}
+
+.all-display-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: clamp(18px, 1.8vw, 26px);
+  letter-spacing: 0.15em;
+  margin-bottom: 18px;
+}
+
+.all-display-label {
+  font-family: var(--f-mincho);
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--c-shion-deep);
+  margin: 18px 0 10px;
+}
+
+.all-display-ready {
+  gap: 16px 32px;
+}
+
+.all-display-ready .ready-no {
+  font-size: clamp(40px, 4.5vw, 80px);
+}
+
+/* 店舗が多いとき：列を横に並べ、15秒ごとに1列ずつ流す */
+.all-display-viewport {
+  --per: 3;
+  --gap: 48px;
+  flex: 1;
+  overflow: hidden;
+  padding-top: 32px;
+}
+
+@media (max-width: 900px) {
+  .all-display-viewport {
+    --per: 1;
+  }
+}
+
+.all-display-track {
+  display: flex;
+  gap: var(--gap);
+  transform: translateX(calc(var(--offset, 0) * (100% + var(--gap)) / var(--per) * -1));
+}
+
+.all-display-track.sliding {
+  transition: transform 1.4s var(--ease);
+}
+
+.all-display-track > .all-display-shop {
+  flex: 0 0 calc((100% - (var(--per) - 1) * var(--gap)) / var(--per));
+  min-width: 0;
+}

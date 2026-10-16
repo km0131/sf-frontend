@@ -1,0 +1,94 @@
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { InlineBar } from '../../../components/BarChart'
+import { apiFetch, errorMessage } from '../../../lib/api'
+import { shopColors } from '../../../lib/colors'
+import { yen } from '../../../lib/format'
+import type { List } from '../../../lib/types'
+import { PageHead, Panel } from '../common'
+import { useManage } from '../context'
+import type { AdminShop } from './ShopsPage'
+
+type Totals = { event_id?: number; items: { shop_id: number; slug: string; name: string; revenue: number; orders: number }[]; revenue: number; orders: number }
+type Event = { id: number; name: string; is_current: boolean }
+
+/** システム管理者: 開催回の全店の売上（売上の多い順）。 */
+export function AllSalesPage() {
+  const { token } = useManage()
+  const [eventId, setEventId] = useState('')
+  const events = useQuery({
+    queryKey: ['admin', 'events'],
+    queryFn: () => apiFetch<List<Event>>('/api/admin/events', { token }).then((r) => r.items),
+  })
+  const shops = useQuery({
+    queryKey: ['admin', 'shops'],
+    queryFn: () => apiFetch<List<AdminShop>>('/api/admin/shops', { token }).then((r) => r.items),
+  })
+  const totals = useQuery({
+    queryKey: ['admin', 'totals', eventId],
+    queryFn: () => apiFetch<Totals>(`/api/admin/analytics/shops${eventId ? `?event_id=${eventId}` : ''}`, { token }),
+    placeholderData: keepPreviousData,
+  })
+  const color = (id: number) => shopColors[shops.data?.find((s) => s.id === id)?.color ?? 'yamabuki'].hex
+  const max = Math.max(0, ...(totals.data?.items.map((i) => i.revenue) ?? []))
+
+  return (
+    <div className="mpage">
+      <PageHead title="全店の売上" />
+      <label className="field" style={{ maxWidth: 320 }}>
+        <span className="field-label">開催回</span>
+        <select className="select" value={eventId} onChange={(e) => setEventId(e.target.value)}>
+          <option value="">今の開催回</option>
+          {events.data?.map((e) => (
+            <option key={e.id} value={e.id}>
+              {e.name}
+            </option>
+          ))}
+        </select>
+      </label>
+      {totals.error && <p className="error-text">{errorMessage(totals.error)}</p>}
+
+      <div className="stats">
+        <div className="stat">
+          <div className="stat-label">全店の売上</div>
+          <div className="stat-value">{yen(totals.data?.revenue ?? 0)}</div>
+        </div>
+        <div className="stat">
+          <div className="stat-label">注文</div>
+          <div className="stat-value">{totals.data?.orders ?? 0}件</div>
+        </div>
+      </div>
+
+      <Panel title="店舗ごと">
+        <table className="table" style={{ opacity: totals.isFetching ? 0.6 : 1 }}>
+          <thead>
+            <tr>
+              <th>店舗</th>
+              <th className="num">注文</th>
+              <th className="num">売上</th>
+              <th style={{ width: '35%' }} />
+            </tr>
+          </thead>
+          <tbody>
+            {totals.data?.items.map((t) => (
+              <tr key={t.shop_id}>
+                <td>
+                  <span className="row" style={{ gap: 8 }}>
+                    <span className="dot dot-lg" style={{ background: color(t.shop_id) }} aria-hidden="true" />
+                    <span className="mincho">{t.name}</span>
+                  </span>
+                </td>
+                <td className="num">{t.orders}件</td>
+                <td className="num">{yen(t.revenue)}</td>
+                <td style={{ verticalAlign: 'middle' }}>
+                  <InlineBar value={t.revenue} max={max} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {totals.data?.items.length === 0 && <p className="empty">出店している店舗がありません</p>}
+      </Panel>
+    </div>
+  )
+}

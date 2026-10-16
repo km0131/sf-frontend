@@ -1,0 +1,220 @@
+/* ===== 管理画面 ===== */
+.manage {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 40px;
+  padding-top: 28px;
+  align-items: start;
+}
+
+@media (max-width: 800px) {
+  .manage {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.mnav {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 800px) {
+  .mnav {
+    position: static;
+    flex-direction: row;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--c-line);
+  }
+}
+
+.mnav a {
+  display: block;
+  padding: 10px 14px;
+  border-left: 1px solid var(--c-line);
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  color: var(--c-ink-sub);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color var(--dur-hover), border-color var(--dur-hover);
+}
+
+.mnav a:hover {
+  color: var(--c-ink);
+}
+
+/* 管理メニューの下の「画面を開く」（レジ・大画面へのリンク） */
+.mnav-sep {
+  padding: 18px 14px 6px;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--c-ink-sub);
+  white-space: nowrap;
+}
+
+.mnav a.active {
+  color: var(--c-shion-deep);
+  border-left-color: var(--c-shion-deep);
+}
+
+@media (max-width: 800px) {
+  .mnav a {
+    border-left: 0;
+    border-bottom: 1px solid transparent;
+  }
+
+  .mnav a.active {
+    border-bottom-color: var(--c-shion-deep);
+  }
+}
+
+.mpage {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.mpage-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.mpage-title {
+  font-size: 22px;
+  letter-spacing: 0.25em;
+}
+
+.panel {
+  background: var(--c-card);
+  border: 1px solid var(--c-card-line);
+  padding: 24px;
+}
+
+.panel-title {
+  font-size: 16px;
+  letter-spacing: 0.25em;
+  color: var(--c-shion-deep);
+  padding-bottom: 10px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--c-shion);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px 20px;
+  align-items: end;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.thumb {
+  width: 44px;
+  height: 44px;
+  background: var(--c-photo);
+  object-fit: cover;
+}
+
+/* 店舗色の見本 */
+.swatches {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.swatch {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: var(--tap-min);
+  padding: 0 14px;
+  border: 1px solid var(--c-card-line);
+  background: var(--c-card);
+  font-family: var(--f-mincho);
+  font-size: 14px;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: border-color var(--dur-hover);
+}
+
+.swatch[aria-pressed='true'] {
+  border-color: var(--c-shion-deep);
+  color: var(--c-shion-deep);
+}
+
+/* 数字の見出し */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0;
+  border-top: 1px solid var(--c-shion);
+  border-bottom: 1px solid var(--c-shion-soft);
+}
+
+.stat {
+  padding: 16px 18px;
+  border-right: 1px solid var(--c-line);
+}
+
+.stat:last-child {
+  border-right: 0;
+}
+
+.stat-label {
+  font-family: var(--f-mincho);
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  color: var(--c-shion-deep);
+}
+
+.stat-value {
+  font-family: var(--f-mono);
+  font-size: 26px;
+  line-height: 1.4;
+}
+
+.stat-note {
+  font-size: 11px;
+  color: var(--c-ink-sub);
+  line-height: 1.6;
+}
+
+/* オプションの組の編集 */
+.og-edit {
+  border: 1px solid var(--c-card-line);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* 金額の入力欄の右に「円」を添える */
+.price-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.price-input .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.og-opt {
+  display: grid;
+  grid-template-columns: 1fr 130px auto auto;
+  gap: 8px;
+  align-items: center;
+}

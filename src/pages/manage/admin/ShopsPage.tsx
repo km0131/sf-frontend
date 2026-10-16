@@ -1,0 +1,190 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState, type FormEvent } from 'react'
+import { Sheet } from '../../../components/Sheet'
+import { apiFetch, errorMessage } from '../../../lib/api'
+import { shopColors } from '../../../lib/colors'
+import type { List, ShopColor } from '../../../lib/types'
+import { ColorPicker, Notice, PageHead, Panel } from '../common'
+import { useManage } from '../context'
+
+export type AdminShop = {
+  id: number
+  slug: string
+  name: string
+  description: string
+  email_enabled: boolean
+  color: ShopColor
+  is_active: boolean
+}
+
+/** システム管理者: 店舗の一覧・追加・編集。 */
+export function ShopsPage() {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const { data, error } = useQuery({
+    queryKey: ['admin', 'shops'],
+    queryFn: () => apiFetch<List<AdminShop>>('/api/admin/shops', { token }).then((r) => r.items),
+  })
+  const [form, setForm] = useState({ slug: '', name: '', color: 'yamabuki' as ShopColor })
+  const [createError, setCreateError] = useState<string | null>(null)
+  const [editing, setEditing] = useState<AdminShop | null>(null)
+
+  const create = async (e: FormEvent) => {
+    e.preventDefault()
+    setCreateError(null)
+    try {
+      await apiFetch('/api/admin/shops', { method: 'POST', token, body: form })
+      setForm({ slug: '', name: '', color: 'yamabuki' })
+      void queryClient.invalidateQueries({ queryKey: ['admin', 'shops'] })
+    } catch (err) {
+      setCreateError(errorMessage(err))
+    }
+  }
+
+  return (
+    <div className="mpage">
+      <PageHead title="店舗" />
+      <Panel title="店舗の一覧">
+        {error && <p className="error-text">{errorMessage(error)}</p>}
+        <div className="table-wrap">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>色</th>
+                <th>店名</th>
+                <th>URL 名</th>
+                <th>メール</th>
+                <th>状態</th>
+                <th>画面</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data?.map((s) => (
+                <tr key={s.id} className="clickable" onClick={() => setEditing(s)}>
+                  <td>
+                    <span className="dot dot-lg" style={{ background: shopColors[s.color].hex }} title={shopColors[s.color].label} />
+                  </td>
+                  <td className="mincho">{s.name}</td>
+                  <td className="mono">{s.slug}</td>
+                  <td>{s.email_enabled ? '送る' : '送らない'}</td>
+                  <td>{s.is_active ? '有効' : <span className="tag tag-strong">停止中</span>}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <div className="row" style={{ gap: 12 }}>
+                      <a href={`/s/${s.slug}/pos`} target="_blank" rel="noopener">
+                        レジ ↗
+                      </a>
+                      <a href={`/s/${s.slug}/display`} target="_blank" rel="noopener">
+                        大画面 ↗
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {data?.length === 0 && <p className="empty">まだ店舗がありません</p>}
+        </div>
+      </Panel>
+
+      <Panel title="店舗を追加">
+        <form className="stack" onSubmit={create}>
+          <div className="form-grid">
+            <label className="field">
+              <span className="field-label">店名</span>
+              <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+            </label>
+            <label className="field">
+              <span className="field-label">URL 名（英小文字・数字・-）</span>
+              <input
+                className="input mono"
+                value={form.slug}
+                placeholder="hiroshimayaki"
+                onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase() })}
+              />
+            </label>
+          </div>
+          <div className="field">
+            <span className="field-label">店舗色</span>
+            <ColorPicker value={form.color} onChange={(c) => setForm({ ...form, color: c })} />
+          </div>
+          <Notice error={createError} />
+          <div>
+            <button type="submit" className="btn btn-primary" disabled={!form.name.trim() || form.slug.length < 2}>
+              追加する
+            </button>
+          </div>
+        </form>
+      </Panel>
+
+      {editing && <ShopEditor shop={editing} onClose={() => setEditing(null)} />}
+    </div>
+  )
+}
+
+function ShopEditor({ shop, onClose }: { shop: AdminShop; onClose: () => void }) {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const [form, setForm] = useState(shop)
+  const [error, setError] = useState<string | null>(null)
+
+  const save = async () => {
+    setError(null)
+    try {
+      await apiFetch(`/api/admin/shops/${shop.id}`, {
+        method: 'PATCH',
+        token,
+        body: {
+          slug: form.slug,
+          name: form.name,
+          description: form.description,
+          email_enabled: form.email_enabled,
+          color: form.color,
+          is_active: form.is_active,
+        },
+      })
+      void queryClient.invalidateQueries({ queryKey: ['admin'] })
+      onClose()
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
+  return (
+    <Sheet title={`${shop.name} の編集`} onClose={onClose} wide>
+      <div className="stack">
+        <div className="form-grid">
+          <label className="field">
+            <span className="field-label">店名</span>
+            <input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </label>
+          <label className="field">
+            <span className="field-label">URL 名</span>
+            <input className="input mono" value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase() })} />
+          </label>
+        </div>
+        <label className="field">
+          <span className="field-label">添え書き</span>
+          <textarea className="textarea" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+        </label>
+        <div className="field">
+          <span className="field-label">店舗色</span>
+          <ColorPicker value={form.color} onChange={(c) => setForm({ ...form, color: c })} />
+        </div>
+        <label className="check">
+          <input type="checkbox" checked={form.email_enabled} onChange={(e) => setForm({ ...form, email_enabled: e.target.checked })} />
+          お客様にメールを送る
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={form.is_active} onChange={(e) => setForm({ ...form, is_active: e.target.checked })} />
+          有効（外すと、注文・ログインができなくなります）
+        </label>
+        <Notice error={error} />
+        <div>
+          <button type="button" className="btn btn-primary" onClick={save}>
+            保存する
+          </button>
+        </div>
+      </div>
+    </Sheet>
+  )
+}
