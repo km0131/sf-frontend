@@ -10,6 +10,7 @@ import { addLine, cartCount, cartTotal, optionNames, toOrderItems, unitPrice, ty
 import { yen } from '../../lib/format'
 import type { Category, MenuItem, Order, StaffShop } from '../../lib/types'
 import { staffKeys } from './keys'
+import { SoldOutSheet } from './SoldOutSheet'
 
 type StaffMenu = { categories: Category[]; items: MenuItem[] }
 
@@ -23,6 +24,8 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
   const [lines, setLines] = useState<CartLine[]>([])
   const [picking, setPicking] = useState<MenuItem | null>(null)
   const [soldOutMode, setSoldOutMode] = useState(false)
+  // 売り切れ設定で開いている商品（選択肢のある商品は、選択肢ごとに切り替える画面を出す）
+  const [soldOutItemId, setSoldOutItemId] = useState<number | null>(null)
   const [received, setReceived] = useState('')
   const [name, setName] = useState('')
   const [sending, setSending] = useState(false)
@@ -37,6 +40,10 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
   const tapItem = async (item: MenuItem) => {
     setError(null)
     if (soldOutMode) {
+      if (item.option_groups.length > 0) {
+        setSoldOutItemId(item.id)
+        return
+      }
       try {
         await apiFetch(`/api/staff/menu-items/${item.id}/availability`, {
           method: 'PATCH',
@@ -53,6 +60,15 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
     if (item.option_groups.length > 0) setPicking(item)
     else setLines((prev) => addLine(prev, item.id, [], 1))
   }
+
+  // 切り替えた商品をすぐ画面に反映し、念のためメニューを取り直す
+  const applyItem = (updated: MenuItem) => {
+    queryClient.setQueryData<StaffMenu>(staffKeys.menu(slug), (old) =>
+      old ? { ...old, items: old.items.map((i) => (i.id === updated.id ? updated : i)) } : old,
+    )
+    void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
+  }
+  const soldOutItem = soldOutItemId != null ? items.get(soldOutItemId) : undefined
 
   const changeQty = (key: string, delta: number) =>
     setLines((prev) =>
@@ -101,7 +117,9 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
         <section aria-label="商品">
           <div className="row" style={{ justifyContent: 'space-between', marginBottom: 12 }}>
             <span className="field-hint">
-              {soldOutMode ? '商品を押すと、売り切れ／販売中が切り替わります。' : '商品を押すとカートに入ります。'}
+              {soldOutMode
+                ? '商品を押すと、売り切れ／販売中が切り替わります。選択肢のある商品は、選択肢ごとに切り替えられます。'
+                : '商品を押すとカートに入ります。'}
             </span>
             <button
               type="button"
@@ -131,7 +149,11 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
                     <span className="mono sub" style={{ fontSize: 13 }}>
                       {item.is_available ? yen(item.price) : '売り切れ'}
                     </span>
-                    {item.option_groups.length > 0 && <span className="sub" style={{ fontSize: 11 }}>選択肢あり</span>}
+                    {item.option_groups.length > 0 && (
+                      <span className="sub" style={{ fontSize: 11 }}>
+                        {item.option_groups.some((g) => g.options.some((o) => !o.is_available)) ? '一部の選択肢が売り切れ' : '選択肢あり'}
+                      </span>
+                    )}
                   </button>
                 ))}
               </div>
@@ -139,7 +161,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
           ))}
         </section>
 
-        <aside className="card pos-cart stack" aria-label="会計">
+        <aside id="pos-cart" className="card pos-cart stack" aria-label="会計">
           <h2 className="panel-title" style={{ marginBottom: 0 }}>
             お会計
           </h2>
@@ -235,6 +257,26 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
               setPicking(null)
             }}
           />
+        </Sheet>
+      )}
+
+      {/* スマホだけ：画面の下に合計を出し、押すとお会計の欄まで移動する（タブレット・PCでは表示しない） */}
+      {lines.length > 0 && !soldOutMode && (
+        <button
+          type="button"
+          className="pos-cartbar"
+          onClick={() => document.getElementById('pos-cart')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+        >
+          <span>お会計へ</span>
+          <span className="mono">
+            {cartCount(lines)}点　{yen(total)}
+          </span>
+        </button>
+      )}
+
+      {soldOutItem && (
+        <Sheet title={`売り切れの設定：${soldOutItem.name}`} onClose={() => setSoldOutItemId(null)}>
+          <SoldOutSheet item={soldOutItem} token={token} onChanged={applyItem} />
         </Sheet>
       )}
 

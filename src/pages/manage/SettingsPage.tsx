@@ -148,7 +148,7 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
           maxLength={500}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
-        <span className="field-hint">お品書きの横に縦書きで出ます。短めに（例: ひとつずつ、鉄板で焼きあげます）。</span>
+        <span className="field-hint">お品書きの横に縦書きで出ます。短めに（例: ひとつずつ、心をこめてお作りします）。</span>
       </label>
       <div className="field">
         <span className="field-label">店舗色</span>

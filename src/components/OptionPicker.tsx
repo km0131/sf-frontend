@@ -9,7 +9,7 @@ type Props = {
   submitLabel?: string
 }
 
-/** オプション（麺・トッピングなど）を選んで数量を決める。必須の組が未選択なら追加できない。 */
+/** オプション（サイズ・トッピングなど）を選んで数量を決める。必須の組が未選択なら追加できない。 */
 export function OptionPicker({ item, onAdd, submitLabel = '加える' }: Props) {
   const [chosen, setChosen] = useState<Record<number, number[]>>(() => {
     // 必須で1つだけ選ぶ組は、選べる最初の選択肢を選んでおく
