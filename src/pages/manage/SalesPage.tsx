@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { BarChart, InlineBar } from '../../components/BarChart'
+import { PieChart } from '../../components/PieChart'
 import { API_BASE_URL, apiFetch, errorMessage } from '../../lib/api'
 import { yen } from '../../lib/format'
 import { Notice, PageHead, Panel } from './common'
@@ -92,6 +93,8 @@ export function SalesPage() {
   const maxItem = Math.max(0, ...(items.data?.items.map((i) => i.revenue) ?? []))
   const maxEvent = Math.max(0, ...(events.data?.items.map((e) => e.revenue) ?? []))
   const channelTotal = s?.by_channel.reduce((a, c) => a + c.revenue, 0) ?? 0
+  // 選択肢は組ごとに円グラフにする（組の中での選ばれ方の割合）。選択肢が1つしかない組は円にしない
+  const optionGroups = groupOptions(items.data?.options ?? []).filter((g) => g.options.length >= 2)
 
   return (
     <div className="mpage">
@@ -167,6 +170,14 @@ export function SalesPage() {
         </Panel>
 
         <Panel title="商品別">
+          {items.data && items.data.items.length > 0 && (
+            <div style={{ marginBottom: 20 }}>
+              <h4 className="field-label" style={{ margin: '0 0 8px' }}>
+                売上の内訳
+              </h4>
+              <PieChart data={items.data.items} name={(it) => it.name} value={(it) => it.revenue} format={yen} label="売上" />
+            </div>
+          )}
           <div className="table-wrap">
             <table className="table">
               <thead>
@@ -194,9 +205,19 @@ export function SalesPage() {
           </div>
           {items.data && items.data.options.length > 0 && (
             <>
-              <h4 className="field-label" style={{ margin: '20px 0 4px' }}>
+              <h4 className="field-label" style={{ margin: '20px 0 8px' }}>
                 選択肢の選ばれ方
               </h4>
+              {optionGroups.length > 0 && (
+                <div className="pie-grid" style={{ marginBottom: 16 }}>
+                  {optionGroups.map((g) => (
+                    <div key={g.group} style={{ minWidth: 0 }}>
+                      <h5 className="pie-grid-title">{g.group}</h5>
+                      <PieChart data={g.options} name={(o) => o.name} value={(o) => o.quantity} format={(v) => `${v}個`} label="個数" size={132} />
+                    </div>
+                  ))}
+                </div>
+              )}
               <table className="table">
                 <tbody>
                   {items.data.options.map((o) => (
@@ -233,7 +254,7 @@ export function SalesPage() {
             <Stat label="ふつう（中央値）" value={minutes(waits.data?.p50_seconds ?? null)} />
             <Stat label="遅いほうの1割" value={minutes(waits.data?.p90_seconds ?? null)} note="これより長く待った注文が1割" />
             <Stat label="いちばん長い" value={minutes(waits.data?.max_seconds ?? null)} />
-            <Stat label="焼き時間の平均" value={minutes(waits.data?.avg_cook_seconds ?? null)} note="焼き中 → できあがり" />
+            <Stat label="調理時間の平均" value={minutes(waits.data?.avg_cook_seconds ?? null)} note="調理中 → できあがり" />
           </div>
         </Panel>
 
@@ -290,6 +311,17 @@ export function SalesPage() {
       </div>
     </div>
   )
+}
+
+/** 選択肢の集計を組ごとにまとめる（組は最初に出てきた順）。 */
+function groupOptions(options: Items['options']): { group: string; options: Items['options'] }[] {
+  const byGroup = new Map<string, Items['options']>()
+  for (const o of options) {
+    const list = byGroup.get(o.group)
+    if (list) list.push(o)
+    else byGroup.set(o.group, [o])
+  }
+  return [...byGroup].map(([group, opts]) => ({ group, options: opts }))
 }
 
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {

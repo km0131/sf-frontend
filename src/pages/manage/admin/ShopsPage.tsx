@@ -98,7 +98,7 @@ export function ShopsPage() {
               <input
                 className="input mono"
                 value={form.slug}
-                placeholder="hiroshimayaki"
+                placeholder="class-2a"
                 onChange={(e) => setForm({ ...form, slug: e.target.value.toLowerCase() })}
               />
             </label>

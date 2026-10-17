@@ -327,3 +327,85 @@
   flex: 0 0 calc((100% - (var(--per) - 1) * var(--gap)) / var(--per));
   min-width: 0;
 }
+
+/* レジの「お会計へ」の帯（スマホだけで表示） */
+.pos-cartbar {
+  display: none;
+}
+
+/* ===== スマホ（幅600px以下）。タブレット・PCの見た目は変えない ===== */
+@media (max-width: 600px) {
+  .staff-tab {
+    padding: 0 10px;
+    letter-spacing: 0.12em;
+  }
+
+  /* 注文帳：3列を横に並べ、指で左右に送る（次の列の端を少し見せる） */
+  .board {
+    display: flex;
+    gap: 16px;
+    margin: 0 -16px;
+    padding: 20px 16px 0;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding: 0 16px;
+    overscroll-behavior-x: contain;
+  }
+
+  .board > section {
+    flex: 0 0 86%;
+    min-width: 0;
+    scroll-snap-align: start;
+  }
+
+  .col-cards {
+    gap: 10px;
+  }
+
+  /* レジ：商品は2列。帯に隠れないよう下に余白を取る */
+  .pos {
+    gap: 24px;
+    padding-top: 16px;
+    padding-bottom: 72px;
+  }
+
+  .pos-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .pos-item {
+    min-height: 76px;
+    padding: 10px 12px;
+  }
+
+  .pos-item-name {
+    font-size: 15px;
+  }
+
+  .pos-cart {
+    position: static;
+  }
+
+  .pos-cartbar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: var(--btn-h);
+    padding: 12px max(16px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    border: 0;
+    background: var(--c-shion-deep);
+    color: var(--c-ground);
+    font-family: var(--f-mincho);
+    font-weight: 600;
+    font-size: 16px;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+  }
+}

@@ -72,7 +72,7 @@ export function OrdersPage() {
       <Panel title={data ? `結果 ${data.total}件` : '結果'}>
         {error && <p className="error-text">{errorMessage(error)}</p>}
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-cards table-cards-orders">
             <thead>
               <tr>
                 <th>番号</th>
@@ -88,16 +88,16 @@ export function OrdersPage() {
             <tbody>
               {data?.items.map((o) => (
                 <tr key={o.id} className="clickable" onClick={() => setSelected(o.id)}>
-                  <td className="mono">{o.order_no}</td>
-                  <td className="mono">{mdhm(o.created_at)}</td>
-                  <td>{o.channel === 'web' ? 'Web' : 'レジ'}</td>
-                  <td>{statusLabel[o.status]}</td>
-                  <td>{o.paid ? '支払済' : <span className="tag tag-strong">未払い</span>}</td>
-                  <td>{o.customer_name ?? '—'}</td>
-                  <td className="mono" style={{ fontSize: 12 }}>
+                  <td className="mono cell-title">{o.order_no}</td>
+                  <td className="mono" data-label="日時">{mdhm(o.created_at)}</td>
+                  <td data-label="経路">{o.channel === 'web' ? 'Web' : 'レジ'}</td>
+                  <td data-label="状態">{statusLabel[o.status]}</td>
+                  <td data-label="支払い">{o.paid ? '支払済' : <span className="tag tag-strong">未払い</span>}</td>
+                  <td data-label="お名前">{o.customer_name ?? '—'}</td>
+                  <td className="mono cell-wide" style={{ fontSize: 12 }} data-label="メール">
                     {o.email ?? '—'}
                   </td>
-                  <td className="num">{yen(o.total)}</td>
+                  <td className="num" data-label="合計">{yen(o.total)}</td>
                 </tr>
               ))}
             </tbody>

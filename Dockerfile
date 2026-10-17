@@ -10,7 +10,9 @@ RUN npm ci
 # ---- 開発サーバー（docker compose up で使う。ソースはマウントしてホットリロード） ----
 FROM deps AS dev
 EXPOSE 5173
-CMD ["npm", "run", "dev"]
+# node_modules は名前付きボリュームなので、イメージを作り直しても中身は古いまま残る。
+# package-lock.json が前回の起動から変わっていたら、起動前に入れ直す。
+CMD ["sh", "-c", "sum=$(sha256sum package-lock.json); [ \"$(cat node_modules/.lock-sum 2>/dev/null)\" = \"$sum\" ] || { npm install --no-audit --no-fund && echo \"$sum\" > node_modules/.lock-sum; }; exec npm run dev"]
 
 # ---- 本番ビルド ----
 FROM deps AS build

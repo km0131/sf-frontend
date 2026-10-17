@@ -44,7 +44,7 @@ export function ProductsPage() {
       <Panel title="お品書き">
         {items.error && <p className="error-text">{errorMessage(items.error)}</p>}
         <div className="table-wrap">
-          <table className="table">
+          <table className="table table-cards table-cards-products">
             <thead>
               <tr>
                 <th>写真</th>
@@ -59,27 +59,34 @@ export function ProductsPage() {
             <tbody>
               {items.data?.map((it) => (
                 <tr key={it.id} className="clickable" onClick={() => setEditing(it)}>
-                  <td>
+                  <td className="cell-thumb">
                     {it.image_url ? <img className="thumb" src={mediaUrl(it.image_url)} alt="" /> : <span className="thumb" style={{ display: 'block' }} />}
                   </td>
-                  <td className="mincho" style={{ fontSize: 15 }}>
+                  <td className="mincho cell-title" style={{ fontSize: 15 }}>
                     {it.name}
                   </td>
-                  <td>{catName(it.category_id)}</td>
-                  <td className="num">{yen(it.price)}</td>
-                  <td className="sub" style={{ fontSize: 12 }}>
+                  <td data-label="カテゴリ">{catName(it.category_id)}</td>
+                  <td className="num" data-label="価格">{yen(it.price)}</td>
+                  <td className="sub" style={{ fontSize: 12 }} data-label="選択肢">
                     {it.option_groups.map((g) => g.name).join('・') || '—'}
                   </td>
-                  <td>
+                  <td data-label="状態">
                     {it.is_archived ? (
                       <span className="tag">削除済み</span>
                     ) : it.is_available ? (
-                      <span className="tag">販売中</span>
+                      <>
+                        <span className="tag">販売中</span>
+                        {it.option_groups.some((g) => g.options.some((o) => !o.is_available)) && (
+                          <span className="sub" style={{ display: 'block', fontSize: 11 }}>
+                            一部の選択肢が売り切れ
+                          </span>
+                        )}
+                      </>
                     ) : (
                       <span className="tag tag-strong">売り切れ</span>
                     )}
                   </td>
-                  <td className="num">{it.sort_order}</td>
+                  <td className="num" data-label="並び">{it.sort_order}</td>
                 </tr>
               ))}
             </tbody>
@@ -133,7 +140,7 @@ function CategoriesPanel({ categories }: { categories: Category[] }) {
           />
         ))}
         <form
-          className="row"
+          className="row cat-row"
           onSubmit={(e) => {
             e.preventDefault()
             void act(() =>
@@ -145,7 +152,7 @@ function CategoriesPanel({ categories }: { categories: Category[] }) {
             ).then(() => setName(''))
           }}
         >
-          <input className="input" placeholder="新しいカテゴリ（例: お好み焼き）" value={name} maxLength={50} onChange={(e) => setName(e.target.value)} />
+          <input className="input" placeholder="新しいカテゴリ（例: フード）" value={name} maxLength={50} onChange={(e) => setName(e.target.value)} />
           <button type="submit" className="btn btn-secondary" disabled={!name.trim()}>
             追加
           </button>
@@ -169,7 +176,7 @@ function CategoryRow({
   const [sort, setSort] = useState(String(category.sort_order))
   const dirty = name !== category.name || sort !== String(category.sort_order)
   return (
-    <div className="row">
+    <div className="row cat-row">
       <input className="input" value={name} maxLength={50} onChange={(e) => setName(e.target.value)} aria-label="カテゴリ名" />
       <input
         className="input mono"
@@ -380,14 +387,14 @@ function ItemEditor({ item, categories, onClose }: { item: MenuItem | null; cate
         </label>
 
         <div className="field">
-          <span className="field-label">選択肢（麺の種類・トッピングなど）</span>
+          <span className="field-label">選択肢（サイズ・トッピングなど）</span>
           {groups.map((g, gi) => (
             <div key={gi} className="og-edit">
               <div className="row" style={{ flexWrap: 'wrap' }}>
                 <input
                   className="input"
                   style={{ flex: 1, minWidth: 160 }}
-                  placeholder="組の名前（例: 麺）"
+                  placeholder="組の名前（例: サイズ）"
                   value={g.name}
                   onChange={(e) => setGroup(gi, { name: e.target.value })}
                 />
@@ -434,7 +441,7 @@ function ItemEditor({ item, categories, onClose }: { item: MenuItem | null; cate
               </div>
               {g.options.map((o, oi) => (
                 <div key={oi} className="og-opt">
-                  <input className="input" placeholder="選択肢（例: うどん）" value={o.name} onChange={(e) => setOption(gi, oi, { name: e.target.value })} />
+                  <input className="input" placeholder="選択肢（例: 大盛り）" value={o.name} onChange={(e) => setOption(gi, oi, { name: e.target.value })} />
                   <span className="price-input">
                     <input
                       className="input mono"

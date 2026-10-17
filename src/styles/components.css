@@ -581,3 +581,107 @@
   line-height: 1.7;
   color: var(--c-ink-sub);
 }
+
+/* ===== スマホ（幅600px以下）のスタッフ・管理画面。タブレット・PCの見た目は変えない ===== */
+@media (max-width: 600px) {
+  .page-pc {
+    padding: 0 16px 32px;
+  }
+
+  .page-pc .hdr {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 16px 0 12px;
+  }
+
+  .page-pc .hdr-name {
+    font-size: 17px;
+    letter-spacing: 0.12em;
+  }
+
+  /* ターミナル1行：左右に並べると重なるので、2行に分ける */
+  .page-pc .term {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+  }
+
+  .page-pc .term-aside {
+    white-space: normal;
+  }
+
+  /* 見出しのある一覧表は、文字を押しつぶさずに横にスクロールさせる */
+  .page-pc .table:has(thead) {
+    display: block;
+    overflow-x: auto;
+  }
+
+  .page-pc .table:has(thead) th,
+  .page-pc .table:has(thead) td {
+    white-space: nowrap;
+  }
+
+  /* よく使う一覧（商品・注文）はカードの形にする。各欄の見出しは data-label から出す */
+  .page-pc .table.table-cards thead {
+    display: none;
+  }
+
+  .page-pc .table.table-cards tbody {
+    display: block;
+  }
+
+  .page-pc .table.table-cards tr {
+    display: grid;
+    gap: 6px 16px;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--c-line);
+  }
+
+  .page-pc .table.table-cards td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: left;
+    white-space: normal;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .page-pc .table.table-cards td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--f-gothic);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    line-height: 1.6;
+    color: var(--c-ink-sub);
+  }
+
+  .page-pc .table.table-cards .cell-title {
+    grid-column: 1 / -1;
+    font-size: 16px;
+  }
+
+  /* 商品：左に写真、右に2列 */
+  .page-pc .table.table-cards-products tr {
+    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .page-pc .table.table-cards-products .cell-thumb {
+    grid-column: 1;
+    grid-row: 1 / span 4;
+  }
+
+  .page-pc .table.table-cards-products .cell-title {
+    grid-column: 2 / -1;
+  }
+
+  /* 注文：2列。メールアドレスは1行を使う */
+  .page-pc .table.table-cards-orders tr {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .page-pc .table.table-cards .cell-wide {
+    grid-column: 1 / -1;
+  }
+}
