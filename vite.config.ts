@@ -29,7 +29,7 @@ function securityHeaders(apiBaseUrl: string): Record<string, string> {
   }
 }
 
-/** Cloudflare Pages 用の _headers を dist/ に書き出す（nginx のプレビューもこれを読み込む）。 */
+/** Cloudflare Workers 用の _headers を dist/ に書き出す（nginx のプレビューもこれを読み込む）。 */
 function headersFile(apiBaseUrl: string): Plugin {
   return {
     name: 'sf-headers-file',

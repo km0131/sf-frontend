@@ -1,0 +1,12 @@
+// Cloudflare Workers（静的アセット）で dist/ を配信する設定。
+// name は Cloudflare ダッシュボードの Worker 名と同じにすること。
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sf-frontend",
+  "compatibility_date": "2026-10-12",
+  "assets": {
+    "directory": "./dist",
+    // React の画面遷移（/s/hiroshimayaki/pos など）はすべて index.html を返す
+    "not_found_handling": "single-page-application"
+  }
+}
