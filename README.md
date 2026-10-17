@@ -2,7 +2,7 @@
 
 学園祭の模擬店向け注文・順番管理システムの画面です。お客様のスマホ、レジ・厨房のタブレット、出来上がり番号の大画面、店長・システム管理者の管理画面を、1つの React アプリの中で URL ごとに切り替えます。
 
-API は [`../backend`](../backend/README.md) です。本番では Cloudflare Pages（`app.example.com`）から配信し、ラズパイ上の API（`api.example.com`）を呼びます。
+API は [`../backend`](../backend/README.md) です。本番では Cloudflare Workers（`app.example.com`）から配信し、ラズパイ上の API（`api.example.com`）を呼びます。
 
 ## 技術スタック
 
@@ -133,7 +133,7 @@ src/
   - 面では塗らず、選んだ品の点・調理中の点・呼び出し番号の下の線だけに使います。
 - **フォント**:
   - 見出しは Shippori Mincho B1、本文は Zen Kaku Gothic New、番号・価格・時刻は JetBrains Mono です。
-  - Google Fonts から読み込みます（`index.html`）。読み込めないときは、端末の明朝体・ゴシック体で表示します。
+  - `@fontsource/*` パッケージで自ドメインから配信します（`src/main.tsx`）。外部 CDN には頼らないので、CSP で読み込み元を自ドメインに限れます。読み込めないときは、端末の明朝体・ゴシック体で表示します。
 - **形**: 角丸・影・グラデーションは使いません。区切りは 1px の罫線です。
 - **ターミナル表現**:
   - 紫苑の罫線2本の間に「＞ コマンド」とカーソルを置きます（`TerminalLine`）。
@@ -144,12 +144,17 @@ src/
 
 ## 本番のビルドと配信
 
-### Cloudflare Pages
+### Cloudflare Workers（静的アセット）
 
+`wrangler.jsonc` の設定で `dist/` を配信します。
+
+- ルートディレクトリ: `frontend`
 - ビルドコマンド: `npm run build`
-- 出力先: `dist`
-- 環境変数: `VITE_API_BASE_URL=https://api.example.com`、`VITE_TURNSTILE_SITE_KEY=...`
-- 画面の切り替えはブラウザ側で行うので、どの URL でも `index.html` を返す設定にしてください。
+- デプロイコマンド: `npx wrangler deploy`（Workers Builds の既定のままでよい）
+- ビルド変数: `VITE_API_BASE_URL=https://api.example.com`、`VITE_TURNSTILE_SITE_KEY=...`。値はビルド時に埋め込まれるので、実行時の変数ではなく「ビルド変数」に設定してください。
+- `wrangler.jsonc` の `name` は、ダッシュボードの Worker 名と同じにしてください。
+- 画面の切り替えはブラウザ側で行うので、存在しない URL には `index.html` を返します（`not_found_handling: "single-page-application"`）。
+- セキュリティヘッダー（CSP・`X-Frame-Options`・HSTS・`nosniff` など）は、ビルド時に `dist/_headers` として書き出します（`vite.config.ts`）。CSP の接続先には `VITE_API_BASE_URL` のオリジンが入るので、API の URL を変えたらビルドし直してください。
 
 ### ビルド結果の取り出し・確認
 
@@ -161,4 +166,4 @@ docker build --target dist --build-arg VITE_API_BASE_URL=https://api.example.com
 docker compose --profile preview up -d --build preview
 ```
 
-nginx の設定（`nginx.conf`）は、`/assets/` を1年キャッシュし、それ以外の URL には `index.html` を返します。
+nginx の設定（`nginx.conf`）は、`/assets/` を1年キャッシュし、それ以外の URL には `index.html` を返します。セキュリティヘッダーは `dist/_headers` から作るので、Cloudflare Workers と同じものが付きます。
