@@ -31,4 +31,10 @@ COPY --from=build /app/dist /
 FROM nginx:1.29-alpine AS preview
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
+# _headers の「/*」の部分を nginx の add_header に書き換える（_headers 自体は配信しない）
+RUN awk '/^\/\*$/ { on = 1; next } /^[^ ]/ { on = 0 } on && /^  [^:]+: / { \
+        name = $1; sub(/:$/, "", name); value = $0; sub(/^  [^:]+: /, "", value); \
+        printf "add_header %s \"%s\" always;\n", name, value }' \
+      /usr/share/nginx/html/_headers > /etc/nginx/security-headers.conf \
+ && rm /usr/share/nginx/html/_headers
 EXPOSE 80

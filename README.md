@@ -133,7 +133,7 @@ src/
   - 面では塗らず、選んだ品の点・調理中の点・呼び出し番号の下の線だけに使います。
 - **フォント**:
   - 見出しは Shippori Mincho B1、本文は Zen Kaku Gothic New、番号・価格・時刻は JetBrains Mono です。
-  - Google Fonts から読み込みます（`index.html`）。読み込めないときは、端末の明朝体・ゴシック体で表示します。
+  - `@fontsource/*` パッケージで自ドメインから配信します（`src/main.tsx`）。外部 CDN には頼らないので、CSP で読み込み元を自ドメインに限れます。読み込めないときは、端末の明朝体・ゴシック体で表示します。
 - **形**: 角丸・影・グラデーションは使いません。区切りは 1px の罫線です。
 - **ターミナル表現**:
   - 紫苑の罫線2本の間に「＞ コマンド」とカーソルを置きます（`TerminalLine`）。
@@ -150,6 +150,7 @@ src/
 - 出力先: `dist`
 - 環境変数: `VITE_API_BASE_URL=https://api.example.com`、`VITE_TURNSTILE_SITE_KEY=...`
 - 画面の切り替えはブラウザ側で行うので、どの URL でも `index.html` を返す設定にしてください。
+- セキュリティヘッダー（CSP・`X-Frame-Options`・HSTS・`nosniff` など）は、ビルド時に `dist/_headers` として書き出します（`vite.config.ts`）。CSP の接続先には `VITE_API_BASE_URL` のオリジンが入るので、API の URL を変えたらビルドし直してください。
 
 ### ビルド結果の取り出し・確認
 
@@ -161,4 +162,4 @@ docker build --target dist --build-arg VITE_API_BASE_URL=https://api.example.com
 docker compose --profile preview up -d --build preview
 ```
 
-nginx の設定（`nginx.conf`）は、`/assets/` を1年キャッシュし、それ以外の URL には `index.html` を返します。
+nginx の設定（`nginx.conf`）は、`/assets/` を1年キャッシュし、それ以外の URL には `index.html` を返します。セキュリティヘッダーは `dist/_headers` から作るので、Cloudflare Pages と同じものが付きます。
