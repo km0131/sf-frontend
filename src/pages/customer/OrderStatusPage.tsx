@@ -118,6 +118,13 @@ export function OrderStatusPage() {
           </div>
         </div>
 
+        {o.note && (
+          <p className="order-note">
+            <span className="order-note-label">ご希望</span>
+            {o.note}
+          </p>
+        )}
+
         <Log entries={log} waiting={waitingText[o.status]} />
 
         <div className="stack" style={{ gap: 10 }}>

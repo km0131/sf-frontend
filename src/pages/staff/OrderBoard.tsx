@@ -198,6 +198,12 @@ function OrderCard({
           </div>
         ))}
       </div>
+      {o.note && (
+        <p className="order-note" style={{ marginBottom: 14 }}>
+          <span className="order-note-label">ご希望</span>
+          {o.note}
+        </p>
+      )}
       <div className="ocard-foot">
         {o.paid ? (
           <span className="tag">支払済</span>

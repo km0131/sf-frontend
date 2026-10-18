@@ -203,6 +203,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [note, setNote] = useState('')
   const [token, setToken] = useState<string | null>(null)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -220,6 +221,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
             items: toOrderItems(lines),
             customer_name: name.trim() || undefined,
             email: email.trim() || undefined,
+            note: note.trim() || undefined,
             turnstile_token: token ?? '',
           },
         },
@@ -266,6 +268,18 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
           </div>
         </div>
 
+        <label className="field">
+          <span className="field-label">ご希望（任意）</span>
+          <textarea
+            className="textarea"
+            rows={2}
+            value={note}
+            maxLength={200}
+            placeholder="例: 〇〇抜き、氷少なめ"
+            onChange={(e) => setNote(e.target.value)}
+          />
+          <span className="field-hint">抜いてほしいものなどがあれば書いてください（200文字まで）。ご希望はお作りするときにだけ使い、学園祭の終了から30日後に消去します。</span>
+        </label>
         <label className="field">
           <span className="field-label">お名前（任意）</span>
           <input className="input" value={name} maxLength={50} autoComplete="name" onChange={(e) => setName(e.target.value)} />

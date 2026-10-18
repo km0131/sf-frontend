@@ -28,6 +28,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
   const [soldOutItemId, setSoldOutItemId] = useState<number | null>(null)
   const [received, setReceived] = useState('')
   const [name, setName] = useState('')
+  const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<{ order: Order; ahead: number; change: number } | null>(null)
@@ -82,12 +83,13 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
       const res = await apiFetch<{ order: Order; waiting_ahead: number }>('/api/staff/orders', {
         method: 'POST',
         token,
-        body: { items: toOrderItems(lines), customer_name: name.trim() || undefined },
+        body: { items: toOrderItems(lines), customer_name: name.trim() || undefined, note: note.trim() || undefined },
       })
       setResult({ order: res.order, ahead: res.waiting_ahead, change })
       setLines([])
       setReceived('')
       setName('')
+      setNote('')
     } catch (e) {
       setError(errorMessage(e))
       void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
@@ -234,6 +236,18 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
           <label className="field">
             <span className="field-label">お名前（任意）</span>
             <input className="input" value={name} maxLength={50} onChange={(e) => setName(e.target.value)} />
+          </label>
+
+          <label className="field">
+            <span className="field-label">ご希望（任意）</span>
+            <textarea
+              className="textarea"
+              rows={2}
+              value={note}
+              maxLength={200}
+              placeholder="例: 〇〇抜き、氷少なめ"
+              onChange={(e) => setNote(e.target.value)}
+            />
           </label>
 
           {error && <p className="error-text">{error}</p>}
