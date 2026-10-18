@@ -365,6 +365,26 @@
   accent-color: var(--c-shion-deep);
 }
 
+/* 注文のご希望（注文帳・注文状況・管理画面で共通）。改行はそのまま見せる */
+.order-note {
+  margin: 0;
+  padding: 8px 12px;
+  border-left: 2px solid var(--c-shion-deep);
+  background: rgba(87, 74, 128, 0.06);
+  font-size: 14px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.order-note-label {
+  display: block;
+  font-family: var(--f-mincho);
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--c-shion-deep);
+}
+
 .error-text {
   font-size: 13px;
   line-height: 1.7;

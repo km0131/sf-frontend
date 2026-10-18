@@ -190,6 +190,10 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                 </td>
               </tr>
               <tr>
+                <th>ご希望</th>
+                <td style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{o.note ?? '—'}</td>
+              </tr>
+              <tr>
                 <th>時刻</th>
                 <td className="mono" style={{ fontSize: 12 }}>
                   受付 {mdhm(o.created_at)}

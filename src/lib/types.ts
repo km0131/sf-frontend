@@ -100,6 +100,8 @@ export type Order = {
   channel: 'web' | 'pos'
   status: OrderStatus
   customer_name: string | null
+  /** お客様・レジで入力したご希望（例: 〇〇抜き） */
+  note: string | null
   total: number
   paid: boolean
   cancel_reason: string | null
