@@ -4,6 +4,9 @@ export type ShopColor = 'yamabuki' | 'seiji' | 'sakuranezumi' | 'sabiasagi'
 
 export type OrderStatus = 'waiting' | 'cooking' | 'ready' | 'done' | 'cancelled'
 
+/** 店舗の種類。food（飲食）は調理の段階を使い、non_food（飲食以外）は使わない（待ち → 呼び出し → 完了） */
+export type BusinessType = 'food' | 'non_food'
+
 export type Role = 'system_admin' | 'shop_manager' | 'staff'
 
 export type PublicShop = {
@@ -11,6 +14,7 @@ export type PublicShop = {
   name: string
   description: string
   color: ShopColor
+  business_type: BusinessType
   order_prefix: string
   waiting_count: number
   estimated_wait_minutes: number | null
@@ -68,6 +72,7 @@ export type PublicMenu = {
     name: string
     description: string
     color: ShopColor
+    business_type: BusinessType
     order_prefix: string
     event_name: string
     waiting_count: number
@@ -115,7 +120,7 @@ export type Order = {
 }
 
 export type CustomerOrder = Order & {
-  shop: { slug: string; name: string; color: ShopColor }
+  shop: { slug: string; name: string; color: ShopColor; business_type: BusinessType }
   waiting_ahead: number
   estimated_wait_minutes: number | null
 }
@@ -140,6 +145,7 @@ export type LoginResponse = {
 }
 
 export type StaffShop = ShopInfo & {
+  business_type: BusinessType
   paused: boolean
   pause_message: string
   order_prefix: string
@@ -149,6 +155,7 @@ export type StaffShop = ShopInfo & {
 export type DisplaySnapshot = {
   shop: string
   color: ShopColor
+  business_type: BusinessType
   preparing: string[]
   ready: string[]
 }
@@ -159,7 +166,7 @@ export type List<T> = { items: T[] }
 export type NumberStatus = {
   order_no: string
   status: OrderStatus
-  shop: { slug: string; name: string; color: ShopColor }
+  shop: { slug: string; name: string; color: ShopColor; business_type: BusinessType }
   waiting_ahead: number
   estimated_wait_minutes: number | null
 }
@@ -170,6 +177,7 @@ export type AllDisplaySnapshot = {
     slug: string
     name: string
     color: ShopColor
+    business_type: BusinessType
     order_prefix: string
     preparing: string[]
     ready: string[]

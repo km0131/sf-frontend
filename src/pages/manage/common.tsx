@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { shopColors } from '../../lib/colors'
-import type { ShopColor } from '../../lib/types'
+import type { BusinessType, ShopColor } from '../../lib/types'
+import { businessTypeLabels } from '../../lib/wording'
 
 export function PageHead({ title, children }: { title: string; children?: ReactNode }) {
   return (
@@ -25,6 +26,19 @@ export function Notice({ error, ok }: { error?: string | null; ok?: string | nul
   if (error) return <p className="error-text">{error}</p>
   if (ok) return <p className="sub" style={{ fontSize: 13 }}>{ok}</p>
   return null
+}
+
+/** 店舗の種類（飲食 / 飲食以外）を選ぶ。 */
+export function BusinessTypePicker({ value, onChange }: { value: BusinessType; onChange: (t: BusinessType) => void }) {
+  return (
+    <div className="swatches" role="group" aria-label="店舗の種類">
+      {(Object.keys(businessTypeLabels) as BusinessType[]).map((t) => (
+        <button key={t} type="button" className="swatch" aria-pressed={value === t} onClick={() => onChange(t)}>
+          {businessTypeLabels[t]}
+        </button>
+      ))}
+    </div>
+  )
 }
 
 /** 店舗色を4色から選ぶ。 */

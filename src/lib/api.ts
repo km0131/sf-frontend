@@ -84,6 +84,8 @@ const messages: Record<string, string> = {
   order_prefix_taken: 'その頭文字は、この開催回でほかの店が使っています。',
   email_taken: 'そのメールアドレスはすでに使われています。',
   shop_has_orders: '注文がある出店は取り消せません。',
+  active_orders_exist: '進行中（受付・調理中）の注文があるため、店舗の種類を変えられません。取り消すか完了にしてから変えてください。',
+  status_not_allowed: 'この店舗では使わない状態です。画面を読み込み直してください。',
   payload_too_large: 'ファイルが大きすぎます（5MBまで）。',
   unsupported_image: 'JPEG・PNG・WebP の画像を選んでください。',
 }
