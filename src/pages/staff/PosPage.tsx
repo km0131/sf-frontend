@@ -9,6 +9,7 @@ import { apiFetch, errorMessage } from '../../lib/api'
 import { addLine, cartCount, cartTotal, optionNames, toOrderItems, unitPrice, type CartLine } from '../../lib/cart'
 import { yen } from '../../lib/format'
 import type { Category, MenuItem, Order, StaffShop } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
 import { SoldOutSheet } from './SoldOutSheet'
 
@@ -301,7 +302,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
               <div className="call-no">{result.order.order_no}</div>
               <div className="call-line" aria-hidden="true" />
               <p className="sub" style={{ marginTop: 12 }}>
-                {result.ahead > 0 ? `前に${result.ahead}組お待ちです` : 'すぐにお作りします'}
+                {result.ahead > 0 ? `前に${result.ahead}組お待ちです` : wording(shop?.business_type).posSoon}
               </p>
             </VerticalLabel>
             <div className="row" style={{ justifyContent: 'space-between' }}>

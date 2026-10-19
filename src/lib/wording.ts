@@ -56,6 +56,7 @@ export type Wording = {
   finishButton: string
   unpaidNotice: string
   cancelNotice: string
+  cancelPaidNotice: string
   cancelPlaceholder: string
   posSoon: string
 
@@ -136,6 +137,7 @@ const food: Wording = {
   finishButton: '受け取って、お渡し済みにする',
   unpaidNotice: 'まだお代金を受け取っていない注文です。',
   cancelNotice: '取り消した注文は元に戻せません（店長の管理画面からは直せます）。',
+  cancelPaidNotice: ' 支払い済みの注文です。返金を忘れずに。',
   cancelPlaceholder: '受け取りに来ない、など',
   posSoon: 'すぐにお作りします',
 
@@ -203,13 +205,15 @@ const nonFood: Wording = {
     { status: 'waiting', num: '壱', title: '待ち' },
     { status: 'ready', num: '弐', title: '呼び出し中' },
   ],
-  advance: { waiting: '呼び出す', ready: '完了' },
-  nextStatus: { waiting: 'ready', ready: 'done' },
+  // 調理中は使わない（種類を変える前の注文が残っていても、呼び出しへ進められるようにしておく）
+  advance: { waiting: '呼び出す', cooking: '呼び出す', ready: '完了' },
+  nextStatus: { waiting: 'ready', cooking: 'ready', ready: 'done' },
   doneLog: '完了',
   finishTitle: 'の完了',
   finishButton: '受け取って、完了にする',
   unpaidNotice: 'まだお代金を受け取っていない受付です。',
   cancelNotice: '取り消した受付は元に戻せません（店長の管理画面からは直せます）。',
+  cancelPaidNotice: ' 支払い済みの受付です。返金を忘れずに。',
   cancelPlaceholder: '来られなかった、など',
   posSoon: 'まもなくお呼びします',
 
