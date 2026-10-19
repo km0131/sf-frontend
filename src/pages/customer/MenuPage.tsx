@@ -24,7 +24,8 @@ import {
 import { storeStyle } from '../../lib/colors'
 import { seq2, waitLabel, yen } from '../../lib/format'
 import { myOrders } from '../../lib/session'
-import type { CustomerOrder, MenuItem, PublicMenu } from '../../lib/types'
+import type { BusinessType, CustomerOrder, MenuItem, PublicMenu } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
 
 const webMaxQuantity = 5
@@ -48,7 +49,7 @@ export function MenuPage() {
   const total = cartTotal(validLines, items)
 
   if (error instanceof ApiError && error.code === 'shop_not_open') {
-    return <NotFoundPage message="このお店は、いま注文を受け付けていません。" />
+    return <NotFoundPage message="このお店は、いま受付をしていません。" />
   }
   if (isLoading || !data) {
     return (
@@ -71,11 +72,12 @@ export function MenuPage() {
     else setLines((prev) => addLine(pruneLines(prev, items), item.id, [], 1))
   }
 
+  const w = wording(shop.business_type)
   return (
     <div className="page-sp" style={storeStyle(shop.color)}>
       <Header name={shop.name} aside={shop.event_name} />
       <TerminalLine
-        command="お品書きを表示"
+        command={w.menuCommand}
         aside={`待ち ${shop.waiting_count}組 ${waitLabel(shop.estimated_wait_minutes)}`}
       />
       <div className="row" style={{ paddingTop: 12 }}>
@@ -86,10 +88,10 @@ export function MenuPage() {
       {shop.paused && <PausedNotice message={shop.pause_message} />}
 
       <section className="intro fade-in">
-        <VerticalLabel text="お品書き" note={shop.description || 'ご注文はおひとり様 5点まで'} />
+        <VerticalLabel text={w.menuTitle} note={shop.description || w.menuLimitNote} />
       </section>
 
-      <section className="fade-in" aria-label="お品書き">
+      <section className="fade-in" aria-label={w.menuTitle}>
         <div>
           {groups.map((g) => (
             <div key={g.name}>
@@ -148,18 +150,21 @@ export function MenuPage() {
               })}
             </div>
           ))}
-          {data.items.length === 0 && <p className="empty">お品書きを準備しています</p>}
+          {data.items.length === 0 && <p className="empty">{w.menuEmpty}</p>}
         </div>
       </section>
 
       <div className="spacer" />
       <footer className="order-bar">
         <div className="term">
-          <span className="term-cmd">＞ {count}品を選択中</span>
+          <span className="term-cmd">
+            ＞ {count}
+            {w.countUnit}を選択中
+          </span>
           <span className="term-aside">合計 {yen(total)}</span>
         </div>
         <button type="button" className="btn btn-primary btn-block" disabled={count === 0 || shop.paused} onClick={() => setCheckout(true)}>
-          {shop.paused ? '注文の受け付けを中止しています' : '注文する'}
+          {shop.paused ? w.orderPausedButton : w.orderButton}
         </button>
       </footer>
 
@@ -179,6 +184,7 @@ export function MenuPage() {
         <CheckoutSheet
           slug={slug}
           shopName={shop.name}
+          businessType={shop.business_type}
           lines={validLines}
           items={items}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
@@ -192,13 +198,15 @@ export function MenuPage() {
 type CheckoutProps = {
   slug: string
   shopName: string
+  businessType: BusinessType
   lines: CartLine[]
   items: Map<number, MenuItem>
   onRemove: (key: string) => void
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, onClose }: CheckoutProps) {
+  const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [name, setName] = useState('')
@@ -239,7 +247,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
   }
 
   return (
-    <Sheet title="ご注文の確認" onClose={onClose}>
+    <Sheet title={w.confirmTitle} onClose={onClose}>
       <div className="stack">
         <div className="lines">
           {lines.map((l) => {
@@ -263,8 +271,14 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
             )
           })}
           <div className="lines-total">
-            <span>合計（お受け取りの際にお支払い）</span>
-            <span className="mono">{yen(cartTotal(lines, items))}</span>
+            {cartTotal(lines, items) === 0 ? (
+              <span>料金はかかりません</span>
+            ) : (
+              <>
+                <span>{w.totalUnpaid}</span>
+                <span className="mono">{yen(cartTotal(lines, items))}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -278,7 +292,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
             placeholder="例: 〇〇抜き、氷少なめ"
             onChange={(e) => setNote(e.target.value)}
           />
-          <span className="field-hint">抜いてほしいものなどがあれば書いてください（200文字まで）。ご希望はお作りするときにだけ使い、学園祭の終了から30日後に消去します。</span>
+          <span className="field-hint">{w.noteHint}</span>
         </label>
         <label className="field">
           <span className="field-label">お名前（任意）</span>
@@ -296,7 +310,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
             onChange={(e) => setEmail(e.target.value)}
           />
           <span className="field-hint">
-            入力すると、整理番号の控えと、できあがりのお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から30日後に消去します。
+            {w.emailHint}
           </span>
         </label>
 
@@ -309,7 +323,7 @@ function CheckoutSheet({ slug, shopName, lines, items, onRemove, onClose }: Chec
           disabled={lines.length === 0 || !token || sending}
           onClick={submit}
         >
-          {sending ? '送信しています' : '注文を確定する'}
+          {sending ? '送信しています' : w.confirmSubmit}
         </button>
       </div>
     </Sheet>

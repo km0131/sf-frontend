@@ -13,6 +13,8 @@ export type Wording = {
   menuCommand: string
   menuEmpty: string
   menuLimitNote: string
+  /** 選んだ数の単位（「3品を選択中」） */
+  countUnit: string
   notOpen: string
   orderButton: string
   orderPausedButton: string
@@ -90,6 +92,7 @@ const food: Wording = {
   menuCommand: 'お品書きを表示',
   menuEmpty: 'お品書きを準備しています',
   menuLimitNote: 'ご注文はおひとり様 5点まで',
+  countUnit: '品',
   notOpen: 'このお店は、いま注文を受け付けていません。',
   orderButton: '注文する',
   orderPausedButton: '注文の受け付けを中止しています',
@@ -167,6 +170,7 @@ const nonFood: Wording = {
   menuCommand: 'メニューを表示',
   menuEmpty: 'メニューを準備しています',
   menuLimitNote: '受付はおひとり様 5点まで',
+  countUnit: '点',
   notOpen: 'このお店は、いま受付をしていません。',
   orderButton: '受付する',
   orderPausedButton: '受付を中止しています',

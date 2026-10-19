@@ -6,17 +6,9 @@ import { VerticalLabel } from '../../components/VerticalLabel'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { hhmm, yen } from '../../lib/format'
-import type { CustomerOrder, OrderStatus } from '../../lib/types'
+import type { CustomerOrder } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
-
-const steps = ['受付', '調理', '仕上げ', 'お渡し']
-const stepIndex: Record<OrderStatus, number> = { waiting: 0, cooking: 1, ready: 2, done: 3, cancelled: -1 }
-
-const waitingText: Partial<Record<OrderStatus, string>> = {
-  waiting: '調理の順番を待っています',
-  cooking: 'できあがりを待っています',
-  ready: 'お受け取りをお待ちしています',
-}
 
 /** お客様: 注文完了・お呼び出し（注文状況は自動で更新する）。 */
 export function OrderStatusPage() {
@@ -31,7 +23,7 @@ export function OrderStatusPage() {
   })
 
   if (error instanceof ApiError && error.status === 404) {
-    return <NotFoundPage message="ご注文が見つかりません。URL をお確かめください。" />
+    return <NotFoundPage message="受付が見つかりません。URL をお確かめください。" />
   }
   if (!data) {
     return (
@@ -42,29 +34,31 @@ export function OrderStatusPage() {
   }
 
   const o = data
-  const step = stepIndex[o.status]
+  const w = wording(o.shop.business_type)
+  const steps = w.steps
+  const step = w.stepIndex[o.status]
   const log: LogEntry[] = [
-    { time: hhmm(o.created_at), text: 'ご注文を受け付けました' },
-    ...(o.cooking_at ? [{ time: hhmm(o.cooking_at), text: '調理をはじめました' }] : []),
-    ...(o.ready_at ? [{ time: hhmm(o.ready_at), text: 'できあがりました' }] : []),
-    ...(o.done_at ? [{ time: hhmm(o.done_at), text: 'お渡ししました。ありがとうございました' }] : []),
-    ...(o.cancelled_at ? [{ time: hhmm(o.cancelled_at), text: 'ご注文を取り消しました' }] : []),
+    { time: hhmm(o.created_at), text: w.logCreated },
+    ...(o.cooking_at ? [{ time: hhmm(o.cooking_at), text: w.logCooking }] : []),
+    ...(o.ready_at ? [{ time: hhmm(o.ready_at), text: w.logReady }] : []),
+    ...(o.done_at ? [{ time: hhmm(o.done_at), text: w.logDone }] : []),
+    ...(o.cancelled_at ? [{ time: hhmm(o.cancelled_at), text: w.logCancelled }] : []),
   ]
 
-  let heading = 'ご注文を承りました'
+  let heading = w.headingReceived
   let message = ''
   if (o.status === 'waiting' || o.status === 'cooking') {
     message =
       o.waiting_ahead > 0
         ? `前に${o.waiting_ahead}組お待ちです${o.estimated_wait_minutes != null ? `（あと約${o.estimated_wait_minutes}分）` : ''}`
-        : 'まもなくお作りします'
+        : w.soon
   } else if (o.status === 'ready') {
-    heading = 'できあがりました'
-    message = 'お店でこの番号をお見せください'
+    heading = w.headingReady
+    message = w.readyMessage
   } else if (o.status === 'done') {
-    heading = 'お受け取りありがとうございました'
+    heading = w.headingDone
   } else {
-    heading = 'ご注文は取り消されました'
+    heading = w.headingCancelled
     message = 'くわしくはお店のスタッフにおたずねください'
   }
 
@@ -113,8 +107,14 @@ export function OrderStatusPage() {
             </div>
           ))}
           <div className="lines-total">
-            <span>{o.paid ? '合計（お支払い済み）' : '合計（お受け取りの際にお支払い）'}</span>
-            <span className="mono">{yen(o.total)}</span>
+            {o.total === 0 ? (
+              <span>料金はかかりません</span>
+            ) : (
+              <>
+                <span>{o.paid ? '合計（お支払い済み）' : w.totalUnpaid}</span>
+                <span className="mono">{yen(o.total)}</span>
+              </>
+            )}
           </div>
         </div>
 
@@ -125,11 +125,12 @@ export function OrderStatusPage() {
           </p>
         )}
 
-        <Log entries={log} waiting={waitingText[o.status]} />
+        <Log entries={log} waiting={w.waitingText[o.status]} />
 
         <div className="stack" style={{ gap: 10 }}>
           <Link to={`/s/${o.shop.slug}`} className="btn btn-primary btn-block">
-            {o.shop.name}のお品書きに戻る
+            {o.shop.name}
+            {w.backToMenu}
           </Link>
           <Link to="/" className="btn btn-secondary btn-block">
             ほかのお店を見る
@@ -138,7 +139,7 @@ export function OrderStatusPage() {
 
         <p className="field-hint">
           このページは自動で更新されます。閉じてしまっても、
-          <Link to="/">お店の一覧</Link>の「ご注文中」から戻れます。
+          <Link to="/">お店の一覧</Link>の「受付中の番号」から戻れます。
         </p>
       </section>
     </div>
