@@ -6,7 +6,8 @@ import { Sheet } from '../../components/Sheet'
 import { TerminalLine } from '../../components/Terminal'
 import { VerticalLabel } from '../../components/VerticalLabel'
 import { apiFetch, errorMessage } from '../../lib/api'
-import { addLine, cartCount, cartTotal, optionNames, toOrderItems, unitPrice, type CartLine } from '../../lib/cart'
+import { LineNoteInput } from '../../components/LineNote'
+import { addLine, cartCount, cartTotal, optionNames, setLineNote, toOrderItems, unitPrice, type CartLine } from '../../lib/cart'
 import { yen } from '../../lib/format'
 import type { Category, MenuItem, Order, StaffShop } from '../../lib/types'
 import { wording } from '../../lib/wording'
@@ -177,13 +178,14 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
                 const opts = optionNames(item, l.optionIds)
                 return (
                   <div key={l.key} className="lines-row" style={{ alignItems: 'center' }}>
-                    <span style={{ minWidth: 0 }}>
+                    <span style={{ flex: 1, minWidth: 0 }}>
                       <span className="mincho">{item.name}</span>
                       {opts.length > 0 && <span className="sub" style={{ fontSize: 12 }}>（{opts.join('、')}）</span>}
                       <br />
                       <span className="mono sub" style={{ fontSize: 12 }}>
                         {yen(unitPrice(item, l.optionIds) * l.quantity)}
                       </span>
+                      <LineNoteInput value={l.note} label={item.name} onChange={(note) => setLines((prev) => setLineNote(prev, l.key, note))} />
                     </span>
                     <span className="row" style={{ gap: 6 }}>
                       <button type="button" className="qty" aria-label="減らす" onClick={() => changeQty(l.key, -1)}>
@@ -240,7 +242,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
           </label>
 
           <label className="field">
-            <span className="field-label">ご希望（任意）</span>
+            <span className="field-label">全体へのご希望（任意）</span>
             <textarea
               className="textarea"
               rows={2}

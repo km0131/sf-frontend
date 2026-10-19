@@ -97,6 +97,8 @@ export type OrderItem = {
   quantity: number
   options: OptionSnapshot[]
   subtotal: number
+  /** この商品へのご希望（例: ネギ抜き） */
+  note: string | null
 }
 
 export type Order = {

@@ -19,8 +19,10 @@ import {
   removeOne,
   toOrderItems,
   unitPrice,
+  setLineNote,
   type CartLine,
 } from '../../lib/cart'
+import { LineNoteInput } from '../../components/LineNote'
 import { storeStyle } from '../../lib/colors'
 import { seq2, waitLabel, yen } from '../../lib/format'
 import { myOrders } from '../../lib/session'
@@ -188,6 +190,7 @@ export function MenuPage() {
           lines={validLines}
           items={items}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
+          onNote={(key, note) => setLines((prev) => setLineNote(prev, key, note))}
           onClose={() => setCheckout(false)}
         />
       )}
@@ -202,10 +205,11 @@ type CheckoutProps = {
   lines: CartLine[]
   items: Map<number, MenuItem>
   onRemove: (key: string) => void
+  onNote: (key: string, note: string) => void
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
   const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -256,10 +260,11 @@ function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, o
             const opts = optionNames(item, l.optionIds)
             return (
               <div key={l.key} className="lines-row">
-                <span>
+                <span style={{ flex: 1, minWidth: 0 }}>
                   <span className="mincho">{item.name}</span>
                   {opts.length > 0 && <span className="sub">（{opts.join('、')}）</span>}
                   <span className="mono sub"> × {l.quantity}</span>
+                  <LineNoteInput value={l.note} label={item.name} onChange={(note) => onNote(l.key, note)} />
                 </span>
                 <span className="row" style={{ gap: 8 }}>
                   <span className="mono">{yen(unitPrice(item, l.optionIds) * l.quantity)}</span>
@@ -283,7 +288,7 @@ function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, o
         </div>
 
         <label className="field">
-          <span className="field-label">ご希望（任意）</span>
+          <span className="field-label">全体へのご希望（任意）</span>
           <textarea
             className="textarea"
             rows={2}

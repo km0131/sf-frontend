@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import { ItemNote } from '../../components/LineNote'
 import { Sheet } from '../../components/Sheet'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
@@ -192,7 +193,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                 </td>
               </tr>
               <tr>
-                <th>ご希望</th>
+                <th>全体へのご希望</th>
                 <td style={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere' }}>{o.note ?? '—'}</td>
               </tr>
               <tr>
@@ -218,6 +219,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                     {' '}
                     {yen(it.unit_price)} × {it.quantity}
                   </span>
+                  <ItemNote note={it.note} />
                 </span>
                 <span className="mono">{yen(it.subtotal)}</span>
               </div>

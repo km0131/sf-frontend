@@ -705,3 +705,32 @@
     grid-column: 1 / -1;
   }
 }
+
+/* 商品ごとのご希望（入力と表示） */
+.line-note-add {
+  display: flex;
+  min-height: 32px;
+  padding: 0;
+  font-size: 12px;
+}
+
+.line-note-input {
+  display: block;
+}
+
+.line-note-input {
+  min-height: 36px;
+  margin-top: 4px;
+  padding: 4px 10px;
+  font-size: 16px; /* iOS で拡大されないよう 16px 以上 */
+}
+
+.item-note {
+  display: block;
+  padding-left: 0.8em;
+  border-left: 2px solid var(--c-shion-soft);
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--c-shion-deep);
+  overflow-wrap: anywhere;
+}

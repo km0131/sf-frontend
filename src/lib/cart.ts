@@ -6,6 +6,16 @@ export type CartLine = {
   itemId: number
   optionIds: number[]
   quantity: number
+  /** この行（数量の全部）へのご希望。確認・お会計の画面で入力する */
+  note?: string
+}
+
+/** 商品ごとのご希望の上限（バックエンドと同じ） */
+export const lineNoteMaxLength = 100
+
+/** 行のご希望を変える。 */
+export function setLineNote(lines: CartLine[], key: string, note: string): CartLine[] {
+  return lines.map((l) => (l.key === key ? { ...l, note } : l))
 }
 
 export function lineKey(itemId: number, optionIds: number[]): string {
@@ -72,7 +82,7 @@ export function cartCount(lines: CartLine[]): number {
 
 /** API に送る形にする。 */
 export function toOrderItems(lines: CartLine[]) {
-  return lines.map((l) => ({ menu_item_id: l.itemId, quantity: l.quantity, option_ids: l.optionIds }))
+  return lines.map((l) => ({ menu_item_id: l.itemId, quantity: l.quantity, option_ids: l.optionIds, note: l.note?.trim() || undefined }))
 }
 
 /** メニューが更新されて、消えた商品・売り切れの商品を含む行を取り除く。 */

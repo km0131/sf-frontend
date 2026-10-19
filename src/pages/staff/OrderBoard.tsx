@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
+import { ItemNote } from '../../components/LineNote'
 import { Sheet } from '../../components/Sheet'
 import { Log, TerminalLine } from '../../components/Terminal'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
@@ -192,12 +193,13 @@ function OrderCard({
             <span className="mincho">{it.name}</span>
             {it.options.length > 0 && <span className="sub">（{it.options.map((x) => x.name).join('、')}）</span>}
             <span className="mono"> × {it.quantity}</span>
+            <ItemNote note={it.note} />
           </div>
         ))}
       </div>
       {o.note && (
         <p className="order-note" style={{ marginBottom: 14 }}>
-          <span className="order-note-label">ご希望</span>
+          <span className="order-note-label">全体へのご希望</span>
           {o.note}
         </p>
       )}
