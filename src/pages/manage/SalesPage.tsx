@@ -5,7 +5,7 @@ import { PieChart } from '../../components/PieChart'
 import { API_BASE_URL, apiFetch, errorMessage } from '../../lib/api'
 import { yen } from '../../lib/format'
 import { Notice, PageHead, Panel } from './common'
-import { useManage } from './context'
+import { useManage, useShopWording } from './context'
 
 type Summary = {
   revenue: number
@@ -42,6 +42,7 @@ const minutes = (s: number | null) => (s == null ? '—' : `${Math.round(s / 60)
 /** 店長: 売上分析。上の1行の条件（開催回・時間の区切り・日）がすべてのグラフに効く。 */
 export function SalesPage() {
   const { token } = useManage()
+  const w = useShopWording()
   const [eventId, setEventId] = useState<string>('') // '' = 今の開催回
   const [interval, setInterval] = useState(30)
   const [day, setDay] = useState<string>('')
@@ -248,20 +249,21 @@ export function SalesPage() {
           </table>
         </Panel>
 
-        <Panel title="待ち時間（注文 → できあがり）">
+        <Panel title={w.waitPanelTitle}>
           <div className="stats">
             <Stat label="平均" value={minutes(waits.data?.avg_seconds ?? null)} note={`${waits.data?.count ?? 0}件`} />
             <Stat label="ふつう（中央値）" value={minutes(waits.data?.p50_seconds ?? null)} />
             <Stat label="遅いほうの1割" value={minutes(waits.data?.p90_seconds ?? null)} note="これより長く待った注文が1割" />
             <Stat label="いちばん長い" value={minutes(waits.data?.max_seconds ?? null)} />
-            <Stat label="調理時間の平均" value={minutes(waits.data?.avg_cook_seconds ?? null)} note="調理中 → できあがり" />
+            {/* 飲食以外の店は調理の段階がないので出さない */}
+            {w.usesCooking && <Stat label="調理時間の平均" value={minutes(waits.data?.avg_cook_seconds ?? null)} note="調理中 → できあがり" />}
           </div>
         </Panel>
 
         <Panel title="ロス">
           <div className="stats">
             <Stat label="取り消し" value={`${losses.data?.cancelled_orders ?? 0}件`} note={yen(losses.data?.cancelled_amount ?? 0)} />
-            <Stat label="受け取りなし" value={`${losses.data?.unclaimed_orders ?? 0}件`} note={`${yen(losses.data?.unclaimed_amount ?? 0)}（営業日が終わってもお渡し待ちのまま）`} />
+            <Stat label={w.unclaimedLabel} value={`${losses.data?.unclaimed_orders ?? 0}件`} note={`${yen(losses.data?.unclaimed_amount ?? 0)}${w.unclaimedNote}`} />
           </div>
           {losses.data && losses.data.cancel_reasons.length > 0 && (
             <table className="table" style={{ marginTop: 16 }}>
