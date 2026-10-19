@@ -85,7 +85,8 @@ export function OrderStatusPage() {
           <div className="progress" aria-label={`進み具合: ${steps[step]}`}>
             <div className="progress-track" />
             <div key={o.status} className="progress-fill" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
-            <div className="progress-steps">
+            {/* 段階の数は店舗の種類で変わる（飲食4つ・飲食以外3つ） */}
+            <div className="progress-steps" style={{ gridTemplateColumns: `repeat(${steps.length}, 1fr)` }}>
               {steps.map((s, i) => (
                 <span key={s} className={i < step ? 'is-done' : i === step ? 'is-current' : ''}>
                   {s}
