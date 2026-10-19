@@ -7,6 +7,7 @@ import { storeStyle } from '../../lib/colors'
 import { staffSession, type Session } from '../../lib/session'
 import { streamEvents } from '../../lib/sse'
 import type { List, Order, StaffShop } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
 import { OrderBoard } from './OrderBoard'
 import { PosPage } from './PosPage'
@@ -78,10 +79,11 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
   }, [token, slug, queryClient, onLogout])
 
   const title = shop ? shop.name : slug
+  const w = wording(shop?.business_type)
   return (
     <div className="page-pc" style={storeStyle(shop?.color)}>
       <Header
-        name={`${title}　${tab === 'board' ? '注文帳' : 'レジ'}`}
+        name={`${title}　${tab === 'board' ? w.boardTab : 'レジ'}`}
         aside={
           <div className="row" style={{ gap: 16 }}>
             <nav className="staff-tabs" aria-label="画面の切り替え">
@@ -91,7 +93,7 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
                 aria-current={tab === 'board' ? 'page' : undefined}
                 onClick={() => setParams({})}
               >
-                注文帳
+                {w.boardTab}
               </button>
               <button
                 type="button"
@@ -109,7 +111,7 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
           </div>
         }
       />
-      {tab === 'board' ? <OrderBoard slug={slug} token={token} /> : <PosPage slug={slug} token={token} shop={shop} />}
+      {tab === 'board' ? <OrderBoard slug={slug} token={token} businessType={shop?.business_type} /> : <PosPage slug={slug} token={token} shop={shop} />}
     </div>
   )
 }

@@ -4,20 +4,16 @@ import { Sheet } from '../../components/Sheet'
 import { Log, TerminalLine } from '../../components/Terminal'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { hhmm, minutesSince, yen } from '../../lib/format'
-import type { List, Order, OrderStatus } from '../../lib/types'
+import type { BusinessType, List, Order, OrderStatus } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
 
 /** お渡し待ちのままこの分数を過ぎたら目立たせる（受け取りに来ていない注文） */
 const unclaimedMinutes = 15
 
-const columns: { status: OrderStatus; num: string; title: string }[] = [
-  { status: 'waiting', num: '壱', title: '受付' },
-  { status: 'cooking', num: '弐', title: '調理中' },
-  { status: 'ready', num: '参', title: 'お渡し待ち' },
-]
-
-/** 注文帳：受付／調理中／お渡し待ちの3列。ワンタッチで次に進める。 */
-export function OrderBoard({ slug, token }: { slug: string; token: string }) {
+/** 注文帳：飲食は 受付／調理中／お渡し待ち の3列、飲食以外は 待ち／呼び出し中 の2列。ワンタッチで次に進める。 */
+export function OrderBoard({ slug, token, businessType }: { slug: string; token: string; businessType?: BusinessType }) {
+  const w = wording(businessType)
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<Order | null>(null)
@@ -42,7 +38,9 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
   })
 
   const orders = active.data?.items ?? []
-  const byStatus = (s: OrderStatus) => orders.filter((o) => o.status === s)
+  // 飲食以外の「待ち」の列には、種類を変える前の調理中が残っていても出す（見えなくならないように）
+  const byStatus = (s: OrderStatus) =>
+    orders.filter((o) => o.status === s || (!w.usesCooking && s === 'waiting' && o.status === 'cooking'))
 
   const run = async (o: Order, path: string, body?: unknown) => {
     setBusy(o.id)
@@ -62,15 +60,15 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
   const advance = (o: Order, status: OrderStatus, markPaid = false) =>
     run(o, '/status', { status, expected_status: o.status, mark_paid: markPaid })
 
-  const counts = columns.map((c) => `${c.title} ${byStatus(c.status).length}`).join(' ／ ')
+  const counts = w.columns.map((c) => `${c.title} ${byStatus(c.status).length}`).join(' ／ ')
   const doneLog = [...(done.data?.items ?? [])]
     .sort((a, b) => (a.done_at ?? '').localeCompare(b.done_at ?? ''))
     .slice(-8)
-    .map((o) => ({ time: hhmm(o.done_at), text: `${o.order_no}　お渡し済み` }))
+    .map((o) => ({ time: hhmm(o.done_at), text: `${o.order_no}　${w.doneLog}` }))
 
   return (
     <>
-      <TerminalLine command="注文を見守っています" aside={counts} />
+      <TerminalLine command={w.boardCommand} aside={counts} />
       {error && (
         <p className="error-text" style={{ marginTop: 16 }}>
           {error}
@@ -82,8 +80,8 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
         </p>
       )}
 
-      <div className="board">
-        {columns.map((col) => {
+      <div className={`board ${w.columns.length === 2 ? 'board-2' : ''}`}>
+        {w.columns.map((col) => {
           const list = byStatus(col.status)
           return (
             <section key={col.status} aria-label={col.title}>
@@ -98,10 +96,12 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
                   <OrderCard
                     key={o.id}
                     order={o}
+                    label={w.advance[o.status]}
                     busy={busy === o.id}
                     onAdvance={() => {
-                      if (o.status === 'waiting') void advance(o, 'cooking')
-                      else if (o.status === 'cooking') void advance(o, 'ready')
+                      const next = w.nextStatus[o.status]
+                      if (!next) return
+                      if (next !== 'done') void advance(o, next)
                       else if (o.paid) void advance(o, 'done')
                       else setConfirming(o)
                     }}
@@ -120,10 +120,10 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
       </div>
 
       {confirming && (
-        <Sheet title={`${confirming.order_no} のお渡し`} onClose={() => setConfirming(null)}>
+        <Sheet title={`${confirming.order_no} ${w.finishTitle}`} onClose={() => setConfirming(null)}>
           <div className="stack">
             <p>
-              まだお代金を受け取っていない注文です。
+              {w.unpaidNotice}
               <br />
               <span className="money">{yen(confirming.total)}</span> を受け取りましたか？
             </p>
@@ -135,7 +135,7 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
                 setConfirming(null)
               }}
             >
-              受け取って、お渡し済みにする
+              {w.finishButton}
             </button>
           </div>
         </Sheet>
@@ -144,6 +144,7 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
       {cancelling && (
         <CancelSheet
           order={cancelling}
+          businessType={businessType}
           onClose={() => setCancelling(null)}
           onCancel={(reason) => {
             void run(cancelling, '/cancel', { reason: reason || undefined })
@@ -155,19 +156,15 @@ export function OrderBoard({ slug, token }: { slug: string; token: string }) {
   )
 }
 
-const actionLabel: Partial<Record<OrderStatus, string>> = {
-  waiting: '調理をはじめる',
-  cooking: 'できあがり',
-  ready: 'お渡し済み',
-}
-
 function OrderCard({
   order: o,
+  label,
   busy,
   onAdvance,
   onCancel,
 }: {
   order: Order
+  label: string | undefined
   busy: boolean
   onAdvance: () => void
   onCancel: () => void
@@ -225,24 +222,35 @@ function OrderCard({
         disabled={busy}
         onClick={onAdvance}
       >
-        {actionLabel[o.status]}
+        {label}
       </button>
     </article>
   )
 }
 
-function CancelSheet({ order, onClose, onCancel }: { order: Order; onClose: () => void; onCancel: (reason: string) => void }) {
+function CancelSheet({
+  order,
+  businessType,
+  onClose,
+  onCancel,
+}: {
+  order: Order
+  businessType?: BusinessType
+  onClose: () => void
+  onCancel: (reason: string) => void
+}) {
+  const w = wording(businessType)
   const [reason, setReason] = useState('')
   return (
     <Sheet title={`${order.order_no} を取り消す`} onClose={onClose}>
       <div className="stack">
         <p className="sub">
-          取り消した注文は元に戻せません（店長の管理画面からは直せます）。
-          {order.paid && ' 支払い済みの注文です。返金を忘れずに。'}
+          {w.cancelNotice}
+          {order.paid && w.cancelPaidNotice}
         </p>
         <label className="field">
           <span className="field-label">理由（任意）</span>
-          <input className="input" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} placeholder="受け取りに来ない、など" />
+          <input className="input" value={reason} maxLength={200} onChange={(e) => setReason(e.target.value)} placeholder={w.cancelPlaceholder} />
         </label>
         <button type="button" className="btn btn-done btn-block" onClick={() => onCancel(reason.trim())}>
           取り消す

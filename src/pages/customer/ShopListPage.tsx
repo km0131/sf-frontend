@@ -30,7 +30,7 @@ export function ShopListPage() {
 
       {remembered.length > 0 && (
         <section className="section fade-in">
-          <VerticalLabel text="ご注文中">
+          <VerticalLabel text="受付中の番号">
             {remembered.map((o) => (
               <Link key={o.token} to={`/o/${o.token}`} className="shop-row" style={{ gridTemplateColumns: '1fr auto' }}>
                 <span className="shop-row-name">{o.shop}</span>
@@ -42,10 +42,10 @@ export function ShopListPage() {
       )}
 
       <section className="section fade-in">
-        <VerticalLabel text="お店" note="お店を選んで、ご注文ください">
+        <VerticalLabel text="お店" note="お店を選んでください">
           {isLoading && <p className="empty">読み込んでいます…</p>}
           {error && <p className="error-text">{errorMessage(error)}</p>}
-          {data && data.items.length === 0 && <p className="empty">いま注文を受け付けているお店はありません</p>}
+          {data && data.items.length === 0 && <p className="empty">いま受付をしているお店はありません</p>}
           {data?.items.map((s) => (
             <Link key={s.slug} to={`/s/${s.slug}`} className="shop-row" style={storeStyle(s.color)}>
               <span className="dot dot-lg" aria-hidden="true" />

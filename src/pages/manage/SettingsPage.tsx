@@ -2,7 +2,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { mdhm } from '../../lib/format'
-import type { ShopColor } from '../../lib/types'
+import type { BusinessType, ShopColor } from '../../lib/types'
+import { businessTypeLabels, wording } from '../../lib/wording'
 import { ColorPicker, Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
 
@@ -13,6 +14,7 @@ type Settings = {
   description: string
   email_enabled: boolean
   color: ShopColor
+  business_type: BusinessType
   pin_set: boolean
   pin_updated_at: string | null
   current_event: { id: number; name: string; starts_on: string; ends_on: string; order_prefix: string | null } | null
@@ -75,6 +77,10 @@ export function SettingsPage() {
       </Panel>
 
       <Panel title="店舗の情報">
+        <p className="field-hint" style={{ marginBottom: 16 }}>
+          店舗の種類：<strong>{businessTypeLabels[data.business_type] ?? data.business_type}</strong>
+          （変更はシステム管理者に依頼してください）
+        </p>
         <ShopInfoForm initial={data} />
       </Panel>
 
@@ -148,7 +154,7 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
           maxLength={500}
           onChange={(e) => setForm({ ...form, description: e.target.value })}
         />
-        <span className="field-hint">お品書きの横に縦書きで出ます。短めに（例: ひとつずつ、心をこめてお作りします）。</span>
+        <span className="field-hint">{wording(initial.business_type).descriptionHint}</span>
       </label>
       <div className="field">
         <span className="field-label">店舗色</span>
@@ -157,7 +163,7 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
       </div>
       <label className="check">
         <input type="checkbox" checked={form.email_enabled} onChange={(e) => setForm({ ...form, email_enabled: e.target.checked })} />
-        お客様にメール（注文の控え・できあがりのお知らせ）を送る
+        {wording(initial.business_type).emailOption}
       </label>
       <Notice error={saveError} ok={saved} />
       <div>

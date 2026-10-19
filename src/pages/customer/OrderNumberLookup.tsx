@@ -3,26 +3,29 @@ import { Sheet } from '../../components/Sheet'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import type { NumberStatus } from '../../lib/types'
+import { wording } from '../../lib/wording'
 
-/** 状態ごとの案内（注文状況ページと同じ言い回し）。 */
+/** 状態ごとの案内（注文状況ページと同じ言い回し。店舗の種類で言葉を変える）。 */
 function statusText(s: NumberStatus): string {
+  const w = wording(s.shop.business_type)
   switch (s.status) {
     case 'waiting':
     case 'cooking':
       return s.waiting_ahead > 0
         ? `前に${s.waiting_ahead}組お待ちです${s.estimated_wait_minutes != null ? `（あと約${s.estimated_wait_minutes}分）` : ''}`
-        : 'まもなくお作りします'
+        : w.soon
     case 'ready':
-      return 'できあがりました。お店でこの番号をお見せください'
+      return `${w.headingReady}。${w.readyMessage}`
     case 'done':
-      return 'お渡し済みです'
+      return w.doneLookup
     case 'cancelled':
-      return 'ご注文は取り消されました。くわしくはお店のスタッフにおたずねください'
+      return w.cancelledLookup
   }
 }
 
 function lookupError(e: unknown): string {
-  if (e instanceof ApiError && e.status === 404) return 'その番号の今日のご注文は見つかりませんでした。番号をお確かめください。'
+  // 店舗一覧（飲食・飲食以外が混ざる）から使うので、どちらにも合う言葉にする
+  if (e instanceof ApiError && e.status === 404) return 'その番号の今日の受付は見つかりませんでした。番号をお確かめください。'
   if (e instanceof ApiError && e.status === 400) return '番号は「A-12」のように入力してください。'
   return errorMessage(e)
 }
@@ -36,7 +39,7 @@ export function OrderNumberLookup() {
     <>
       <div className="row" style={{ justifyContent: 'flex-end', paddingTop: 12 }}>
         <button type="button" className="btn btn-text" onClick={() => setOpen(true)}>
-          番号で注文を確かめる
+          番号で受付状況を確かめる
         </button>
       </div>
       {open && (

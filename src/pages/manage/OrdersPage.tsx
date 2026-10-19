@@ -2,10 +2,10 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { apiFetch, errorMessage } from '../../lib/api'
-import { mdhm, statusLabel, yen } from '../../lib/format'
+import { mdhm, yen } from '../../lib/format'
 import type { ManagerOrder, OrderStatus } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
-import { useManage } from './context'
+import { useManage, useShopWording } from './context'
 
 type SearchResult = { items: ManagerOrder[]; total: number }
 type Filters = { q: string; date: string; status: string }
@@ -15,6 +15,7 @@ const pageSize = 50
 /** 店長: 注文・お客様の検索と、注文の修正。検索と詳細の表示は記録に残る。 */
 export function OrdersPage() {
   const { token } = useManage()
+  const w = useShopWording()
   const [draft, setDraft] = useState<Filters>({ q: '', date: '', status: '' })
   const [filters, setFilters] = useState<Filters>(draft)
   const [offset, setOffset] = useState(0)
@@ -53,7 +54,7 @@ export function OrdersPage() {
             <span className="field-label">状態</span>
             <select className="select" value={draft.status} onChange={(e) => setDraft({ ...draft, status: e.target.value })}>
               <option value="">すべて</option>
-              {Object.entries(statusLabel).map(([k, v]) => (
+              {Object.entries(w.status).map(([k, v]) => (
                 <option key={k} value={k}>
                   {v}
                 </option>
@@ -91,7 +92,7 @@ export function OrdersPage() {
                   <td className="mono cell-title">{o.order_no}</td>
                   <td className="mono" data-label="日時">{mdhm(o.created_at)}</td>
                   <td data-label="経路">{o.channel === 'web' ? 'Web' : 'レジ'}</td>
-                  <td data-label="状態">{statusLabel[o.status]}</td>
+                  <td data-label="状態">{w.status[o.status] ?? o.status}</td>
                   <td data-label="支払い">{o.paid ? '支払済' : <span className="tag tag-strong">未払い</span>}</td>
                   <td data-label="お名前">{o.customer_name ?? '—'}</td>
                   <td className="mono cell-wide" style={{ fontSize: 12 }} data-label="メール">
@@ -131,6 +132,7 @@ export function OrdersPage() {
 
 function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const { token } = useManage()
+  const w = useShopWording()
   const queryClient = useQueryClient()
   const { data: o, error } = useQuery({
     queryKey: ['manage', 'order', id],
@@ -173,7 +175,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
               <tr>
                 <th>状態</th>
                 <td>
-                  {statusLabel[o.status]}
+                  {w.status[o.status] ?? o.status}
                   {o.cancel_reason && <span className="sub">（{o.cancel_reason}）</span>}
                 </td>
               </tr>
@@ -197,9 +199,9 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                 <th>時刻</th>
                 <td className="mono" style={{ fontSize: 12 }}>
                   受付 {mdhm(o.created_at)}
-                  {o.cooking_at && ` ／ 調理 ${mdhm(o.cooking_at)}`}
-                  {o.ready_at && ` ／ できあがり ${mdhm(o.ready_at)}`}
-                  {o.done_at && ` ／ お渡し ${mdhm(o.done_at)}`}
+                  {o.cooking_at && ` ／ ${w.timeCooking} ${mdhm(o.cooking_at)}`}
+                  {o.ready_at && ` ／ ${w.timeReady} ${mdhm(o.ready_at)}`}
+                  {o.done_at && ` ／ ${w.timeDone} ${mdhm(o.done_at)}`}
                   {o.cancelled_at && ` ／ 取り消し ${mdhm(o.cancelled_at)}`}
                 </td>
               </tr>
@@ -232,7 +234,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
               <label className="field">
                 <span className="field-label">状態</span>
                 <select className="select" value={status || o.status} onChange={(e) => setStatus(e.target.value as OrderStatus)}>
-                  {Object.entries(statusLabel).map(([k, v]) => (
+                  {Object.entries(w.status).map(([k, v]) => (
                     <option key={k} value={k}>
                       {v}
                     </option>
@@ -253,7 +255,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
               )}
             </div>
             <p className="field-hint" style={{ margin: '10px 0' }}>
-              状態を戻すこともできます（例: 間違えてお渡し済みにした注文を、お渡し待ちに戻す）。
+              {w.correctionHint}
             </p>
             <Notice error={saveError} ok={msg} />
             <button type="button" className="btn btn-secondary" onClick={save}>

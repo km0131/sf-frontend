@@ -40,10 +40,4 @@ export function sealChar(name: string | undefined): string {
   return name ? Array.from(name.trim())[0] ?? '祭' : '祭'
 }
 
-export const statusLabel: Record<string, string> = {
-  waiting: '受付',
-  cooking: '調理中',
-  ready: 'お渡し待ち',
-  done: 'お渡し済み',
-  cancelled: '取り消し',
-}
+// 状態の表示名は店舗の種類で変わるので lib/wording.ts（wording(type).status）にある

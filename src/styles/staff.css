@@ -244,6 +244,25 @@
   color: var(--c-ink-sub);
 }
 
+/* 飲食以外の店の待ち組数（番号の代わりに数だけを大きく出す） */
+.wait-count {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: clamp(56px, 7vw, 112px);
+  line-height: 1.1;
+  color: var(--c-ink-sub);
+}
+
+.wait-count-sm {
+  font-size: clamp(32px, 3.4vw, 56px);
+}
+
+.wait-count-unit {
+  margin-left: 0.15em;
+  font-family: var(--f-mincho);
+  font-size: 0.4em;
+}
+
 /* できあがったばかりの番号：ふわっと表示し、店舗色の線をゆっくり伸ばす（点滅はしない） */
 .just-ready {
   opacity: 0;
@@ -407,5 +426,16 @@
     font-size: 16px;
     letter-spacing: 0.15em;
     cursor: pointer;
+  }
+}
+
+/* 注文帳が2列のとき（飲食以外の店：待ち／呼び出し中） */
+.board.board-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .board.board-2 {
+    grid-template-columns: 1fr;
   }
 }

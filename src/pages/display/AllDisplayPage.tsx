@@ -4,6 +4,7 @@ import { TerminalLine } from '../../components/Terminal'
 import { API_BASE_URL, apiFetch } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import type { AllDisplaySnapshot, OrderStatus } from '../../lib/types'
+import { wording } from '../../lib/wording'
 import { byNumber, chime, useWakeLock } from './screen'
 
 type Shops = AllDisplaySnapshot['shops']
@@ -119,7 +120,8 @@ export function AllDisplayPage() {
           </div>
         }
       />
-      <TerminalLine command="全店のできあがりをお知らせしています" aside={shops ? `お渡し ${readyCount} ／ 調理中 ${prepCount}` : undefined} />
+      {/* 飲食と飲食以外の店が混ざるので、どちらにも合う言葉にする */}
+      <TerminalLine command="全店の呼び出し番号をお知らせしています" aside={shops ? `呼び出し中 ${readyCount} ／ 待ち ${prepCount}` : undefined} />
 
       {shops?.length === 0 && (
         <main className="all-display">
@@ -149,13 +151,14 @@ export function AllDisplayPage() {
 
 /** 1店舗の列。clone はつなぎ目用の複製で、読み上げの対象から外す。 */
 function ShopColumn({ shop: s, fresh, clone = false }: { shop: Shop; fresh: Set<string>; clone?: boolean }) {
+  const w = wording(s.business_type)
   return (
     <section className="all-display-shop" style={storeStyle(s.color)} aria-hidden={clone || undefined}>
       <h2 className="all-display-name">
         <span className="dot dot-lg" aria-hidden="true" />
         {s.name}
       </h2>
-      <p className="all-display-label">お渡しできます</p>
+      <p className="all-display-label">{w.readyLabel}</p>
       <div className="ready-grid all-display-ready" aria-live={clone ? undefined : 'polite'}>
         {s.ready.length === 0 && <p className="empty">いまはありません</p>}
         {s.ready.map((no) => (
@@ -165,12 +168,22 @@ function ShopColumn({ shop: s, fresh, clone = false }: { shop: Shop; fresh: Set<
           </div>
         ))}
       </div>
-      {s.preparing.length > 0 && (
+      {/* 飲食は調理中の番号、飲食以外は番号を出さずに待ち組数だけ */}
+      {w.usesCooking && s.preparing.length > 0 && (
         <>
-          <p className="all-display-label">調理中</p>
+          <p className="all-display-label">{w.preparingLabel}</p>
           <div className="prep-grid">
             {s.preparing.map((no) => <span key={no}>{no}</span>)}
           </div>
+        </>
+      )}
+      {!w.usesCooking && (
+        <>
+          <p className="all-display-label">{w.preparingLabel}</p>
+          <p className="wait-count wait-count-sm">
+            {s.preparing.length}
+            <span className="wait-count-unit">組</span>
+          </p>
         </>
       )}
     </section>
