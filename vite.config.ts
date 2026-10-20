@@ -3,17 +3,20 @@ import { defineConfig, loadEnv, type Plugin } from 'vite'
 
 /** Turnstile（ボット対策）のスクリプトと iframe の配信元 */
 const TURNSTILE_ORIGIN = 'https://challenges.cloudflare.com'
+/** Cloudflare Web Analytics の計測スクリプトの配信元と送信先（スクリプトは Cloudflare が自動挿入する） */
+const CF_INSIGHTS_SCRIPT_ORIGIN = 'https://static.cloudflareinsights.com'
+const CF_INSIGHTS_BEACON_ORIGIN = 'https://cloudflareinsights.com'
 
 /** 本番で付けるセキュリティヘッダー。API の配信元は CSP の接続先・画像の読み込み元に加える。 */
 function securityHeaders(apiBaseUrl: string): Record<string, string> {
   const api = apiBaseUrl ? new URL(apiBaseUrl).origin : ''
   const csp = [
     "default-src 'self'",
-    `script-src 'self' ${TURNSTILE_ORIGIN}`,
+    `script-src 'self' ${TURNSTILE_ORIGIN} ${CF_INSIGHTS_SCRIPT_ORIGIN}`,
     "style-src 'self'",
     "font-src 'self'",
     `img-src 'self' data: blob: ${api}`,
-    `connect-src 'self' ${api}`,
+    `connect-src 'self' ${api} ${CF_INSIGHTS_BEACON_ORIGIN}`,
     `frame-src ${TURNSTILE_ORIGIN}`,
     "object-src 'none'",
     "base-uri 'self'",
