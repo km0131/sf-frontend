@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router'
+import { CustomerLayout } from './components/CustomerLayout'
 import { MenuPage } from './pages/customer/MenuPage'
 import { OrderStatusPage } from './pages/customer/OrderStatusPage'
 import { ShopListPage } from './pages/customer/ShopListPage'
@@ -7,10 +8,15 @@ import { NotFoundPage } from './pages/NotFoundPage'
 // お客様の画面はすぐに表示できるよう最初から読み込む。
 // スタッフ・大画面・管理画面（グラフのライブラリを含む）は、開いたときに読み込む。
 export const router = createBrowserRouter([
-  // お客様
-  { path: '/', element: <ShopListPage /> },
-  { path: '/s/:slug', element: <MenuPage /> },
-  { path: '/o/:token', element: <OrderStatusPage /> },
+  // お客様（共通部分で、どの画面を見ていても注文の呼び出しを知らせる）
+  {
+    element: <CustomerLayout />,
+    children: [
+      { path: '/', element: <ShopListPage /> },
+      { path: '/s/:slug', element: <MenuPage /> },
+      { path: '/o/:token', element: <OrderStatusPage /> },
+    ],
+  },
 
   // スタッフ（レジ・注文帳）と大画面
   { path: '/s/:slug/pos', lazy: () => import('./pages/staff/StaffApp').then((m) => ({ Component: m.StaffApp })) },

@@ -1,14 +1,22 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router'
 import { ItemNote } from '../../components/LineNote'
 import { Sheet } from '../../components/Sheet'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
-import type { ManagerOrder, OrderStatus } from '../../lib/types'
+import type { ManagerOrder, OrderStatus, ShopEvent } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage, useShopWording } from './context'
 
-type SearchResult = { items: ManagerOrder[]; total: number }
+type SearchResult = {
+  items: ManagerOrder[]
+  total: number
+  /** 実際に絞り込んだ開催回（すべての開催回なら null） */
+  event: ShopEvent | null
+  /** current（今の開催回）/ latest（出店した最新）/ none（出店した開催回なし）/ selected / all */
+  event_scope: 'current' | 'latest' | 'none' | 'selected' | 'all'
+}
 type Filters = { q: string; date: string; status: string }
 
 const pageSize = 50
@@ -21,8 +29,18 @@ export function OrdersPage() {
   const [filters, setFilters] = useState<Filters>(draft)
   const [offset, setOffset] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
+  // 開催回は URL の ?event= に持つ（再読み込み・共有で同じ条件になる）。なければ今の開催回
+  const [urlParams, setUrlParams] = useSearchParams()
+  const eventParam = urlParams.get('event') ?? ''
+
+  const { data: events } = useQuery({
+    queryKey: ['manage', 'events'],
+    queryFn: () => apiFetch<{ items: ShopEvent[] }>('/api/manage/events', { token }).then((r) => r.items),
+  })
+  const eventName = (id: number) => events?.find((e) => e.id === id)?.name ?? `#${id}`
 
   const params = new URLSearchParams({ limit: String(pageSize), offset: String(offset) })
+  if (eventParam) params.set('event_id', eventParam)
   if (filters.q) params.set('q', filters.q)
   if (filters.date) params.set('date', filters.date)
   if (filters.status) params.set('status', filters.status)
@@ -38,11 +56,47 @@ export function OrdersPage() {
     setFilters(draft)
   }
 
+  // 開催回は選んだらすぐ検索し直す
+  const changeEvent = (value: string) => {
+    setOffset(0)
+    setUrlParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value) next.set('event', value)
+        else next.delete('event')
+        return next
+      },
+      { replace: true },
+    )
+  }
+  // プルダウンの表示: URL の指定、なければ実際に使われた開催回
+  const eventValue = eventParam || (data?.event ? String(data.event.id) : '')
+  const showAll = data?.event_scope === 'all'
+  // 過去の開催回（とすべての開催回）は、個人情報を消した注文が混ざる
+  const mayBePurged = showAll || (data?.event != null && !data.event.is_current)
+
   return (
     <div className="mpage">
       <PageHead title="注文" />
       <Panel title="検索">
         <form className="form-grid" onSubmit={search}>
+          <label className="field">
+            <span className="field-label">開催回</span>
+            <select className="select" value={eventValue} onChange={(e) => changeEvent(e.target.value)}>
+              {!eventValue && <option value="">{events?.length === 0 ? '（出店した開催回はありません）' : '今の開催回'}</option>}
+              {events?.map((ev) => (
+                <option key={ev.id} value={String(ev.id)}>
+                  {ev.name}
+                  {ev.is_current ? '（開催中）' : ''}
+                </option>
+              ))}
+              {/* URL で指定した開催回が一覧にないとき（出店していないなど）も、選ばれていることが分かるように */}
+              {eventParam && eventParam !== 'all' && !events?.some((ev) => String(ev.id) === eventParam) && (
+                <option value={eventParam}>指定の開催回（#{eventParam}）</option>
+              )}
+              <option value="all">すべての開催回</option>
+            </select>
+          </label>
           <label className="field">
             <span className="field-label">整理番号・お名前・メール</span>
             <input className="input" value={draft.q} onChange={(e) => setDraft({ ...draft, q: e.target.value })} placeholder="A-12 / 山田 / taro@" />
@@ -66,6 +120,11 @@ export function OrdersPage() {
             検索
           </button>
         </form>
+        {mayBePurged && (
+          <p className="field-hint" style={{ marginTop: 12 }}>
+            個人情報の保持期間を過ぎた注文は、名前・メールアドレスでは検索できません（整理番号では検索できます）。
+          </p>
+        )}
         <p className="field-hint" style={{ marginTop: 12 }}>
           お客様の個人情報を扱います。検索・閲覧は記録に残ります。
         </p>
@@ -73,11 +132,21 @@ export function OrdersPage() {
 
       <Panel title={data ? `結果 ${data.total}件` : '結果'}>
         {error && <p className="error-text">{errorMessage(error)}</p>}
+        {data && (
+          <p className="sub" style={{ marginBottom: 12 }}>
+            {data.event
+              ? `${data.event.name}の注文を表示中${data.event_scope === 'latest' ? '（今の開催回に出店していないため、出店した最新の開催回）' : ''}`
+              : showAll
+                ? 'すべての開催回の注文を表示中'
+                : '出店した開催回がないため、表示する注文はありません'}
+          </p>
+        )}
         <div className="table-wrap">
           <table className="table table-cards table-cards-orders">
             <thead>
               <tr>
                 <th>番号</th>
+                {showAll && <th>開催回</th>}
                 <th>日時</th>
                 <th>経路</th>
                 <th>状態</th>
@@ -91,6 +160,7 @@ export function OrdersPage() {
               {data?.items.map((o) => (
                 <tr key={o.id} className="clickable" onClick={() => setSelected(o.id)}>
                   <td className="mono cell-title">{o.order_no}</td>
+                  {showAll && <td data-label="開催回">{eventName(o.event_id)}</td>}
                   <td className="mono" data-label="日時">{mdhm(o.created_at)}</td>
                   <td data-label="経路">{o.channel === 'web' ? 'Web' : 'レジ'}</td>
                   <td data-label="状態">{w.status[o.status] ?? o.status}</td>

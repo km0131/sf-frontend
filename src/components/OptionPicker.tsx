@@ -7,10 +7,12 @@ type Props = {
   item: MenuItem
   onAdd: (optionIds: number[], quantity: number) => void
   submitLabel?: string
+  /** 選べる数量の上限（Web 注文ではカートの残り） */
+  maxQuantity?: number
 }
 
 /** オプション（サイズ・トッピングなど）を選んで数量を決める。必須の組が未選択なら追加できない。 */
-export function OptionPicker({ item, onAdd, submitLabel = '加える' }: Props) {
+export function OptionPicker({ item, onAdd, submitLabel = '加える', maxQuantity = 20 }: Props) {
   const [chosen, setChosen] = useState<Record<number, number[]>>(() => {
     // 必須で1つだけ選ぶ組は、選べる最初の選択肢を選んでおく
     const init: Record<number, number[]> = {}
@@ -80,7 +82,7 @@ export function OptionPicker({ item, onAdd, submitLabel = '加える' }: Props) 
           <span className="mono" style={{ minWidth: 28, textAlign: 'center', fontSize: 17 }}>
             {qty}
           </span>
-          <button type="button" className="qty" aria-label="増やす" disabled={qty >= 20} onClick={() => setQty(qty + 1)}>
+          <button type="button" className="qty" aria-label="増やす" disabled={qty >= maxQuantity} onClick={() => setQty(qty + 1)}>
             +
           </button>
         </div>

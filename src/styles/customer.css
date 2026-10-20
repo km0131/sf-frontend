@@ -136,6 +136,115 @@
   color: var(--c-ink-sub);
 }
 
+/* 受付中の番号：呼び出し中は店舗の色で目立たせる */
+.my-order-ready {
+  color: var(--c-store);
+  font-weight: 600;
+}
+
+/* 注文のキャンセル（誤って押さないよう控えめに） */
+.cancel-order {
+  display: grid;
+  justify-items: start;
+  gap: 6px;
+}
+
+.notice-text {
+  font-size: 14px;
+  color: var(--c-ink-sub);
+}
+
+/* 呼び出し音のボタン */
+.call-sound {
+  display: grid;
+  gap: 8px;
+}
+
+.call-sound .btn[aria-pressed='true'] {
+  border-color: var(--c-store);
+  color: var(--c-ink);
+}
+
+/* 呼び出しの全画面表示：店舗の色と生成りを点滅させ、遠目でも分かるようにする */
+.call-alert {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  width: 100%;
+  padding: 24px var(--gutter-sp);
+  border: 0;
+  background: var(--c-store);
+  color: #fff;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  animation: call-alert-flash 0.9s steps(1, end) infinite;
+}
+
+.call-alert-shop {
+  font-family: var(--f-mincho);
+  font-size: 18px;
+  letter-spacing: 0.15em;
+}
+
+.call-alert-heading {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 28px;
+  letter-spacing: 0.15em;
+}
+
+.call-alert-no {
+  font-family: var(--f-mono);
+  font-size: clamp(72px, 26vw, 140px);
+  line-height: 1;
+}
+
+.call-alert-message {
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.call-alert-close {
+  margin-top: 24px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+@keyframes call-alert-flash {
+  50% {
+    background: var(--c-ground);
+    color: var(--c-ink);
+  }
+}
+
+/* 動きを減らす設定のときは点滅させず、ゆっくり明るさを変えるだけにする（base.css の一括停止より優先） */
+@keyframes call-alert-soft {
+  50% {
+    opacity: 0.85;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .call-alert {
+    animation-name: call-alert-soft !important;
+    animation-duration: 3s !important;
+    animation-timing-function: ease-in-out !important;
+  }
+}
+
+/* 呼び出し中の受け取り期限 */
+.pickup-by {
+  margin-top: 6px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
 /* お呼び出し番号 */
 .call-no {
   font-family: var(--f-mono);

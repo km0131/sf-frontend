@@ -2,7 +2,7 @@
 
 export type ShopColor = 'yamabuki' | 'seiji' | 'sakuranezumi' | 'sabiasagi'
 
-export type OrderStatus = 'waiting' | 'cooking' | 'ready' | 'done' | 'cancelled'
+export type OrderStatus = 'waiting' | 'cooking' | 'ready' | 'done' | 'cancelled' | 'unclaimed'
 
 /** 店舗の種類。food（飲食）は調理の段階を使い、non_food（飲食以外）は使わない（待ち → 呼び出し → 完了） */
 export type BusinessType = 'food' | 'non_food'
@@ -73,6 +73,10 @@ export type PublicMenu = {
     description: string
     color: ShopColor
     business_type: BusinessType
+    /** 呼び出し後の取り置き時間（分） */
+    pickup_hold_minutes: number
+    /** Web 注文1回あたりの合計数量の上限（実際に使われる値） */
+    web_order_max_quantity: number
     order_prefix: string
     event_name: string
     waiting_count: number
@@ -118,6 +122,10 @@ export type Order = {
   ready_at: string | null
   done_at: string | null
   cancelled_at: string | null
+  /** 未受取にした日時 */
+  unclaimed_at: string | null
+  /** 受け取りの期限（呼び出し + 店舗の取り置き時間）。お渡し可能のときだけ */
+  pickup_deadline: string | null
   items: OrderItem[]
 }
 
@@ -125,10 +133,23 @@ export type CustomerOrder = Order & {
   shop: { slug: string; name: string; color: ShopColor; business_type: BusinessType }
   waiting_ahead: number
   estimated_wait_minutes: number | null
+  /** お客様が自分でキャンセルできるか（調理前・未払いの Web 注文だけ） */
+  cancellable: boolean
 }
 
 export type ManagerOrder = Order & {
   email: string | null
+  /** その注文の開催回 */
+  event_id: number
+}
+
+/** 店舗が出店した開催回（GET /api/manage/events。新しい順） */
+export type ShopEvent = {
+  id: number
+  name: string
+  starts_on: string
+  ends_on: string
+  is_current: boolean
 }
 
 export type ShopInfo = {

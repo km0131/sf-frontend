@@ -2,26 +2,22 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { ItemNote } from '../../components/LineNote'
+import { CallSoundButton } from '../../components/ReadyCall'
 import { Log, type LogEntry } from '../../components/Terminal'
 import { VerticalLabel } from '../../components/VerticalLabel'
-import { ApiError, apiFetch, errorMessage } from '../../lib/api'
+import { ApiError, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { hhmm, yen } from '../../lib/format'
-import type { CustomerOrder } from '../../lib/types'
+import { orderQuery } from '../../lib/orderQuery'
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
+import { CancelOrder } from './CancelOrder'
 
 /** お客様: 注文完了・お呼び出し（注文状況は自動で更新する）。 */
 export function OrderStatusPage() {
   const { token = '' } = useParams()
-  const { data, error } = useQuery({
-    queryKey: ['order', token],
-    queryFn: () => apiFetch<{ order: CustomerOrder }>(`/api/orders/${encodeURIComponent(token)}`).then((r) => r.order),
-    refetchInterval: (q) => {
-      const st = q.state.data?.status
-      return st === 'done' || st === 'cancelled' ? false : 7000
-    },
-  })
+  // 取り直し（7秒ごと）は、お客様の画面の共通部分で呼び出しを見張るついでに行う
+  const { data, error } = useQuery(orderQuery(token))
 
   if (error instanceof ApiError && error.status === 404) {
     return <NotFoundPage message="受付が見つかりません。URL をお確かめください。" />
@@ -44,6 +40,7 @@ export function OrderStatusPage() {
     ...(o.ready_at ? [{ time: hhmm(o.ready_at), text: w.logReady }] : []),
     ...(o.done_at ? [{ time: hhmm(o.done_at), text: w.logDone }] : []),
     ...(o.cancelled_at ? [{ time: hhmm(o.cancelled_at), text: w.logCancelled }] : []),
+    ...(o.unclaimed_at ? [{ time: hhmm(o.unclaimed_at), text: w.logUnclaimed }] : []),
   ]
 
   let heading = w.headingReceived
@@ -58,6 +55,9 @@ export function OrderStatusPage() {
     message = w.readyMessage
   } else if (o.status === 'done') {
     heading = w.headingDone
+  } else if (o.status === 'unclaimed') {
+    heading = w.headingUnclaimed
+    message = w.unclaimedMessage
   } else {
     heading = w.headingCancelled
     message = 'くわしくはお店のスタッフにおたずねください'
@@ -80,9 +80,14 @@ export function OrderStatusPage() {
               {message}
             </p>
           )}
+          {o.status === 'ready' && o.pickup_deadline && (
+            <p className="pickup-by">{w.pickupBy(hhmm(o.pickup_deadline))}</p>
+          )}
         </VerticalLabel>
 
-        {o.status !== 'cancelled' && (
+        {(o.status === 'waiting' || o.status === 'cooking' || o.status === 'ready') && <CallSoundButton />}
+
+        {o.status !== 'cancelled' && o.status !== 'unclaimed' && (
           <div className="progress" aria-label={`進み具合: ${steps[step]}`}>
             <div className="progress-track" />
             <div key={o.status} className="progress-fill" style={{ width: `${((step + 1) / steps.length) * 100}%` }} />
@@ -129,6 +134,8 @@ export function OrderStatusPage() {
         )}
 
         <Log entries={log} waiting={w.waitingText[o.status]} />
+
+        <CancelOrder token={token} order={o} />
 
         <div className="stack" style={{ gap: 10 }}>
           <Link to={`/s/${o.shop.slug}`} className="btn btn-primary btn-block">

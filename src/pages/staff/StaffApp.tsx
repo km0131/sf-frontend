@@ -1,9 +1,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { useParams, useSearchParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { apiFetch, setUnauthorizedHandler } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
+import { installOrderSoundUnlock, orderSound, playOrderSound } from '../../lib/orderSound'
 import { staffSession, type Session } from '../../lib/session'
 import { streamEvents } from '../../lib/sse'
 import type { List, Order, StaffShop } from '../../lib/types'
@@ -49,6 +50,11 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
   const tab = params.get('tab') === 'register' ? 'register' : 'board'
   const queryClient = useQueryClient()
   const [connected, setConnected] = useState(false)
+  const soundOn = useSyncExternalStore(orderSound.subscribe, orderSound.isOn)
+  const soundReady = useSyncExternalStore(orderSound.subscribe, orderSound.isReady)
+
+  // PIN の入力などで最初にタップしたときに、注文の音を鳴らせるようにする
+  useEffect(() => installOrderSoundUnlock(), [])
 
   const { data: shop } = useQuery({
     queryKey: ['staff', slug, 'shop'],
@@ -70,7 +76,8 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
         } else if (m.type === 'menu') {
           void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
         } else if (m.type === 'order') {
-          applyOrder(queryClient, slug, m.data as Order)
+          // 一覧になかった注文が届いたら、新しい注文として音で知らせる（つなぎ直したときの取り直しでは鳴らさない）
+          if (applyOrder(queryClient, slug, m.data as Order)) playOrderSound()
         }
       },
       setConnected,
@@ -105,6 +112,16 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
               </button>
             </nav>
             <span className="conn">{connected ? '● 接続中' : '○ 再接続中'}</span>
+            <button
+              type="button"
+              className="btn btn-text"
+              aria-pressed={soundOn}
+              title="注文が入ったときの音"
+              // まだ鳴らせない状態でのタップは「有効にする」だけ（画面全体のタップで解除される。オフにはしない）
+              onClick={() => (soundOn && !soundReady ? undefined : orderSound.setOn(!soundOn))}
+            >
+              {soundOn ? (soundReady ? '音：入' : '音：入（タップで有効）') : '音：切'}
+            </button>
             <button type="button" className="btn btn-text" onClick={onLogout}>
               ログアウト
             </button>
@@ -116,9 +133,11 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
   )
 }
 
-/** 配信で届いた注文を、進行中・完了の一覧に反映する。 */
-function applyOrder(queryClient: ReturnType<typeof useQueryClient>, slug: string, o: Order) {
+/** 配信で届いた注文を、進行中・完了の一覧に反映する。進行中の一覧に初めて入った受付の注文なら true（一覧を読み込む前は false）。 */
+function applyOrder(queryClient: ReturnType<typeof useQueryClient>, slug: string, o: Order): boolean {
   const active = o.status === 'waiting' || o.status === 'cooking' || o.status === 'ready'
+  const before = queryClient.getQueryData<List<Order>>(staffKeys.active(slug))
+  const isNew = !!before && o.status === 'waiting' && !before.items.some((x) => x.id === o.id)
   queryClient.setQueryData<List<Order>>(staffKeys.active(slug), (prev) => {
     if (!prev) return prev
     const rest = prev.items.filter((x) => x.id !== o.id)
@@ -130,4 +149,5 @@ function applyOrder(queryClient: ReturnType<typeof useQueryClient>, slug: string
       prev ? { items: [...prev.items.filter((x) => x.id !== o.id), o] } : prev,
     )
   }
+  return isNew
 }

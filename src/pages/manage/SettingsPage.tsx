@@ -15,6 +15,13 @@ type Settings = {
   email_enabled: boolean
   color: ShopColor
   business_type: BusinessType
+  /** 呼び出し後の取り置き時間（分、1〜120） */
+  pickup_hold_minutes: number
+  /** Web 注文1回あたりの合計数量の上限。null なら既定値を使う */
+  web_order_max_quantity: number | null
+  web_order_max_quantity_effective: number
+  web_order_max_quantity_default: number
+  web_order_max_quantity_limit: number
   pin_set: boolean
   pin_updated_at: string | null
   current_event: { id: number; name: string; starts_on: string; ends_on: string; order_prefix: string | null } | null
@@ -122,7 +129,31 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
     description: initial.description,
     email_enabled: initial.email_enabled,
     color: initial.color as ShopColor,
+    pickup_hold_minutes: String(initial.pickup_hold_minutes ?? 15),
+    // 空欄なら店舗では設定しない（既定値を使う）
+    web_order_max_quantity: initial.web_order_max_quantity == null ? '' : String(initial.web_order_max_quantity),
   })
+  const [maxQtySaved, setMaxQtySaved] = useState(initial.web_order_max_quantity)
+  const limit = initial.web_order_max_quantity_limit
+  const defaultQty = initial.web_order_max_quantity_default
+
+  const applySaved = (s: Settings) => {
+    queryClient.setQueryData(['manage', 'shop'], s)
+    setMaxQtySaved(s.web_order_max_quantity)
+    setForm((f) => ({ ...f, web_order_max_quantity: s.web_order_max_quantity == null ? '' : String(s.web_order_max_quantity) }))
+  }
+
+  const resetMaxQty = async () => {
+    setSaved(null)
+    setSaveError(null)
+    try {
+      const s = await apiFetch<Settings>('/api/manage/shop', { method: 'PATCH', token, body: { web_order_max_quantity: null } })
+      applySaved(s)
+      setSaved(`数量の上限をデフォルト（${s.web_order_max_quantity_effective}個）に戻しました。`)
+    } catch (err) {
+      setSaveError(errorMessage(err))
+    }
+  }
   const [saved, setSaved] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -130,9 +161,23 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
     e.preventDefault()
     setSaved(null)
     setSaveError(null)
+    const hold = Number(form.pickup_hold_minutes)
+    if (!Number.isInteger(hold) || hold < 1 || hold > 120) {
+      setSaveError('取り置き時間は 1〜120 分の整数で入力してください。')
+      return
+    }
+    const maxQtyText = form.web_order_max_quantity.trim()
+    const maxQty = Number(maxQtyText)
+    if (maxQtyText !== '' && (!Number.isInteger(maxQty) || maxQty < 1 || maxQty > limit)) {
+      setSaveError(`数量の上限は 1〜${limit} の整数で入力してください。`)
+      return
+    }
+    const { web_order_max_quantity: _, ...rest } = form
+    // 空欄のときは送らない（今の設定のまま。既定値に戻すのは「デフォルトに戻す」で）
+    const body = { ...rest, pickup_hold_minutes: hold, ...(maxQtyText !== '' ? { web_order_max_quantity: maxQty } : {}) }
     try {
-      const s = await apiFetch<Settings>('/api/manage/shop', { method: 'PATCH', token, body: form })
-      queryClient.setQueryData(['manage', 'shop'], s)
+      const s = await apiFetch<Settings>('/api/manage/shop', { method: 'PATCH', token, body })
+      applySaved(s)
       updateShop({ name: s.name, color: s.color })
       setSaved('保存しました。')
     } catch (err) {
@@ -160,6 +205,52 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
         <span className="field-label">店舗色</span>
         <ColorPicker value={form.color} onChange={(c) => setForm({ ...form, color: c })} />
         <span className="field-hint">選んでいる品の印や、呼び出し番号の下の線などに使います。</span>
+      </div>
+      <label className="field">
+        <span className="field-label">呼び出し後の取り置き時間（分）</span>
+        <input
+          className="input"
+          type="number"
+          inputMode="numeric"
+          min={1}
+          max={120}
+          step={1}
+          style={{ maxWidth: 140 }}
+          value={form.pickup_hold_minutes}
+          onChange={(e) => setForm({ ...form, pickup_hold_minutes: e.target.value })}
+        />
+        <span className="field-hint">
+          呼び出してからこの時間を過ぎた注文は、注文帳で「期限切れ」と表示されます。スタッフの判断で「未受取」にでき、自動では変わりません（1〜120分）。
+        </span>
+      </label>
+      <div className="field">
+        <label className="field-label" htmlFor="web-order-max-quantity">
+          1回の注文で頼める合計数量の上限
+        </label>
+        <div className="row" style={{ gap: 12 }}>
+          <input
+            id="web-order-max-quantity"
+            className="input"
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={limit}
+            step={1}
+            style={{ maxWidth: 140 }}
+            placeholder={String(defaultQty)}
+            value={form.web_order_max_quantity}
+            onChange={(e) => setForm({ ...form, web_order_max_quantity: e.target.value })}
+          />
+          {maxQtySaved != null && (
+            <button type="button" className="btn btn-text" onClick={resetMaxQty}>
+              デフォルトに戻す
+            </button>
+          )}
+        </div>
+        <span className="field-hint">
+          {maxQtySaved == null ? `デフォルト（${defaultQty}個）を使用中。` : `この店舗では ${maxQtySaved}個（デフォルトは ${defaultQty}個）。`}
+          Web 注文だけに効きます（レジの注文には関係しません）。1〜{limit}個。
+        </span>
       </div>
       <label className="check">
         <input type="checkbox" checked={form.email_enabled} onChange={(e) => setForm({ ...form, email_enabled: e.target.checked })} />

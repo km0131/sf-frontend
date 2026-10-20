@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router'
 import { Header } from '../../components/Header'
+import { CallSoundButton } from '../../components/ReadyCall'
 import { TerminalLine } from '../../components/Terminal'
 import { VerticalLabel } from '../../components/VerticalLabel'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { waitLabel } from '../../lib/format'
-import { myOrders } from '../../lib/session'
+import { myOrders, type RememberedOrder } from '../../lib/session'
+import { orderQuery } from '../../lib/orderQuery'
 import type { PublicShopList } from '../../lib/types'
+import { orderStatusText, wording } from '../../lib/wording'
 import { PausedNotice } from '../../components/PausedNotice'
 import { OrderNumberLookup } from './OrderNumberLookup'
 
@@ -31,12 +34,10 @@ export function ShopListPage() {
       {remembered.length > 0 && (
         <section className="section fade-in">
           <VerticalLabel text="受付中の番号">
-            {remembered.map((o) => (
-              <Link key={o.token} to={`/o/${o.token}`} className="shop-row" style={{ gridTemplateColumns: '1fr auto' }}>
-                <span className="shop-row-name">{o.shop}</span>
-                <span className="mono">{o.order_no}</span>
-              </Link>
-            ))}
+            {remembered.map((o) => <MyOrderRow key={o.token} order={o} />)}
+            <div style={{ paddingTop: 16 }}>
+              <CallSoundButton />
+            </div>
           </VerticalLabel>
         </section>
       )}
@@ -67,5 +68,33 @@ export function ShopListPage() {
         </VerticalLabel>
       </section>
     </div>
+  )
+}
+
+/** 受付中の番号の1行。今の状態を出す。 */
+function MyOrderRow({ order }: { order: RememberedOrder }) {
+  // 取り直し（7秒ごと）は、お客様の画面の共通部分で呼び出しを見張るついでに行う
+  const { data } = useQuery(orderQuery(order.token))
+  const ready = data?.status === 'ready'
+
+  return (
+    <Link to={`/o/${order.token}`} className="shop-row" style={storeStyle(data?.shop.color)}>
+      <span className="dot dot-lg" aria-hidden="true" />
+      <span>
+        <span className="shop-row-name">{order.shop}</span>
+        {data && (
+          <span className="sub" style={{ display: 'block', fontSize: 12, lineHeight: 1.7 }} aria-live="polite">
+            {orderStatusText(data)}
+          </span>
+        )}
+      </span>
+      <span className="shop-row-wait">
+        <span className="mono" style={{ fontSize: 15, color: 'var(--c-ink)' }}>{order.order_no}</span>
+        <br />
+        {data && (
+          <span className={ready ? 'my-order-ready' : undefined}>{wording(data.shop.business_type).status[data.status]}</span>
+        )}
+      </span>
+    </Link>
   )
 }
