@@ -6,7 +6,7 @@ import { OptionPicker } from '../../components/OptionPicker'
 import { Sheet } from '../../components/Sheet'
 import { PausedNotice } from '../../components/PausedNotice'
 import { TerminalLine } from '../../components/Terminal'
-import { Turnstile } from '../../components/Turnstile'
+import { Turnstile, TURNSTILE_ACTION_WEB_ORDER } from '../../components/Turnstile'
 import { VerticalLabel } from '../../components/VerticalLabel'
 import { ApiError, apiFetch, errorMessage, mediaUrl } from '../../lib/api'
 import {
@@ -319,7 +319,7 @@ function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, o
           </span>
         </label>
 
-        <Turnstile onToken={onToken} />
+        <Turnstile action={TURNSTILE_ACTION_WEB_ORDER} onToken={onToken} />
         {error && <p className="error-text">{error}</p>}
 
         <button
