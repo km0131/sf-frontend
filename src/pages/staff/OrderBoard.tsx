@@ -5,12 +5,10 @@ import { Sheet } from '../../components/Sheet'
 import { Log, TerminalLine } from '../../components/Terminal'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { hhmm, minutesSince, yen } from '../../lib/format'
+import { clockOffset, useNow } from '../../lib/serverClock'
 import type { BusinessType, List, Order, OrderStatus } from '../../lib/types'
 import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
-
-/** お渡し待ちのままこの分数を過ぎたら目立たせる（受け取りに来ていない注文） */
-const unclaimedMinutes = 15
 
 /** 注文帳：飲食は 受付／調理中／お渡し待ち の3列、飲食以外は 待ち／呼び出し中 の2列。ワンタッチで次に進める。 */
 export function OrderBoard({ slug, token, businessType }: { slug: string; token: string; businessType?: BusinessType }) {
@@ -19,6 +17,7 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<Order | null>(null)
   const [cancelling, setCancelling] = useState<Order | null>(null)
+  const [unclaiming, setUnclaiming] = useState<Order | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [, setTick] = useState(0)
 
@@ -30,7 +29,7 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
 
   const active = useQuery({
     queryKey: staffKeys.active(slug),
-    queryFn: () => apiFetch<List<Order>>('/api/staff/orders', { token }),
+    queryFn: () => apiFetch<List<Order> & { server_time?: string }>('/api/staff/orders', { token }),
     refetchInterval: 60000, // 配信が届かなかったときの保険
   })
   const done = useQuery({
@@ -39,9 +38,14 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
   })
 
   const orders = active.data?.items ?? []
+  // 受け取り期限の残り時間は、サーバーの時刻に合わせて数える（端末の時計のずれ対策）
+  const offset = clockOffset(active.data?.server_time, active.dataUpdatedAt)
   // 飲食以外の「待ち」の列には、種類を変える前の調理中が残っていても出す（見えなくならないように）
-  const byStatus = (s: OrderStatus) =>
-    orders.filter((o) => o.status === s || (!w.usesCooking && s === 'waiting' && o.status === 'cooking'))
+  const byStatus = (s: OrderStatus) => {
+    const list = orders.filter((o) => o.status === s || (!w.usesCooking && s === 'waiting' && o.status === 'cooking'))
+    // お渡し待ちは期限の早い順（期限切れが上に来る）
+    return s === 'ready' ? [...list].sort((a, b) => (a.pickup_deadline ?? '').localeCompare(b.pickup_deadline ?? '')) : list
+  }
 
   const run = async (o: Order, path: string, body?: unknown) => {
     setBusy(o.id)
@@ -107,6 +111,8 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
                       else setConfirming(o)
                     }}
                     onCancel={() => setCancelling(o)}
+                    onUnclaim={() => setUnclaiming(o)}
+                    offset={offset}
                   />
                 ))}
               </div>
@@ -142,6 +148,18 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
         </Sheet>
       )}
 
+      {unclaiming && (
+        <UnclaimSheet
+          order={unclaiming}
+          offset={offset}
+          onClose={() => setUnclaiming(null)}
+          onConfirm={() => {
+            void run(unclaiming, '/unclaimed')
+            setUnclaiming(null)
+          }}
+        />
+      )}
+
       {cancelling && (
         <CancelSheet
           order={cancelling}
@@ -163,16 +181,25 @@ function OrderCard({
   busy,
   onAdvance,
   onCancel,
+  onUnclaim,
+  offset,
 }: {
   order: Order
   label: string | undefined
   busy: boolean
   onAdvance: () => void
   onCancel: () => void
+  onUnclaim: () => void
+  /** サーバーの時刻 − 端末の時刻（ミリ秒） */
+  offset: number
 }) {
-  const sinceReady = minutesSince(o.ready_at)
+  // お渡し待ちのあいだは、受け取り期限までの残り時間を1秒ごとに数える
+  const deadline = o.status === 'ready' && o.pickup_deadline ? Date.parse(o.pickup_deadline) : null
+  const now = useNow(deadline != null ? 1000 : null) + offset
+  const left = deadline != null ? deadline - now : null
+  const overdue = left != null && left <= 0
   return (
-    <article className="card fade-in" style={{ animationDuration: '.8s' }}>
+    <article className={`card fade-in ${overdue ? 'is-overdue' : ''}`} style={{ animationDuration: '.8s' }}>
       <div className="ocard-head">
         {o.status === 'cooking' && <span className="dot dot-lg" aria-label="調理中" />}
         <span className="order-no">{o.order_no}</span>
@@ -209,10 +236,17 @@ function OrderCard({
         ) : (
           <span className="tag tag-strong">未払い {yen(o.total)}</span>
         )}
-        {o.status === 'ready' && sinceReady >= unclaimedMinutes && (
-          <span className="tag tag-strong">{sinceReady}分お待ち</span>
+        {left != null && (
+          <span className={`tag pickup-timer ${overdue ? 'tag-strong' : ''}`} role="timer">
+            {overdue ? `期限切れ（${Math.ceil(-left / 60000)}分超過）` : `期限まで ${countdown(left)}`}
+          </span>
         )}
         <span className="spacer" />
+        {o.status === 'ready' && (
+          <button type="button" className="btn btn-text" onClick={onUnclaim} disabled={busy}>
+            未受取にする
+          </button>
+        )}
         <button type="button" className="btn btn-text" onClick={onCancel} disabled={busy}>
           取り消し
         </button>
@@ -227,6 +261,35 @@ function OrderCard({
         {label}
       </button>
     </article>
+  )
+}
+
+/** 残り時間を「12:34」（分:秒）の形にする。 */
+function countdown(ms: number): string {
+  const s = Math.max(0, Math.ceil(ms / 1000))
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`
+}
+
+/** 未受取にする確認。期限前でもできるが、そのときは「まだ期限前です」と添える。 */
+function UnclaimSheet({ order, offset, onClose, onConfirm }: { order: Order; offset: number; onClose: () => void; onConfirm: () => void }) {
+  const deadline = order.pickup_deadline ? Date.parse(order.pickup_deadline) : null
+  const now = useNow(1000) + offset
+  const left = deadline != null ? deadline - now : null
+  return (
+    <Sheet title={`${order.order_no} を未受取にする`} onClose={onClose}>
+      <div className="stack">
+        {left != null && left > 0 && (
+          <p className="error-text">まだ期限前です（残り {countdown(left)}、{hhmm(order.pickup_deadline)} まで）。</p>
+        )}
+        <p className="sub">
+          取り置きをやめて、店頭販売に回します。お客様の画面には「取り置きを終了しました」と表示されます。
+          元に戻すには、店長の管理画面で状態を直してください。
+        </p>
+        <button type="button" className="btn btn-done btn-block" onClick={onConfirm}>
+          未受取にする
+        </button>
+      </div>
+    </Sheet>
   )
 }
 

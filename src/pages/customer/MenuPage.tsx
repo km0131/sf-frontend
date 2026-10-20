@@ -30,8 +30,6 @@ import type { BusinessType, CustomerOrder, MenuItem, PublicMenu } from '../../li
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
 
-const webMaxQuantity = 5
-
 /** お客様: お品書き・注文。 */
 export function MenuPage() {
   const { slug = '' } = useParams()
@@ -68,8 +66,12 @@ export function MenuPage() {
   ].filter((g) => g.items.length > 0)
   let seq = 0
 
+  // 1回の注文の合計数量の上限（店舗の設定。なければ既定値。サーバーが決めた値を使う）
+  const maxQty = shop.web_order_max_quantity
+  const atLimit = count >= maxQty
+
   const plus = (item: MenuItem) => {
-    if (count >= webMaxQuantity || shop.paused) return
+    if (atLimit || shop.paused) return
     if (item.option_groups.length > 0) setPicking(item)
     else setLines((prev) => addLine(pruneLines(prev, items), item.id, [], 1))
   }
@@ -90,7 +92,7 @@ export function MenuPage() {
       {shop.paused && <PausedNotice message={shop.pause_message} />}
 
       <section className="intro fade-in">
-        <VerticalLabel text={w.menuTitle} note={shop.description || w.menuLimitNote} />
+        <VerticalLabel text={w.menuTitle} note={shop.description || w.menuLimitNote(maxQty)} />
       </section>
 
       <section className="fade-in" aria-label={w.menuTitle}>
@@ -139,7 +141,7 @@ export function MenuPage() {
                             type="button"
                             className="qty"
                             aria-label={`${item.name}を増やす`}
-                            disabled={count >= webMaxQuantity || shop.paused}
+                            disabled={atLimit || shop.paused}
                             onClick={() => plus(item)}
                           >
                             +
@@ -158,6 +160,11 @@ export function MenuPage() {
 
       <div className="spacer" />
       <footer className="order-bar">
+        {atLimit && (
+          <p className="field-hint" role="status" style={{ marginBottom: 8 }}>
+            {w.limitReached(maxQty)}
+          </p>
+        )}
         <div className="term">
           <span className="term-cmd">
             ＞ {count}
@@ -165,7 +172,7 @@ export function MenuPage() {
           </span>
           <span className="term-aside">合計 {yen(total)}</span>
         </div>
-        <button type="button" className="btn btn-primary btn-block" disabled={count === 0 || shop.paused} onClick={() => setCheckout(true)}>
+        <button type="button" className="btn btn-primary btn-block" disabled={count === 0 || count > maxQty || shop.paused} onClick={() => setCheckout(true)}>
           {shop.paused ? w.orderPausedButton : w.orderButton}
         </button>
       </footer>
@@ -174,8 +181,9 @@ export function MenuPage() {
         <Sheet title={picking.name} onClose={() => setPicking(null)}>
           <OptionPicker
             item={picking}
+            maxQuantity={Math.max(1, maxQty - count)}
             onAdd={(ids, qty) => {
-              setLines((prev) => addLine(pruneLines(prev, items), picking.id, ids, Math.min(qty, webMaxQuantity - count)))
+              setLines((prev) => addLine(pruneLines(prev, items), picking.id, ids, Math.min(qty, maxQty - count)))
               setPicking(null)
             }}
           />
@@ -187,6 +195,7 @@ export function MenuPage() {
           slug={slug}
           shopName={shop.name}
           businessType={shop.business_type}
+          pickupHoldMinutes={shop.pickup_hold_minutes}
           lines={validLines}
           items={items}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
@@ -202,6 +211,8 @@ type CheckoutProps = {
   slug: string
   shopName: string
   businessType: BusinessType
+  /** 呼び出し後の取り置き時間（分） */
+  pickupHoldMinutes: number
   lines: CartLine[]
   items: Map<number, MenuItem>
   onRemove: (key: string) => void
@@ -209,7 +220,7 @@ type CheckoutProps = {
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
   const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -241,8 +252,9 @@ function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, o
       myOrders.add({ token: res.public_token, order_no: res.order.order_no, shop: shopName, created_at: res.order.created_at })
       navigate(`/o/${res.public_token}`, { replace: true })
     } catch (e) {
-      setError(errorMessage(e))
-      if (e instanceof ApiError && (e.code === 'item_unavailable' || e.code === 'option_unavailable' || e.code === 'event_paused')) {
+      const max = e instanceof ApiError && e.code === 'too_many_items' ? Number(e.details?.max_quantity) : NaN
+      setError(Number.isFinite(max) ? w.limitReached(max) : errorMessage(e))
+      if (e instanceof ApiError && (e.code === 'too_many_items' || e.code === 'item_unavailable' || e.code === 'option_unavailable' || e.code === 'event_paused')) {
         void queryClient.invalidateQueries({ queryKey: ['menu', slug] })
       }
     } finally {
@@ -318,6 +330,12 @@ function CheckoutSheet({ slug, shopName, businessType, lines, items, onRemove, o
             {w.emailHint}
           </span>
         </label>
+
+        <p className="field-hint">
+          {cartTotal(lines, items) > 0 && w.payNote}
+          {w.cancelLimitNote}
+          {pickupHoldMinutes > 0 && w.holdNote(pickupHoldMinutes)}
+        </p>
 
         <Turnstile action={TURNSTILE_ACTION_WEB_ORDER} onToken={onToken} />
         {error && <p className="error-text">{error}</p>}

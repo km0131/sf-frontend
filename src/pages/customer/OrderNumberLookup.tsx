@@ -3,25 +3,7 @@ import { Sheet } from '../../components/Sheet'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import type { NumberStatus } from '../../lib/types'
-import { wording } from '../../lib/wording'
-
-/** 状態ごとの案内（注文状況ページと同じ言い回し。店舗の種類で言葉を変える）。 */
-function statusText(s: NumberStatus): string {
-  const w = wording(s.shop.business_type)
-  switch (s.status) {
-    case 'waiting':
-    case 'cooking':
-      return s.waiting_ahead > 0
-        ? `前に${s.waiting_ahead}組お待ちです${s.estimated_wait_minutes != null ? `（あと約${s.estimated_wait_minutes}分）` : ''}`
-        : w.soon
-    case 'ready':
-      return `${w.headingReady}。${w.readyMessage}`
-    case 'done':
-      return w.doneLookup
-    case 'cancelled':
-      return w.cancelledLookup
-  }
-}
+import { orderStatusText } from '../../lib/wording'
 
 function lookupError(e: unknown): string {
   // 店舗一覧（飲食・飲食以外が混ざる）から使うので、どちらにも合う言葉にする
@@ -102,7 +84,7 @@ function LookupForm() {
               {result.shop.name} <span className="mono">{result.order_no}</span>
             </span>
             <span className="sub" style={{ display: 'block', fontSize: 13, lineHeight: 1.7 }}>
-              {statusText(result)}
+              {orderStatusText(result)}
             </span>
           </span>
         </div>

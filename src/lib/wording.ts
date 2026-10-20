@@ -1,4 +1,4 @@
-import type { BusinessType, OrderStatus } from './types'
+import type { BusinessType, NumberStatus, OrderStatus } from './types'
 
 /** 画面の言葉（店舗の種類ごと）。飲食以外の店は「お品書き」「ご注文」「お渡し」などを汎用の言葉にする。
  *  状態の流れも種類で変わる（飲食: 受付 → 調理中 → お渡し待ち、飲食以外: 待ち → 呼び出し中）。 */
@@ -12,7 +12,9 @@ export type Wording = {
   menuTitle: string
   menuCommand: string
   menuEmpty: string
-  menuLimitNote: string
+  menuLimitNote: (max: number) => string
+  /** 合計数量が上限に達したとき（サーバーが上限超過を返したときも） */
+  limitReached: (max: number) => string
   /** 選んだ数の単位（「3品を選択中」） */
   countUnit: string
   notOpen: string
@@ -43,6 +45,23 @@ export type Wording = {
   doneLookup: string
   notFound: string
   backToMenu: string
+  /** 確認画面の注意書き（お支払いの時機） */
+  payNote: string
+  /** 確認画面の注意書き（キャンセルできる期限） */
+  cancelLimitNote: string
+  cancelButton: string
+  cancelConfirm: string
+  /** 調理（呼び出し）が始まってキャンセルできないときの案内 */
+  cancelUnavailable: string
+  /** キャンセルを押したのと同時に調理（呼び出し）が始まったとき */
+  cancelRace: string
+  /** 呼び出し中の受け取り期限（「12:30までにお受け取りください」） */
+  pickupBy: (time: string) => string
+  /** 確認画面の注意書き（取り置き時間） */
+  holdNote: (minutes: number) => string
+  headingUnclaimed: string
+  unclaimedMessage: string
+  logUnclaimed: string
 
   // ---- スタッフ ----
   boardTab: string
@@ -86,12 +105,13 @@ export type Wording = {
 
 const food: Wording = {
   usesCooking: true,
-  status: { waiting: '受付', cooking: '調理中', ready: 'お渡し待ち', done: 'お渡し済み', cancelled: '取り消し' },
+  status: { waiting: '受付', cooking: '調理中', ready: 'お渡し待ち', done: 'お渡し済み', cancelled: '取り消し', unclaimed: '未受取' },
 
   menuTitle: 'お品書き',
   menuCommand: 'お品書きを表示',
   menuEmpty: 'お品書きを準備しています',
-  menuLimitNote: 'ご注文はおひとり様 5点まで',
+  menuLimitNote: (max) => `ご注文はおひとり様 ${max}点まで`,
+  limitReached: (max) => `1回のご注文は合計${max}個までです`,
   countUnit: '品',
   notOpen: 'このお店は、いま注文を受け付けていません。',
   orderButton: '注文する',
@@ -104,7 +124,7 @@ const food: Wording = {
     '入力すると、整理番号の控えと、できあがりのお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から30日後に消去します。',
 
   steps: ['受付', '調理', '仕上げ', 'お渡し'],
-  stepIndex: { waiting: 0, cooking: 1, ready: 2, done: 3, cancelled: -1 },
+  stepIndex: { waiting: 0, cooking: 1, ready: 2, done: 3, cancelled: -1, unclaimed: -1 },
   waitingText: {
     waiting: '調理の順番を待っています',
     cooking: 'できあがりを待っています',
@@ -125,6 +145,17 @@ const food: Wording = {
   doneLookup: 'お渡し済みです',
   notFound: 'ご注文が見つかりません。URL をお確かめください。',
   backToMenu: 'のお品書きに戻る',
+  payNote: 'お支払いは受け取り時です。',
+  cancelLimitNote: '調理開始後はキャンセルできません。',
+  cancelButton: '注文をキャンセルする',
+  cancelConfirm: 'この注文をキャンセルしますか？（取り消しはできません）',
+  cancelUnavailable: '調理を開始したためキャンセルできません。お困りの場合は店頭でお声がけください',
+  cancelRace: 'ちょうど調理が始まったためキャンセルできませんでした',
+  pickupBy: (time) => `${time}までにお受け取りください`,
+  holdNote: (minutes) => `呼び出しから${minutes}分以内にお受け取りください。`,
+  headingUnclaimed: 'ご注文の取り置きを終了しました',
+  unclaimedMessage: '受け取り期限を過ぎたため、ご注文の取り置きを終了しました。店頭でお声がけください',
+  logUnclaimed: '受け取り期限を過ぎたため、取り置きを終了しました',
 
   boardTab: '注文帳',
   boardCommand: '注文を見守っています',
@@ -164,12 +195,13 @@ const food: Wording = {
 
 const nonFood: Wording = {
   usesCooking: false,
-  status: { waiting: '待ち', ready: '呼び出し中', done: '完了', cancelled: '取り消し' },
+  status: { waiting: '待ち', ready: '呼び出し中', done: '完了', cancelled: '取り消し', unclaimed: '未受取' },
 
   menuTitle: 'メニュー',
   menuCommand: 'メニューを表示',
   menuEmpty: 'メニューを準備しています',
-  menuLimitNote: '受付はおひとり様 5点まで',
+  menuLimitNote: (max) => `受付はおひとり様 ${max}点まで`,
+  limitReached: (max) => `1回の受付は合計${max}点までです`,
   countUnit: '点',
   notOpen: 'このお店は、いま受付をしていません。',
   orderButton: '受付する',
@@ -182,7 +214,7 @@ const nonFood: Wording = {
     '入力すると、整理番号の控えと、順番のお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から30日後に消去します。',
 
   steps: ['受付', 'お呼び出し', '完了'],
-  stepIndex: { waiting: 0, cooking: 0, ready: 1, done: 2, cancelled: -1 },
+  stepIndex: { waiting: 0, cooking: 0, ready: 1, done: 2, cancelled: -1, unclaimed: -1 },
   waitingText: {
     waiting: '順番をお待ちください',
     ready: '受付までお越しください',
@@ -202,6 +234,17 @@ const nonFood: Wording = {
   doneLookup: '完了しています',
   notFound: '受付が見つかりません。URL をお確かめください。',
   backToMenu: 'のメニューに戻る',
+  payNote: 'お支払いはご来店時です。',
+  cancelLimitNote: 'お呼び出しの後はキャンセルできません。',
+  cancelButton: '受付をキャンセルする',
+  cancelConfirm: 'この受付をキャンセルしますか？（取り消しはできません）',
+  cancelUnavailable: 'お呼び出しが始まったためキャンセルできません。お困りの場合は受付でお声がけください',
+  cancelRace: 'ちょうどお呼び出しが始まったためキャンセルできませんでした',
+  pickupBy: (time) => `${time}までに受付へお越しください`,
+  holdNote: (minutes) => `お呼び出しから${minutes}分以内に受付へお越しください。`,
+  headingUnclaimed: '受付を終了しました',
+  unclaimedMessage: 'お越しの期限を過ぎたため、受付を終了しました。受付でお声がけください',
+  logUnclaimed: 'お越しの期限を過ぎたため、受付を終了しました',
 
   boardTab: '受付・進行一覧',
   boardCommand: '受付を見守っています',
@@ -245,4 +288,24 @@ export const businessTypeLabels: Record<BusinessType, string> = { food: '飲食'
 /** 店舗の種類に合った画面の言葉を返す。種類が分からないとき（読み込み中など）は飲食の言葉。 */
 export function wording(type: BusinessType | undefined): Wording {
   return type === 'non_food' ? nonFood : food
+}
+
+/** 状態ごとの案内（注文状況ページと同じ言い回し。店舗の種類で言葉を変える）。 */
+export function orderStatusText(s: Pick<NumberStatus, 'status' | 'shop' | 'waiting_ahead' | 'estimated_wait_minutes'>): string {
+  const w = wording(s.shop.business_type)
+  switch (s.status) {
+    case 'waiting':
+    case 'cooking':
+      return s.waiting_ahead > 0
+        ? `前に${s.waiting_ahead}組お待ちです${s.estimated_wait_minutes != null ? `（あと約${s.estimated_wait_minutes}分）` : ''}`
+        : w.soon
+    case 'ready':
+      return `${w.headingReady}。${w.readyMessage}`
+    case 'done':
+      return w.doneLookup
+    case 'cancelled':
+      return w.cancelledLookup
+    case 'unclaimed':
+      return w.unclaimedMessage
+  }
 }
