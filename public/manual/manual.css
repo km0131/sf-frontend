@@ -1,0 +1,494 @@
+/* 店舗向け 操作マニュアル（/manual/）。既存の画面と同じ和風・紫苑のデザイントークンを使う。
+   sf.a-kiis.com の CSP（style-src 'self'）に合わせて、スタイルはこのファイルにだけ書く（HTML の中には書かない）。 */
+:root {
+  --c-ground: #f7f3ec; /* 生成り */
+  --c-ink: #2b2622; /* 墨 */
+  --c-ink-sub: rgba(43, 38, 34, 0.65);
+  --c-line: rgba(43, 38, 34, 0.13);
+  --c-shion: #867ba9; /* 紫苑：線・装飾 */
+  --c-shion-deep: #574a80; /* 濃紫苑：文字・操作 */
+  --c-shion-soft: rgba(134, 123, 169, 0.12);
+  --c-card: #ffffff;
+  --c-store: #b8863b; /* 山吹茶：注意の印だけに使う */
+
+  --f-mincho: 'Shippori Mincho B1', 'Hiragino Mincho ProN', 'Yu Mincho', 'YuMincho', serif;
+  --f-gothic: 'Zen Kaku Gothic New', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic', 'Meiryo', sans-serif;
+  --f-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --gutter: 16px;
+  --measure: 46rem;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--c-ground);
+  color: var(--c-ink);
+  font-family: var(--f-gothic);
+  font-size: 16px;
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+}
+
+a {
+  color: var(--c-shion-deep);
+  text-underline-offset: 3px;
+}
+
+a:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--c-shion-deep);
+  outline-offset: 2px;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ===== 全体の枠 ===== */
+.page {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--gutter) 64px;
+}
+
+.masthead {
+  padding: 28px 0 20px;
+  border-bottom: 1px solid var(--c-shion);
+  margin-bottom: 24px;
+}
+
+.masthead-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.seal {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: var(--c-shion-deep);
+  color: #fff;
+  font-family: var(--f-mincho);
+  font-size: 18px;
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: clamp(20px, 5.6vw, 28px);
+  letter-spacing: 0.12em;
+  line-height: 1.5;
+}
+
+.lead {
+  margin: 14px 0 0;
+  color: var(--c-ink-sub);
+  font-size: 14px;
+}
+
+/* ===== 目次 ===== */
+.toc {
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  padding: 16px 18px;
+  margin-bottom: 40px;
+}
+
+.toc-title {
+  margin: 0 0 8px;
+  font-family: var(--f-mincho);
+  font-size: 16px;
+  letter-spacing: 0.2em;
+  color: var(--c-shion-deep);
+}
+
+.toc-list {
+  margin: 0;
+  padding-left: 0;
+  list-style: none;
+}
+
+.toc li {
+  margin: 2px 0;
+}
+
+.toc .toc-part {
+  margin: 12px 0 2px;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.toc a {
+  display: inline-block;
+  padding: 4px 0; /* 指で押しやすく */
+  text-decoration: none;
+}
+
+.toc a:hover {
+  text-decoration: underline;
+}
+
+/* ===== 部・章・節 ===== */
+.part {
+  margin: 56px 0 8px;
+  padding: 14px 16px;
+  background: var(--c-shion-deep);
+  color: #fff;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 20px;
+  letter-spacing: 0.15em;
+}
+
+.part small {
+  display: block;
+  font-family: var(--f-gothic);
+  font-weight: 400;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+section {
+  scroll-margin-top: 12px;
+}
+
+h2 {
+  margin: 48px 0 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--c-shion);
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 21px;
+  letter-spacing: 0.1em;
+  line-height: 1.5;
+  scroll-margin-top: 12px;
+}
+
+h3 {
+  margin: 32px 0 8px;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  color: var(--c-shion-deep);
+  scroll-margin-top: 12px;
+}
+
+p {
+  margin: 10px 0;
+}
+
+ul,
+ol {
+  margin: 10px 0;
+  padding-left: 1.5em;
+}
+
+li {
+  margin: 4px 0;
+}
+
+/* 手順（番号つき） */
+.steps {
+  counter-reset: step;
+  list-style: none;
+  padding-left: 0;
+}
+
+.steps > li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.4em;
+  margin: 12px 0;
+}
+
+.steps > li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0.15em;
+  width: 1.7em;
+  height: 1.7em;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--c-shion-deep);
+  border-radius: 50%;
+  color: var(--c-shion-deep);
+  font-family: var(--f-mono);
+  font-size: 13px;
+  line-height: 1;
+}
+
+/* 画面のボタン・表示の文字 */
+.ui {
+  display: inline-block;
+  padding: 0 6px;
+  border: 1px solid var(--c-shion);
+  background: var(--c-card);
+  font-size: 0.92em;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+code,
+.mono {
+  font-family: var(--f-mono);
+  font-size: 0.9em;
+  overflow-wrap: anywhere;
+}
+
+/* ===== 囲み ===== */
+.note,
+.warn,
+.alt {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--c-shion);
+  background: var(--c-shion-soft);
+  font-size: 15px;
+}
+
+.warn {
+  border-left-color: var(--c-store);
+  background: rgba(184, 134, 59, 0.1);
+}
+
+.note-title {
+  display: block;
+  margin-bottom: 2px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--c-shion-deep);
+}
+
+.warn .note-title {
+  color: #7a5520;
+}
+
+.note p,
+.warn p,
+.alt p {
+  margin: 4px 0;
+}
+
+/* ===== 画面のスクショ ===== */
+figure {
+  margin: 18px 0 24px;
+}
+
+figure a {
+  display: block;
+}
+
+figure img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--c-line);
+  background: var(--c-card);
+}
+
+figure.phone img,
+figure.small img {
+  width: auto;
+  max-width: min(100%, 300px);
+  margin: 0 auto;
+}
+
+figure.small img {
+  max-width: min(100%, 360px);
+}
+
+figcaption {
+  margin-top: 6px;
+  color: var(--c-ink-sub);
+  font-size: 13px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+/* ===== 表 ===== */
+.table-wrap {
+  overflow-x: auto;
+  margin: 14px 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--c-card);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+th,
+td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--c-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  color: var(--c-shion-deep);
+  white-space: nowrap;
+}
+
+/* 用語集 */
+dl.terms {
+  margin: 12px 0;
+}
+
+dl.terms dt {
+  margin-top: 10px;
+  font-weight: 700;
+}
+
+dl.terms dd {
+  margin: 0 0 0 1em;
+  color: var(--c-ink-sub);
+  font-size: 15px;
+}
+
+/* Q&A */
+details {
+  margin: 10px 0;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+}
+
+summary {
+  cursor: pointer;
+  padding: 12px 14px;
+  font-weight: 700;
+  list-style-position: inside;
+}
+
+details[open] summary {
+  border-bottom: 1px solid var(--c-line);
+}
+
+details > div {
+  padding: 4px 14px 10px;
+  font-size: 15px;
+}
+
+/* チェックリスト（印刷して使える） */
+.checklist {
+  list-style: none;
+  padding-left: 0;
+}
+
+.checklist li {
+  position: relative;
+  padding-left: 1.8em;
+}
+
+.checklist li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  width: 1.05em;
+  height: 1.05em;
+  border: 1px solid var(--c-shion-deep);
+  background: var(--c-card);
+}
+
+.checklist-group {
+  margin: 8px 0 0;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+/* 目次へ戻る */
+.back {
+  margin: 20px 0 0;
+  text-align: right;
+  font-size: 13px;
+}
+
+.footer {
+  margin-top: 56px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-line);
+  color: var(--c-ink-sub);
+  font-size: 13px;
+}
+
+/* ===== 広い画面 ===== */
+@media (min-width: 720px) {
+  :root {
+    --gutter: 32px;
+  }
+
+  body {
+    font-size: 16.5px;
+  }
+
+  figure.half {
+    max-width: 75%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+/* ===== 印刷（チェックリストなど） ===== */
+@media print {
+  body {
+    background: #fff;
+    font-size: 11pt;
+  }
+
+  .toc,
+  .back {
+    display: none;
+  }
+
+  .part {
+    background: none;
+    color: var(--c-ink);
+    border: 1px solid var(--c-ink);
+  }
+
+  h2,
+  h3,
+  figure,
+  details {
+    break-inside: avoid;
+  }
+
+  details > div {
+    display: block;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+}
