@@ -43,25 +43,75 @@ export const staffSession = {
   set: (slug: string, s: Session | null) => write(staffKey(slug), s),
 }
 
-export type RememberedOrder = { token: string; order_no: string; shop: string; created_at: string }
+export type RememberedOrder = {
+  token: string
+  order_no: string
+  shop: string
+  created_at: string
+  /** お渡し済み（done）になった時刻（サーバーの done_at）。分かったときに記録し、ここから3分で控えから消す */
+  done_at?: string
+}
 
-/** お客様が注文した控え（注文状況ページに戻れるように）。新しい順に最大10件。 */
+/** 控えに残す注文の上限 */
+const MAX_ORDERS = 10
+/** お渡し済みになってから控えに残しておく時間（受け取った直後の確認用） */
+export const DONE_KEEP_MS = 3 * 60 * 1000
+
+/** お渡し済みになってから3分たったか。 */
+export function doneExpired(doneAt: string | null | undefined, now = Date.now()): boolean {
+  return !!doneAt && Date.parse(doneAt) + DONE_KEEP_MS <= now
+}
+
+function readOrders(): RememberedOrder[] {
+  try {
+    const list = JSON.parse(localStorage.getItem(ordersKey) ?? '[]')
+    return Array.isArray(list) ? (list as RememberedOrder[]) : []
+  } catch {
+    return []
+  }
+}
+
+function writeOrders(list: RememberedOrder[]) {
+  try {
+    localStorage.setItem(ordersKey, JSON.stringify(list))
+  } catch {
+    // 保存できなくても注文自体は完了している
+  }
+}
+
+/** 上限を超えたら、お渡し済みの古いものから外し、それでも多ければ古いものから外す（受付中の注文はできるだけ残す）。 */
+function trim(list: RememberedOrder[]): RememberedOrder[] {
+  const kept = [...list]
+  while (kept.length > MAX_ORDERS) {
+    const doneIdx = kept.findLastIndex((o) => o.done_at)
+    kept.splice(doneIdx >= 0 ? doneIdx : kept.length - 1, 1)
+  }
+  return kept
+}
+
+/** お客様が注文した控え（注文状況ページに戻れるように）。今日の注文を新しい順に最大10件。
+ *  お渡し済みになって3分たった注文は、読むときに控えから消す（画面を開き直したときも）。 */
 export const myOrders = {
-  list(): RememberedOrder[] {
-    try {
-      const list = JSON.parse(localStorage.getItem(ordersKey) ?? '[]') as RememberedOrder[]
-      const today = new Date().toDateString()
-      return list.filter((o) => new Date(o.created_at).toDateString() === today)
-    } catch {
-      return []
-    }
+  list(now = Date.now()): RememberedOrder[] {
+    const all = readOrders()
+    const today = new Date(now).toDateString()
+    const kept = all.filter((o) => new Date(o.created_at).toDateString() === today && !doneExpired(o.done_at, now))
+    if (kept.length !== all.length) writeOrders(kept)
+    return kept
   },
   add(o: RememberedOrder) {
-    try {
-      const list = [o, ...myOrders.list().filter((x) => x.token !== o.token)].slice(0, 10)
-      localStorage.setItem(ordersKey, JSON.stringify(list))
-    } catch {
-      // 保存できなくても注文自体は完了している
+    writeOrders(trim([o, ...myOrders.list().filter((x) => x.token !== o.token)]))
+  },
+  /** お渡し済みになった時刻を記録する（すでに3分たっていれば、その場で控えから消す）。
+   *  null なら記録を消す（店長がお渡し済みを取り消して、受付中などに戻したとき）。 */
+  markDone(token: string, doneAt: string | null) {
+    const list = myOrders.list()
+    const target = list.find((o) => o.token === token)
+    if (!target || (target.done_at ?? null) === doneAt) return
+    if (doneAt && doneExpired(doneAt)) {
+      writeOrders(list.filter((o) => o.token !== token))
+      return
     }
+    writeOrders(list.map((o) => (o.token === token ? { ...o, done_at: doneAt ?? undefined } : o)))
   },
 }

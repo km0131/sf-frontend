@@ -136,6 +136,12 @@
   color: var(--c-ink-sub);
 }
 
+/* 受付中の番号：お渡し済みは薄く（3分で一覧から消える） */
+.shop-row.my-order-done {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
 /* 受付中の番号：呼び出し中は店舗の色で目立たせる */
 .my-order-ready {
   color: var(--c-store);
