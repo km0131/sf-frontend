@@ -983,3 +983,31 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+/* レシートの原寸の画像（拡大・回転） */
+.receipt-viewer-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 8px;
+}
+
+.receipt-viewer-frame {
+  max-height: 75vh;
+  overflow: auto;
+  background: var(--c-photo);
+}
+
+.receipt-viewer-frame img {
+  display: block;
+  max-width: none;
+  margin: 0 auto;
+  object-fit: contain;
+}
+
+/* 検索語の強調 */
+.receipt-ocr-text mark {
+  background: rgba(184, 134, 59, 0.35);
+  color: inherit;
+}

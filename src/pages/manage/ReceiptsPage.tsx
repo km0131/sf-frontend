@@ -1,37 +1,38 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import { OcrText, ReceiptCard, ReceiptImage, ReceiptSearchForm } from '../../components/ReceiptSearch'
 import { ReceiptUploader } from '../../components/ReceiptUploader'
 import { Sheet } from '../../components/Sheet'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
-import { sessionLabel, type EventSession, type LedgerCategory } from '../../lib/ledger'
+import { categoryLabel, type EventSession, type LedgerCategory } from '../../lib/ledger'
+import { emptyQuery, keywordsOf, toParams, type ReceiptQuery } from '../../lib/receiptSearch'
 import {
   receiptNo,
   refetchWhileReading,
-  statusLabels,
   useAuthImage,
   type Receipt,
   type ReceiptItem,
-  type ReceiptStatus,
   type UploadResult,
 } from '../../lib/receipts'
 import type { List } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
 
-/** 店長: レシートの登録・一覧・確認と確定（確定すると収支の支出に登録する）。 */
+/** 店長: レシートの登録・検索・確認と確定（確定すると収支の支出に登録する）と、照合チェック。 */
 export function ReceiptsPage() {
   const { token } = useManage()
   const sessions = useQuery({
     queryKey: ['manage', 'ledger', 'sessions'],
-    queryFn: () => apiFetch<{ items: EventSession[] }>('/api/manage/ledger/sessions', { token }).then((r) => r.items),
+    queryFn: () => apiFetch<{ items: EventSession[]; default_session_id: number | null }>('/api/manage/ledger/sessions', { token }),
   })
-  const [sessionId, setSessionId] = useState('')
-  const [status, setStatus] = useState<'' | ReceiptStatus>('')
+  const categories = useQuery({
+    queryKey: ['manage', 'ledger', 'categories'],
+    queryFn: () => apiFetch<{ items: LedgerCategory[] }>('/api/manage/ledger/categories?all=1', { token }).then((r) => r.items),
+  })
+  const [query, setQuery] = useState<ReceiptQuery>(emptyQuery)
   const [selected, setSelected] = useState<number | null>(null)
-  const params = new URLSearchParams()
-  if (sessionId) params.set('session_id', sessionId)
-  if (status) params.set('status', status)
+  const params = toParams(query)
   const list = useQuery({
     queryKey: ['receipts', 'list', params.toString()],
     queryFn: () => apiFetch<List<Receipt>>(`/api/manage/receipts?${params}`, { token }).then((r) => r.items),
@@ -39,6 +40,10 @@ export function ReceiptsPage() {
     // 読み取りの途中のものがあれば、終わるまで読み直す
     refetchInterval: (q) => refetchWhileReading(q.state.data),
   })
+  const keywords = keywordsOf(query.q)
+  // 照合チェックは、ふだん使う開催回（今日に近いもの）の回
+  const items = sessions.data?.items ?? []
+  const eventId = (items.find((s) => s.id === sessions.data?.default_session_id) ?? items[0])?.event_id
 
   return (
     <div className="mpage">
@@ -47,65 +52,116 @@ export function ReceiptsPage() {
         <ReceiptUploader token={token} base="/api/manage" />
       </Panel>
 
-      <Panel title="レシートの一覧">
-        <div className="form-grid">
-          <label className="field">
-            <span className="field-label">開催回</span>
-            <select className="select" value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
-              <option value="">すべて</option>
-              {sessions.data?.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {sessionLabel(s)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="field">
-            <span className="field-label">状態</span>
-            <select className="select" value={status} onChange={(e) => setStatus(e.target.value as '' | ReceiptStatus)}>
-              <option value="">すべて</option>
-              {Object.entries(statusLabels).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      <Panel title="レシートを探す">
+        <ReceiptSearchForm sessions={items} categories={categories.data ?? []} onSearch={setQuery} />
         {list.error && <p className="error-text">{errorMessage(list.error)}</p>}
-        <div className="receipt-cards" style={{ marginTop: 16 }}>
-          {list.data?.map((r) => <ReceiptCard key={r.id} receipt={r} token={token} onOpen={() => setSelected(r.id)} />)}
+        <p className="sub" style={{ fontSize: 13, marginTop: 16 }}>
+          {list.data ? `${list.data.length}${list.data.length >= 100 ? '件以上（新しい100件）' : '件'}` : ''}
+        </p>
+        <div className="receipt-cards" style={{ marginTop: 8 }}>
+          {list.data?.map((r) => <ReceiptCard key={r.id} receipt={r} token={token} base="/api/manage" onOpen={() => setSelected(r.id)} />)}
         </div>
-        {list.data?.length === 0 && <p className="empty">レシートはありません</p>}
+        {list.data?.length === 0 && <p className="empty">見つかりませんでした</p>}
       </Panel>
 
-      {selected && <ReceiptDetail id={selected} onClose={() => setSelected(null)} />}
+      {eventId != null && <Checks eventId={eventId} categories={categories.data ?? []} onOpen={setSelected} />}
+
+      {selected && <ReceiptDetail id={selected} keywords={keywords} onClose={() => setSelected(null)} />}
     </div>
   )
 }
 
-function ReceiptCard({ receipt: r, token, onOpen }: { receipt: Receipt; token: string; onOpen: () => void }) {
-  const thumb = useAuthImage(`/api/manage/receipts/${r.id}/thumb`, token)
-  const total = r.total ?? r.ocr?.total ?? null
-  const store = r.store_name ?? r.ocr?.store_name ?? null
+type UnlinkedExpense = {
+  id: number
+  session_name: string
+  session_kind: 'practice' | 'production'
+  category: string
+  category_label: string
+  amount: number
+  entry_date: string
+  memo: string
+}
+
+/** 照合チェック: 確定していないレシートと、レシートを結んでいない支出 */
+function Checks({ eventId, categories, onOpen }: { eventId: number; categories: LedgerCategory[]; onOpen: (id: number) => void }) {
+  const { token } = useManage()
+  const checks = useQuery({
+    queryKey: ['receipts', 'checks', eventId],
+    queryFn: () =>
+      apiFetch<{ unconfirmed_receipts: Receipt[]; unlinked_expenses: UnlinkedExpense[] }>(`/api/manage/ledger/checks?event_id=${eventId}`, { token }),
+  })
+  const c = checks.data
   return (
-    <button type="button" className="receipt-card receipt-card-button" onClick={onOpen}>
-      {thumb ? <img src={thumb} alt="" /> : <span className="receipt-thumb-empty" aria-hidden="true" />}
-      <span className="stack" style={{ gap: 2, textAlign: 'left' }}>
-        <span className="mono">{receiptNo(r.id)}</span>
-        <strong className="receipt-card-session">{r.session_name}</strong>
-        <span>{store ?? '店名 —'}</span>
-        <span className="mono">{total != null ? yen(total) : '—'}</span>
-        <span className={`tag ${r.status === 'confirmed' ? '' : 'tag-strong'}`}>{statusLabels[r.status]}</span>
-      </span>
-    </button>
+    <Panel title="照合チェック">
+      {checks.error && <p className="error-text">{errorMessage(checks.error)}</p>}
+      {c && (
+        <div className="stack" style={{ gap: 20 }}>
+          <section className="stack" style={{ gap: 8 }}>
+            <h4 className="field-label">確定していないレシート（{c.unconfirmed_receipts.length}件）</h4>
+            {c.unconfirmed_receipts.length === 0 ? (
+              <p className="sub" style={{ fontSize: 13 }}>ありません。</p>
+            ) : (
+              <>
+                <p className="sub" style={{ fontSize: 13 }}>確定するまで、収支にも学校に出す書類にも入りません。</p>
+                <div className="receipt-cards">
+                  {c.unconfirmed_receipts.map((r) => (
+                    <ReceiptCard key={r.id} receipt={r} token={token} base="/api/manage" onOpen={() => onOpen(r.id)} />
+                  ))}
+                </div>
+              </>
+            )}
+          </section>
+          <section className="stack" style={{ gap: 8 }}>
+            <h4 className="field-label">レシートを結んでいない支出（{c.unlinked_expenses.length}件）</h4>
+            {c.unlinked_expenses.length === 0 ? (
+              <p className="sub" style={{ fontSize: 13 }}>ありません。</p>
+            ) : (
+              <>
+                <p className="sub" style={{ fontSize: 13 }}>
+                  手で入力した支出です。レシートがあるときは、レシートを登録して確定し、手入力の分は「収支」で消してください（二重に数えないため）。
+                </p>
+                <div className="table-wrap">
+                  <table className="table table-cards">
+                    <thead>
+                      <tr>
+                        <th>日付</th>
+                        <th>開催回</th>
+                        <th>科目</th>
+                        <th className="num">金額</th>
+                        <th>摘要</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {c.unlinked_expenses.map((e) => (
+                        <tr key={e.id}>
+                          <td className="mono cell-title">{e.entry_date}</td>
+                          <td data-label="開催回">
+                            {e.session_name}
+                            {e.session_kind === 'practice' && <span className="tag"> 練習</span>}
+                          </td>
+                          <td data-label="科目">{e.category_label || categoryLabel(categories, 'expense', e.category)}</td>
+                          <td className="num mono" data-label="金額">
+                            {yen(e.amount)}
+                          </td>
+                          <td data-label="摘要">{e.memo || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </section>
+        </div>
+      )}
+    </Panel>
   )
 }
 
 type Draft = { store_name: string; purchase_date: string; total: string; category: string; memo: string; items: { name: string; amount: string }[] }
 
 /** レシートの確認と確定。画像と読み取りの結果を並べ、店長が直して確定する（AI・OCR の結果だけでは確定しない）。 */
-function ReceiptDetail({ id, onClose }: { id: number; onClose: () => void }) {
+function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string[]; onClose: () => void }) {
   const { token } = useManage()
   const queryClient = useQueryClient()
   const detail = useQuery({
@@ -127,7 +183,7 @@ function ReceiptDetail({ id, onClose }: { id: number; onClose: () => void }) {
         <p className="empty">{detail.error ? errorMessage(detail.error) : '読み込んでいます…'}</p>
       ) : (
         <div className="receipt-detail">
-          <div className="receipt-image">{image ? <img src={image} alt={`${receiptNo(id)} の写真`} /> : <span className="receipt-thumb-empty" />}</div>
+          <ReceiptImage src={image} alt={`${receiptNo(id)} の写真`} />
           <div className="stack" style={{ gap: 16 }}>
             <p className="receipt-session">
               開催回：<strong>{r.session_name}</strong>　<span className="sub">登録 {mdhm(r.created_at)}・{r.uploaded_by_name ?? (r.uploaded_by_role === 'staff' ? 'スタッフ' : '—')}</span>
@@ -154,9 +210,9 @@ function ReceiptDetail({ id, onClose }: { id: number; onClose: () => void }) {
               />
             )}
             {r.ocr && r.ocr.lines.length > 0 && (
-              <details>
+              <details open={keywords.length > 0}>
                 <summary className="field-label">読み取った文字（{r.ocr.lines.length}行）</summary>
-                <pre className="receipt-ocr-text">{r.ocr.lines.join('\n')}</pre>
+                <OcrText lines={r.ocr.lines} keywords={keywords} />
               </details>
             )}
           </div>
