@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>当日と閉店後・注文の検索と修正｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>当日と閉店後・注文の検索と修正</h1>
+  </div>
+</header>
+
+<main>
+<section id="m2">
+  <h2>当日（店長として）</h2>
+  <ul>
+    <li><strong>開店前</strong>: スタッフに注文帳・レジの URL と PIN、大画面の URL を伝えます。機材の置き場所を決めて、スタッフと一緒に「<a href="staff-open.html">開店前</a>」を進めます。</li>
+    <li><strong>営業中</strong>: 操作はスタッフと同じです（→ <a href="staff-board.html">注文帳とお渡し</a>・<a href="staff-register.html">レジと売り切れ</a>）。スタッフが間違えて進めた・取り消した注文は、店長が直せます（→ 下の「注文を検索・修正する」）。</li>
+    <li><strong>営業中の損益</strong>: 管理画面の商品の画面の上に、今の損益と「あと何点」が出ます（→ <a href="outlook.html">損益と見込み</a>）。</li>
+    <li><strong>買い出しのレシート</strong>: スタッフが写真で送ったら、店長が確かめて確定します（→ <a href="receipts.html#manager">レシートの確認と確定</a>）。</li>
+    <li><strong>スタッフからの連絡</strong>: スタッフ向けのページでは、困ったら「店長に連絡」と書いています。店長で解決できないときは運営に連絡してください。</li>
+  </ul>
+</section>
+
+<section id="m3">
+  <h2>閉店後</h2>
+  <ol class="steps">
+    <li>注文帳に、お渡し待ち・受付の注文が残っていないか確かめます。</li>
+    <li>レジの現金を数えて、収支の画面の「現金照合」に記録します（→ <a href="ledger.html#cash">収支の画面</a>）。</li>
+    <li>余った食材があれば、収支の画面の「廃棄」に金額を記録します（→ <a href="ledger.html#waste">収支の画面</a>）。</li>
+    <li>その日のレシートが、すべて確定しているか確かめます（→ <a href="receipt-search.html#checks">照合チェック</a>）。</li>
+    <li>売上を確かめます（→ <a href="sales.html">売上の画面</a>）。</li>
+  </ol>
+</section>
+
+<section id="m3-2">
+  <h2>注文を検索・修正する</h2>
+  <p>メニューの <span class="ui">注文</span> を開きます。</p>
+  <ol class="steps">
+    <li><strong>開催回</strong>を選びます（最初は今の開催回。「すべての開催回」も選べます）。</li>
+    <li>整理番号（例: A-12）・お名前・メールアドレス・営業日・状態で絞り込み、<span class="ui">検索</span> を押します。</li>
+    <li>一覧の注文を押すと、くわしい内容と「修正」の欄が開きます。</li>
+  </ol>
+  <figure>
+    <a href="img/m-orders.png"><img src="img/m-orders.png" width="1180" height="943" alt="注文の検索画面。検索の欄と、注文の一覧" loading="lazy"></a>
+    <figcaption>注文の検索（見本の名前で検索しています）</figcaption>
+  </figure>
+  <figure>
+    <a href="img/m-order-detail.png"><img src="img/m-order-detail.png" width="1180" height="943" alt="注文の詳細。状態、経路・支払い、お客様、時刻、品目と、修正の欄" loading="lazy"></a>
+    <figcaption>注文の詳細と修正</figcaption>
+  </figure>
+  <ul>
+    <li><strong>修正</strong>: 状態と「支払い済み」を直して <span class="ui">修正を保存</span>。状態を戻すこともできます（例: 間違えてお渡し済みにした注文をお渡し待ちに戻す、取り消し・未受取を元に戻す）。</li>
+    <li><strong>記録に残ります</strong>: お客さんの個人情報を扱うので、検索・閲覧・修正はすべて記録されます。必要なときだけ使ってください。</li>
+    <li><strong>個人情報は消えます</strong>: お客さんの名前・メールアドレスは、学園祭の終了から一定の期間がたつと消されます。そのあとは名前・メールでは検索できません（整理番号ではできます）。</li>
+  </ul>
+</section>
+
+<section id="m3-3">
+  <h2>次の日に向けて</h2>
+  <ul>
+    <li>売り切れにした商品・選択肢を、販売中に戻します（レジの売り切れ設定か、管理画面の商品から）。</li>
+    <li>取り置き時間・数量の上限を見直します（→ <a href="manager-prepare.html#m1-3">店舗設定</a>）。</li>
+    <li>PIN を変えたときは、翌日スタッフに新しい PIN を伝えます。</li>
+  </ul>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="manager-prepare.html"><small>前へ</small>前日までの準備</a><a class="pager-next" href="sales.html"><small>次へ</small>売上の画面</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

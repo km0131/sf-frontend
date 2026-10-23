@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>売上の画面｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>売上の画面</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">メニューの <span class="ui">売上</span> を開きます。上の1行の条件（開催回・数える日・時間帯の区切り・時間帯を見る日）が、その下のすべての表とグラフに効きます。</p>
+
+<figure>
+    <a href="img/m-sales.png"><img src="img/m-sales.png" width="1180" height="3593" alt="売上の画面。上に条件の欄、売上・注文・客単価・販売個数、日別・時間帯別のグラフ、商品別、待ち時間、ロス、売り切れ" loading="lazy"></a>
+    <figcaption>売上の画面（全体）</figcaption>
+  </figure>
+
+<section id="basic">
+  <h2>いつも見るところ</h2>
+  <ul>
+    <li><strong>売上・注文・客単価・販売個数</strong>: 支払い済みの注文だけを数えます（取り消し・受け取りなしは数えません）。</li>
+    <li><strong>日別の売上・時間帯別の注文数・商品別</strong>: どの日・どの時間に、何が売れたか。選択肢（麺・トッピングなど）の選ばれ方も見られます。</li>
+    <li><strong>注文の経路</strong>: レジと Web 注文の割合。</li>
+    <li><strong>開催回の比較</strong>: これまでの開催との比較。</li>
+    <li><strong>CSV を書き出す</strong>: 右上のボタンで、注文の明細を CSV（Excel で開けるファイル）で保存できます。</li>
+  </ul>
+</section>
+
+<section id="days">
+  <h2>数える日を切り替える</h2>
+  <figure class="phone">
+    <a href="img/m-sales-filter.png"><img src="img/m-sales-filter.png" width="780" height="736" alt="売上の条件の欄。開催回、数える日（本番の日だけ）、時間帯の区切り、時間帯を見る日" loading="lazy"></a>
+    <figcaption>「数える日」で「本番の日だけ」を選んだところ</figcaption>
+  </figure>
+  <ul>
+    <li><span class="ui">すべての日（練習も）</span>: 開催のすべての日の注文を数えます（最初はこちら）。</li>
+    <li><span class="ui">本番の日だけ（収支・Excel と同じ）</span>: 本番の開催回の日の注文だけを数えます。収支の画面や学校に出す書類の売上と同じ数字になります。</li>
+  </ul>
+</section>
+
+<section id="waits">
+  <h2>提供時間（待ち時間）</h2>
+  <figure class="phone">
+    <a href="img/m-sales-waits.png"><img src="img/m-sales-waits.png" width="716" height="1308" alt="待ち時間の欄。平均、ふつう（中央値）、遅いほうの1割、いちばん長い、調理時間の平均、受け渡しまでの時間" loading="lazy"></a>
+    <figcaption>待ち時間</figcaption>
+  </figure>
+  <ul>
+    <li><strong>平均・ふつう（中央値）・遅いほうの1割・いちばん長い</strong>: 注文からできあがりまでの時間です。「遅いほうの1割」は、これより長く待った注文が1割ある、という時間です。</li>
+    <li><strong>調理時間の平均</strong>: 調理中からできあがりまで。</li>
+    <li><strong>受け渡しまで</strong>: 注文から、お渡し済み（完了）を押すまでの時間です。お客さんが受け取るまでにかかった時間の目安になります。</li>
+  </ul>
+</section>
+
+<section id="loss">
+  <h2>ロス（取り消し・受け取りなし・廃棄）</h2>
+  <figure class="phone">
+    <a href="img/m-sales-loss.png"><img src="img/m-sales-loss.png" width="716" height="788" alt="ロスの欄。取り消しの件数と金額、受け取りなしの件数と金額、廃棄（余った食材）の金額" loading="lazy"></a>
+    <figcaption>ロス</figcaption>
+  </figure>
+  <ul>
+    <li><strong>取り消し・受け取りなし</strong>: 件数と金額。</li>
+    <li><strong>廃棄（余った食材）</strong>: 収支の画面で開催回ごとに入れた金額の合計です（入れ方は → <a href="ledger.html#waste">収支の画面の「廃棄」</a>）。買ったときの値段で、収支には足しません（支出はもう入っているため）。</li>
+  </ul>
+</section>
+
+<section id="soldout">
+  <h2>売り切れの記録</h2>
+  <figure class="phone">
+    <a href="img/m-sales-soldout.png"><img src="img/m-sales-soldout.png" width="716" height="466" alt="売り切れの欄。商品、日、売り切れにした時刻、販売に戻した時刻" loading="lazy"></a>
+    <figcaption>売り切れの記録</figcaption>
+  </figure>
+  <p>レジや商品の画面で売り切れにした時刻と、販売に戻した時刻が自動で残ります。戻していなければ「売り切れのまま」と出ます。次の日に作る量を決めるときの参考にしてください。</p>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="manager-day.html"><small>前へ</small>当日と閉店後・注文の検索と修正</a><a class="pager-next" href="ledger.html"><small>次へ</small>収支の画面</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

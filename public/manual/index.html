@@ -17,586 +17,96 @@
     <span class="seal" aria-hidden="true">祭</span>
     <h1>店舗向け 操作マニュアル</h1>
   </div>
-  <p class="lead">学園祭の注文システムを使う、各店舗の<strong>店長</strong>と<strong>店舗スタッフ</strong>のためのマニュアルです。当日の作業の順に並んでいます。店長は第1部と第2部、スタッフは第2部を読んでください。画面の写真は、押すと大きく表示されます。</p>
 </header>
 
+<main>
+<p class="lead">学園祭の注文システムを使う、各店舗の<strong>店長</strong>と<strong>店舗スタッフ</strong>のためのマニュアルです。1ページに1つのことだけを書いています。画面の写真は、押すと大きく表示されます。</p>
+
+<section class="readers" aria-label="だれが、どのページを読むか">
+  <div class="reader">
+    <p class="reader-title">スタッフの方</p>
+    <p>まず <a href="start.html">はじめに</a>、それから <a href="staff-open.html">開店前</a>・<a href="staff-board.html">注文帳</a>・<a href="staff-register.html">レジ</a> を読んでください。レシートを撮る係の人は <a href="receipts.html#staff">レシートの送り方</a> も。</p>
+  </div>
+  <div class="reader">
+    <p class="reader-title">店長の方</p>
+    <p>ぜんぶのページを読んでください。最初は <a href="manager-prepare.html">前日までの準備</a> から。お金のことは <a href="ledger.html">収支の画面</a> から順に。</p>
+  </div>
+</section>
+
 <nav class="toc" aria-labelledby="toc-title">
-  <p class="toc-title" id="toc-title">目次</p>
+  <p class="toc-title" id="toc-title">ページの一覧</p>
   <ul class="toc-list">
-    <li><a href="#intro">はじめに（使う画面とだれが使うか）</a></li>
-    <li><a href="#terms">言葉の意味</a></li>
-    <li class="toc-part">第1部 店長編</li>
-    <li><a href="#m1">1. 前日までの準備</a></li>
-    <li><a href="#m2">2. 当日（店長として）</a></li>
-    <li><a href="#m3">3. 閉店後（売上・注文の検索と修正）</a></li>
-    <li><a href="#m4">4. 困ったとき（店長）</a></li>
-    <li class="toc-part">第2部 スタッフ編</li>
-    <li><a href="#s5">5. 開店前</a></li>
-    <li><a href="#s6">6. 営業中</a></li>
-    <li><a href="#s7">7. 困ったとき（スタッフ）</a></li>
-    <li><a href="#s8">8. 閉店するとき</a></li>
-    <li class="toc-part">付録</li>
-    <li><a href="#checklist-manager">A. 店長用チェックリスト</a></li>
-    <li><a href="#checklist-staff">B. スタッフ用チェックリスト</a></li>
+    <li class="toc-part">みんな</li>
+    <li><a href="start.html">はじめに・言葉の意味</a></li>
+    <li class="toc-part">店長</li>
+    <li><a href="manager-prepare.html">前日までの準備</a><span class="toc-note">ログイン・パスワード・店舗設定・PIN・メニュー</span></li>
+    <li><a href="manager-day.html">当日と閉店後・注文の検索と修正</a></li>
+    <li><a href="sales.html">売上の画面</a><span class="toc-note">数える日・待ち時間・ロス・売り切れの記録</span></li>
+    <li><a href="ledger.html">収支の画面</a><span class="toc-note">収支報告・手入力・現金照合・廃棄</span></li>
+    <li><a href="outlook.html">損益と見込み・目標利益</a><span class="toc-note">商品の画面の上の2行</span></li>
+    <li><a href="receipts.html#manager">レシートの確認と確定</a><span class="toc-note">税率ごとの下書き</span></li>
+    <li><a href="receipt-search.html">レシートの検索と照合チェック</a></li>
+    <li><a href="submit.html">学校に出す書類（Excel・ZIP）</a></li>
+    <li class="toc-part">スタッフ</li>
+    <li><a href="staff-open.html">開店前と閉店するとき</a></li>
+    <li><a href="staff-board.html">注文帳とお渡し</a><span class="toc-note">未受取・取り消しも</span></li>
+    <li><a href="staff-register.html">レジと売り切れ</a></li>
+    <li><a href="receipts.html#staff">レシートの送り方</a><span class="toc-note">撮り方・エラーが出たとき</span></li>
+    <li class="toc-part">困ったとき</li>
+    <li><a href="trouble.html">困ったとき（画面に出ることと、どうするか）</a></li>
+    <li><a href="faq.html">よくある質問</a></li>
+    <li><a href="checklist.html">チェックリスト（印刷用）</a></li>
   </ul>
 </nav>
 
-<main>
-
-<!-- ======================= はじめに ======================= -->
-<section id="intro">
-  <h2>はじめに</h2>
-  <p>お客さんは自分のスマホから注文します。お店は<strong>注文帳</strong>で注文を受けて調理し、できあがったら<strong>大画面</strong>に番号を出して呼び出します。お店の前で直接注文する人は<strong>レジ</strong>で受け付けます。</p>
-
-  <h3>使う画面と、だれが使うか</h3>
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr><th>画面</th><th>何をする画面か</th><th>使う人</th><th>開き方</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>管理画面</td>
-          <td>店舗の設定、スタッフ用 PIN、メニュー登録、売上、注文の検索と修正</td>
-          <td>店長</td>
-          <td><code>/manage</code> を開き、運営から伝えられたメールアドレスとパスワードでログイン</td>
-        </tr>
-        <tr>
-          <td>注文帳・レジ</td>
-          <td>注文を受けて進める、対面の注文を会計する、売り切れを設定する</td>
-          <td>当日のスタッフ全員（店長も）</td>
-          <td>店長から伝えられる店の URL を開き、<strong>PIN</strong> を入れる</td>
-        </tr>
-        <tr>
-          <td>大画面（呼び出し番号）</td>
-          <td>できあがった番号をお客さんに見せる（モニターに映しっぱなし）</td>
-          <td>お客さん向け（スタッフが映す）</td>
-          <td>店長から伝えられる大画面の URL を開く（ログインなし）</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3>用意するもの</h3>
-  <ul>
-    <li>注文帳・レジ用のタブレットかスマホ（横向きのタブレットがいちばん見やすい）</li>
-    <li>大画面用のモニター（ノートパソコンやタブレットをつないで映す）</li>
-    <li>充電器・延長コード、つながる Wi-Fi か携帯回線</li>
-  </ul>
-
-  <div class="note">
-    <span class="note-title">飲食以外の店（展示・物販など）の場合</span>
-    <p>画面の言葉が少し違います。このマニュアルは飲食の店の言葉で書いています。</p>
-    <p>例: 受付 → 調理中 → お渡し待ち（飲食）は、待ち → 呼び出し中（飲食以外）。「調理をはじめる」「できあがり」「お渡し済み」は、「呼び出す」「完了」。</p>
-  </div>
-</section>
-
-<section id="terms">
-  <h2>言葉の意味</h2>
-  <dl class="terms">
-    <dt>整理番号（お呼び出し番号）</dt>
-    <dd>注文ごとの番号です（例: A-12）。お客さんはこの番号で呼ばれ、受け取るときに見せます。</dd>
-    <dt>頭文字</dt>
-    <dd>整理番号の最初の文字（A-12 の「A」）。店ごとに決まっていて、運営が決めます。</dd>
-    <dt>受付・調理中・お渡し待ち・お渡し済み</dt>
-    <dd>注文の進み具合です。注文帳のボタンで、左から右へ進めます。</dd>
-    <dt>未受取</dt>
-    <dd>呼び出したのに取りに来なかったので、取り置きをやめた注文です。</dd>
-    <dt>取り消し</dt>
-    <dd>注文をなかったことにします。元に戻せるのは店長だけです。</dd>
-    <dt>売り切れ</dt>
-    <dd>お客さんが注文できなくなります。商品ごとにも、選択肢（トッピングなど）ごとにも設定できます。</dd>
-    <dt>PIN</dt>
-    <dd>注文帳・レジに入るための、6〜12桁の数字です。店長が決めて、スタッフに伝えます。</dd>
-    <dt>開催回</dt>
-    <dd>学園祭の回（例: 第60回 紫苑祭）。売上や注文は開催回ごとに分かれています。</dd>
-  </dl>
-</section>
-
-<!-- ======================= 第1部 店長編 ======================= -->
-<p class="part" id="part-manager">第1部 店長編<small>管理画面（/manage）を使う作業。困ったときの連絡先は運営（システム管理者）です。</small></p>
-
-<section id="m1">
-  <h2>1. 前日までの準備</h2>
-
-  <h3 id="m1-1">1-1. 管理画面にログインする</h3>
-  <ol class="steps">
-    <li>ブラウザで <code>https://sf.a-kiis.com/manage</code> を開きます。</li>
-    <li>運営から伝えられた<strong>メールアドレス</strong>と<strong>パスワード</strong>を入れて、<span class="ui">ログイン</span> を押します。</li>
-  </ol>
-  <figure class="half">
-    <a href="img/m-login.png"><img src="img/m-login.png" width="1180" height="820" alt="管理画面のログイン画面。メールアドレスとパスワードの欄、ログインのボタン" loading="lazy"></a>
-    <figcaption>管理画面のログイン</figcaption>
-  </figure>
-  <p>ログインすると、左（スマホでは上）にメニューが出ます。<span class="ui">商品</span> <span class="ui">注文</span> <span class="ui">売上</span> <span class="ui">店舗設定</span> <span class="ui">アカウント</span> と、注文帳・レジと大画面を開くリンク <span class="ui">レジ ↗</span> <span class="ui">大画面 ↗</span> です。</p>
-  <figure>
-    <a href="img/m-products.png"><img src="img/m-products.png" width="1180" height="820" alt="ログイン後の管理画面。左にメニュー、右に商品の一覧" loading="lazy"></a>
-    <figcaption>ログイン後の画面（最初は「商品」が開きます）</figcaption>
-  </figure>
-
-  <h3 id="m1-2">1-2. パスワードを変える</h3>
-  <p>最初に渡されたパスワードは、自分だけが知るものに変えてください。</p>
-  <ol class="steps">
-    <li>メニューの <span class="ui">アカウント</span> を開きます。</li>
-    <li><strong>今のパスワード</strong>と、<strong>新しいパスワード（10文字以上）</strong>を2回入れて、変更のボタンを押します。</li>
-  </ol>
-  <figure class="half">
-    <a href="img/m-account.png"><img src="img/m-account.png" width="1180" height="820" alt="アカウントの画面。ログイン中のアカウントと、パスワードの変更の欄" loading="lazy"></a>
-    <figcaption>アカウント（パスワードの変更）</figcaption>
-  </figure>
-  <div class="warn"><span class="note-title">パスワードを忘れたら</span><p>運営（システム管理者）に連絡してください。</p></div>
-
-  <h3 id="m1-3">1-3. 店舗設定を確かめる</h3>
-  <p>メニューの <span class="ui">店舗設定</span> を開きます。変えたら、いちばん下の <span class="ui">保存する</span> を押してください。</p>
-  <figure>
-    <a href="img/m-settings.png"><img src="img/m-settings.png" width="1180" height="1640" alt="店舗設定の画面。今の開催回、店舗の情報、スタッフ用 PIN の欄" loading="lazy"></a>
-    <figcaption>店舗設定（見本の店は、取り置き時間を1分にしています）</figcaption>
-  </figure>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>項目</th><th>内容</th></tr></thead>
-      <tbody>
-        <tr><td>今の開催回</td><td>今の学園祭と、整理番号の頭文字（例: A）。お客さんの注文画面・レジ・大画面の URL もここに出ます（スタッフに伝える URL です）。</td></tr>
-        <tr><td>店舗の種類</td><td>飲食／飲食以外。変えたいときは運営に連絡します。</td></tr>
-        <tr><td>店名・添え書き</td><td>お客さんの画面に出ます。添え書きはお品書きの横に縦書きで出るので短めに。</td></tr>
-        <tr><td>店舗色</td><td>選んでいる品の印や、呼び出し番号の下の線などに使う色です。</td></tr>
-        <tr><td>呼び出し後の取り置き時間（分）</td><td>呼び出してからこの時間を過ぎた注文は、注文帳で「期限切れ」と出ます（1〜120分）。自動で取り消されることはありません。</td></tr>
-        <tr><td>1回の注文で頼める合計数量の上限</td><td>Web 注文1回で頼める個数の上限です。空欄のときはデフォルトの値を使います（<span class="ui">デフォルトに戻す</span> で戻せます）。レジの注文には関係しません。</td></tr>
-        <tr><td>お客さんにメールを送る</td><td>メールアドレスを入れたお客さんに、注文の控えとできあがりの知らせを送ります。</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3 id="m1-4">1-4. スタッフ用 PIN を設定する</h3>
-  <p>スタッフが注文帳・レジに入るための数字です。店舗設定のいちばん下にあります。</p>
-  <ol class="steps">
-    <li><strong>新しい PIN（6〜12桁の数字）</strong>を入れます。誕生日や「123456」のような、すぐ分かる数字は避けてください。</li>
-    <li><span class="ui">PIN を変更する</span> を押します。</li>
-    <li>当日、スタッフにだけ口頭などで伝えます（掲示したり、SNS に書いたりしない）。</li>
-  </ol>
-  <figure class="small">
-    <a href="img/m-pin.png"><img src="img/m-pin.png" width="880" height="288" alt="スタッフ用 PIN の欄と、PIN を変更するボタン" loading="lazy"></a>
-    <figcaption>スタッフ用 PIN</figcaption>
-  </figure>
-  <div class="warn"><span class="note-title">営業中に PIN を変えると</span><p>ログイン中のスタッフは<strong>全員ログアウト</strong>になり、新しい PIN で入り直す必要があります。営業中に変えるのは、PIN が外にもれたときだけにしてください。</p></div>
-
-  <h3 id="m1-5">1-5. メニューを登録する</h3>
-  <p>メニューの <span class="ui">商品</span> を開きます。</p>
-  <ol class="steps">
-    <li><strong>カテゴリを作る</strong>: 画面の下の「カテゴリ」に名前（例: お好み焼き、お飲みもの）を入れて <span class="ui">追加</span>。並び順の数字が小さいほど上に出ます。</li>
-    <li><strong>商品を足す</strong>: 右上の <span class="ui">商品を追加</span> を押し、品名・価格（円）・カテゴリ・並び順・説明を入れて <span class="ui">保存する</span>。</li>
-    <li><strong>写真をのせる</strong>（任意）: 一度保存した商品を開くと、写真を登録できます（JPEG・PNG・WebP、5MBまで）。</li>
-    <li><strong>選択肢をつける</strong>（任意）: 麺の種類やトッピングなど。下の囲みを見てください。</li>
-  </ol>
-  <figure>
-    <a href="img/m-product-edit.png"><img src="img/m-product-edit.png" width="1180" height="820" alt="商品の編集画面。品名、価格、カテゴリ、並び順、説明、販売中、選択肢の欄" loading="lazy"></a>
-    <figcaption>商品の編集（一覧の商品を押すと開きます）</figcaption>
-  </figure>
-  <div class="note">
-    <span class="note-title">選択肢（サイズ・トッピングなど）のつけ方</span>
-    <p><span class="ui">選択肢の組を足す</span> で組（例: 麺、トッピング）を作り、<span class="ui">＋ 選択肢を足す</span> で中身（例: そば、うどん）を足します。</p>
-    <ul>
-      <li><strong>必須</strong>: お客さんが必ず1つ選ぶ組（例: 麺）にチェック。</li>
-      <li><strong>選べる数</strong>: その組からいくつまで選べるか（例: トッピングは2つまで）。</li>
-      <li><strong>追加料金</strong>: 選んだときに足す金額（例: うどん +50円。なければ 0）。</li>
-      <li><strong>まとめ値段</strong>: 「3つで100円」のように、まとめて安くするとき。使わないときは空欄。</li>
-    </ul>
-  </div>
-  <ul>
-    <li><strong>売り切れにする</strong>: 「販売中（外すと売り切れ）」のチェックを外します。当日はレジからも切り替えられます（→ <a href="#s6-5">6-5</a>）。</li>
-    <li><strong>お品書きから消す</strong>: 商品を開いて <span class="ui">この商品を削除</span>。売上の記録は残り、<span class="ui">削除した商品も表示</span> から <span class="ui">お品書きに戻す</span> で戻せます。</li>
-  </ul>
-  <p>登録したら、スマホでお客さんの注文画面（店舗設定にある URL）を開いて、見え方を確かめてください。</p>
-
-  <h3 id="m1-6">1-6. 機材の動作確認（当日の前に一度）</h3>
-  <ol class="steps">
-    <li>管理画面の <span class="ui">レジ ↗</span> で注文帳・レジを開き、PIN でログインできるか確かめます（→ <a href="#s5">5. 開店前</a>）。</li>
-    <li><span class="ui">大画面 ↗</span> をモニターに映して、音が出るか確かめます。</li>
-    <li>自分のスマホからテスト注文をして、注文帳に入る → 進める → 大画面に番号が出る、まで試します。</li>
-    <li>テスト注文は注文帳の <span class="ui">取り消し</span> で消しておきます。</li>
-  </ol>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="m2">
-  <h2>2. 当日（店長として）</h2>
-  <ul>
-    <li><strong>開店前</strong>: スタッフに注文帳・レジの URL と PIN、大画面の URL を伝えます。機材の置き場所を決めて、スタッフと一緒に第2部の「<a href="#s5">5. 開店前</a>」を進めます。</li>
-    <li><strong>営業中</strong>: 操作はスタッフと同じです（→ <a href="#s6">6. 営業中</a>）。スタッフが間違えて進めた・取り消した注文は、店長が直せます（→ <a href="#m3-2">3-2</a>）。</li>
-    <li><strong>スタッフからの連絡</strong>: スタッフ編では、困ったら「店長に連絡」と書いています。店長で解決できないときは運営に連絡してください。</li>
-  </ul>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="m3">
-  <h2>3. 閉店後</h2>
-
-  <h3 id="m3-1">3-1. 売上を確かめる</h3>
-  <p>メニューの <span class="ui">売上</span> を開きます。上の欄で、開催回・時間帯の区切り・時間帯を見る日を選べます。</p>
-  <figure>
-    <a href="img/m-sales.png"><img src="img/m-sales.png" width="1180" height="1240" alt="売上の画面。売上・注文数・客単価・販売個数と、日別・時間帯別のグラフ" loading="lazy"></a>
-    <figcaption>売上（画面の上の部分。下に続きがあります）</figcaption>
-  </figure>
-  <ul>
-    <li><strong>売上・注文・客単価・販売個数</strong>: 支払い済みの注文だけを数えます（取り消し・未受取は数えません）。</li>
-    <li><strong>日別・時間帯別・商品別</strong>: どの日・どの時間に、何が売れたか。選択肢の選ばれ方も見られます。</li>
-    <li><strong>注文の経路</strong>: レジと Web 注文の割合。</li>
-    <li><strong>待ち時間</strong>: 注文からできあがりまでの時間。</li>
-    <li><strong>ロス</strong>: 取り消しと、受け取りに来なかった注文の件数・金額。</li>
-    <li><strong>開催回の比較</strong>: これまでの開催回との比較。</li>
-    <li><strong>CSV を書き出す</strong>: 右上のボタンで、注文の明細を CSV（Excel で開けるファイル）で保存できます。</li>
-  </ul>
-
-  <h3 id="m3-2">3-2. 注文を検索・修正する</h3>
-  <p>メニューの <span class="ui">注文</span> を開きます。</p>
-  <ol class="steps">
-    <li><strong>開催回</strong>を選びます（最初は今の開催回。「すべての開催回」も選べます）。</li>
-    <li>整理番号（例: A-12）・お名前・メールアドレス・営業日・状態で絞り込み、<span class="ui">検索</span> を押します。</li>
-    <li>一覧の注文を押すと、くわしい内容と「修正」の欄が開きます。</li>
-  </ol>
-  <figure>
-    <a href="img/m-orders.png"><img src="img/m-orders.png" width="1180" height="943" alt="注文の検索画面。検索の欄と、注文の一覧" loading="lazy"></a>
-    <figcaption>注文の検索（見本では、テスト用の名前で検索しています）</figcaption>
-  </figure>
-  <figure>
-    <a href="img/m-order-detail.png"><img src="img/m-order-detail.png" width="1180" height="820" alt="注文の詳細。状態、経路・支払い、お客様、時刻、品目と、修正の欄" loading="lazy"></a>
-    <figcaption>注文の詳細と修正</figcaption>
-  </figure>
-  <ul>
-    <li><strong>修正</strong>: 状態と「支払い済み」を直して <span class="ui">修正を保存</span>。状態を戻すこともできます（例: 間違えてお渡し済みにした注文をお渡し待ちに戻す、取り消し・未受取を元に戻す）。</li>
-    <li><strong>記録に残ります</strong>: お客さんの個人情報を扱うので、検索・閲覧・修正はすべて記録されます。必要なときだけ使ってください。</li>
-    <li><strong>個人情報は消えます</strong>: お客さんの名前・メールアドレスは、学園祭の終了から一定の期間がたつと消されます。そのあとは名前・メールでは検索できません（整理番号ではできます）。</li>
-  </ul>
-
-  <h3 id="m3-3">3-3. 次の日に向けて</h3>
-  <ul>
-    <li>売り切れにした商品・選択肢を、販売中に戻します（レジの売り切れ設定か、管理画面の商品から）。</li>
-    <li>取り置き時間・数量の上限を見直します（→ <a href="#m1-3">1-3</a>）。</li>
-    <li>PIN を変えたときは、翌日スタッフに新しい PIN を伝えます。</li>
-  </ul>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="m4">
-  <h2>4. 困ったとき（店長）</h2>
-  <details>
-    <summary>ログインできない・パスワードを忘れた</summary>
-    <div><p>運営（システム管理者）に連絡してください。何度も間違えると、しばらくログインできなくなります。</p></div>
-  </details>
-  <details>
-    <summary>店舗の種類・整理番号の頭文字・URL を変えたい</summary>
-    <div><p>店長の画面では変えられません。運営に連絡してください。</p></div>
-  </details>
-  <details>
-    <summary>スタッフが間違えて進めた・取り消した・未受取にした</summary>
-    <div><p>管理画面の <span class="ui">注文</span> で、その注文の状態を直してください（→ <a href="#m3-2">3-2</a>）。</p></div>
-  </details>
-  <details>
-    <summary>お客さんから「注文できない」と言われた</summary>
-    <div>
-      <p>まず次を確かめます。</p>
-      <ul>
-        <li>売り切れになっていないか（必須の選択肢がぜんぶ売り切れだと、その商品は頼めません）</li>
-        <li>1回の数量の上限を超えていないか（→ <a href="#m1-3">1-3</a>）</li>
-        <li>画面に「受付を中止しています」と出ていないか（学園祭全体の一時中止）</li>
-      </ul>
-      <p>どれでもなければ、少し時間をおいてやり直してもらい、それでもだめなら運営に連絡してください。</p>
-    </div>
-  </details>
-  <details>
-    <summary>「受付を中止しています」と出た</summary>
-    <div><p>運営が学園祭全体の受付を一時的に止めています。運営が再開するまで、新しい注文は入りません（受け付けた注文は、ふだんどおり進められます）。</p></div>
-  </details>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<!-- ======================= 第2部 スタッフ編 ======================= -->
-<p class="part" id="part-staff">第2部 スタッフ編<small>注文帳・レジと大画面を使う作業。困ったときの連絡先は店長です。</small></p>
-
-<section id="s5">
-  <h2>5. 開店前</h2>
-
-  <h3 id="s5-1">5-1. 注文帳・レジにログインする</h3>
-  <ol class="steps">
-    <li>店長から伝えられた店の URL（<code>https://sf.a-kiis.com/s/（店のID）/pos</code>）を開きます。</li>
-    <li>店長から伝えられた <strong>PIN</strong> を入れて、<span class="ui">ログイン</span> を押します。</li>
-  </ol>
-  <figure class="half">
-    <a href="img/s-login.png"><img src="img/s-login.png" width="1180" height="820" alt="注文帳・レジのログイン画面。スタッフ用 PIN の欄" loading="lazy"></a>
-    <figcaption>PIN を入れる画面</figcaption>
-  </figure>
-  <p>ログインは、その日の営業終了まで続きます（毎回入れ直す必要はありません）。</p>
-
-  <h3 id="s5-2">5-2. 画面の見方</h3>
-  <figure>
-    <a href="img/s-board-empty.png"><img src="img/s-board-empty.png" width="1180" height="820" alt="ログイン直後の注文帳。右上に注文帳・レジの切り替え、接続中、音、ログアウト" loading="lazy"></a>
-    <figcaption>ログインした直後の注文帳（まだ注文がない状態）</figcaption>
-  </figure>
-  <ul>
-    <li><span class="ui">注文帳</span> <span class="ui">レジ</span>: 右上で画面を切り替えます。</li>
-    <li><span class="ui">● 接続中</span>: 注文がすぐ届く状態です。<span class="ui">○ 再接続中</span> のときは、つながり直すのを待ちます（→ <a href="#s7">7. 困ったとき</a>）。</li>
-    <li><span class="ui">音：入</span>: 注文が入ったときの音です（次の 5-3）。</li>
-    <li><span class="ui">ログアウト</span>: 閉店するときに押します。</li>
-  </ul>
-
-  <h3 id="s5-3">5-3. 注文が入ったときの音をオンにする</h3>
-  <p>注文が入ると「ピンポン」と鳴ります。最初は <span class="ui">音：入（タップで有効）</span> と出ているので、<strong>画面のどこかを一度タップ</strong>してください。<span class="ui">音：入</span> に変われば鳴るようになります。タブレットの音量とマナーモードも確かめてください。</p>
-
-  <h3 id="s5-4">5-4. 大画面をモニターに映す</h3>
-  <ol class="steps">
-    <li>モニターにつないだ機器で、店長から伝えられた大画面の URL（<code>https://sf.a-kiis.com/s/（店のID）/display</code>）を開きます。ログインはいりません。</li>
-    <li>全画面表示にします（パソコンなら F11 キー）。</li>
-    <li>右上の <span class="ui">音：切</span> を押して <span class="ui">音：入</span> にします。番号が出るときに音が鳴ります。</li>
-  </ol>
-  <figure>
-    <a href="img/d-display.png"><img src="img/d-display.png" width="1280" height="720" alt="大画面。お渡しできます の欄に大きな番号、調理中の欄に小さな番号" loading="lazy"></a>
-    <figcaption>大画面（左が「お渡しできます」、右が「調理中」）</figcaption>
-  </figure>
-  <p>画面が暗くならないよう、機器のスリープ（画面オフ）の設定は切っておくと安心です。</p>
-
-  <h3 id="s5-5">5-5. 売り切れがあれば先に設定する</h3>
-  <p>最初から用意できない商品があれば、開店前に売り切れにしておきます（→ <a href="#s6-5">6-5</a>）。</p>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="s6">
-  <h2>6. 営業中</h2>
-
-  <h3 id="s6-1">6-1. Web 注文の流れ</h3>
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th></th><th>お客さん</th><th>お店</th></tr></thead>
-      <tbody>
-        <tr><td>1</td><td>スマホで注文する</td><td>注文帳の「受付」に入り、「ピンポン」と鳴る</td></tr>
-        <tr><td>2</td><td>整理番号の画面で待つ</td><td><span class="ui">調理をはじめる</span> → 調理する</td></tr>
-        <tr><td>3</td><td>呼ばれると、スマホに音と画面で知らせが来る</td><td><span class="ui">できあがり</span> → 大画面に番号が出る</td></tr>
-        <tr><td>4</td><td>番号を見せて受け取り、お代金を払う</td><td>番号を確かめて渡し、お代金を受け取る → <span class="ui">お渡し済み</span></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <h3 id="s6-2">6-2. 注文帳の使い方</h3>
-  <figure>
-    <a href="img/s-board.png"><img src="img/s-board.png" width="1242" height="939" alt="注文帳。受付・調理中・お渡し待ちの3列に、注文のカードが並んでいる" loading="lazy"></a>
-    <figcaption>注文帳（左から 受付 → 調理中 → お渡し待ち）</figcaption>
-  </figure>
-  <p>注文は1件ずつカードになっていて、左の列から右の列へ進めます。</p>
-  <ul>
-    <li><strong>カードの見方</strong>: 整理番号（例: A-01）、Web かレジか、注文した時刻と何分たったか、お名前、品と選択肢・数、ご希望、<span class="ui">未払い ¥…</span> か <span class="ui">支払済</span>。</li>
-    <li><strong>進め方</strong>: カードの下のボタンを押します。<span class="ui">調理をはじめる</span> → <span class="ui">できあがり</span> → <span class="ui">お渡し済み</span>。</li>
-    <li><span class="ui">できあがり</span> を押すと、大画面に番号が出て、お客さんのスマホにも知らせが届きます。</li>
-    <li>品ごとのご希望（例: ネギ抜き）は品の下に、全体へのご希望はカードの中ほどに出ます。必ず見てから作ってください。</li>
-  </ul>
-  <div class="note"><span class="note-title">ほかの端末と一緒に使えます</span><p>注文帳は何台で開いても同じ内容になります（例: 調理場とお渡し口で1台ずつ）。だれかが進めると、ほかの端末にもすぐ反映されます。</p></div>
-
-  <h3 id="s6-3">6-3. お渡しとお代金</h3>
-  <p>Web 注文のお代金は、<strong>受け取りのときに</strong>いただきます。</p>
-  <ol class="steps">
-    <li>お客さんのスマホの整理番号を見せてもらい、カードの番号と同じか確かめます。</li>
-    <li>品を渡して、カードの金額のお代金を受け取ります。</li>
-    <li><span class="ui">お渡し済み</span> を押します。未払いの注文では確認が出るので、金額を確かめて <span class="ui">受け取って、お渡し済みにする</span> を押します。</li>
-  </ol>
-  <figure>
-    <a href="img/s-pay-confirm.png"><img src="img/s-pay-confirm.png" width="1180" height="820" alt="お代金の確認。まだお代金を受け取っていない注文です、金額を受け取りましたか" loading="lazy"></a>
-    <figcaption>未払いの注文で「お渡し済み」を押したとき</figcaption>
-  </figure>
-
-  <h3 id="s6-4">6-4. レジ（お店の前での注文）</h3>
-  <p>右上の <span class="ui">レジ</span> を押します。</p>
-  <ol class="steps">
-    <li>商品を押すと、右（スマホでは下）の「お会計」に入ります。選択肢のある商品は、選ぶ画面が出ます。</li>
-    <li>数は <span class="ui">−</span> <span class="ui">+</span> で変えます。品ごとのご希望は <span class="ui">＋ ご希望</span> から。</li>
-    <li><strong>お預かり</strong>に受け取った金額を入れます（<span class="ui">ちょうど</span> <span class="ui">¥1,000</span> などのボタンも使えます）。お釣りが出ます。</li>
-    <li><span class="ui">会計を確定</span> を押します。</li>
-    <li>「会計が終わりました」に出る<strong>整理番号</strong>をお客さんに伝えて、<span class="ui">次のお客様へ</span> を押します。</li>
-  </ol>
-  <figure>
-    <a href="img/s-register-options.png"><img src="img/s-register-options.png" width="1180" height="820" alt="選択肢を選ぶ画面。麺の種類とトッピングを選ぶ" loading="lazy"></a>
-    <figcaption>選択肢のある商品を押したとき</figcaption>
-  </figure>
-  <figure>
-    <a href="img/s-register.png"><img src="img/s-register.png" width="1180" height="1161" alt="レジの画面。左に商品のボタン、右にお会計の欄。合計、お預かり、お釣り、会計を確定のボタン" loading="lazy"></a>
-    <figcaption>レジ（お預かりを入れると、お釣りが出ます）</figcaption>
-  </figure>
-  <figure>
-    <a href="img/s-register-done.png"><img src="img/s-register-done.png" width="1180" height="820" alt="会計が終わりました。お呼び出し番号とお釣り、次のお客様へのボタン" loading="lazy"></a>
-    <figcaption>会計が終わったところ。この番号をお客さんに伝えます</figcaption>
-  </figure>
-  <p>レジの注文も注文帳に入ります（支払い済み）。あとは Web 注文と同じように進めます。</p>
-
-  <h3 id="s6-5">6-5. 売り切れの設定</h3>
-  <ol class="steps">
-    <li>レジの画面で <span class="ui">売り切れを設定する</span> を押します。</li>
-    <li>商品を押すと、<strong>押したとたんに</strong>売り切れ／販売中が切り替わります。</li>
-    <li>選択肢のある商品を押すと、選択肢ごと（例: トッピングの1つだけ）に切り替える画面が出ます。</li>
-    <li>終わったら <span class="ui">売り切れ設定を終える</span> を押します。</li>
-  </ol>
-  <figure>
-    <a href="img/s-soldout.png"><img src="img/s-soldout.png" width="1180" height="820" alt="売り切れ設定中のレジ。商品を押すと売り切れと販売中が切り替わる" loading="lazy"></a>
-    <figcaption>売り切れの設定中</figcaption>
-  </figure>
-  <figure>
-    <a href="img/s-soldout-options.png"><img src="img/s-soldout-options.png" width="1180" height="820" alt="選択肢ごとの売り切れの設定。選択肢ごとに売り切れと販売中を切り替える" loading="lazy"></a>
-    <figcaption>選択肢ごとの売り切れ</figcaption>
-  </figure>
-  <p>切り替えは、すぐお客さんの画面にも反映されます。</p>
-
-  <h3 id="s6-6">6-6. 取りに来ないお客さん（取り置き期限と未受取）</h3>
-  <p>お渡し待ちのカードには、受け取りの期限までの残り時間（<span class="ui">期限まで ○:○○</span>）が出ます。期限は店長が決めた取り置き時間で決まります。</p>
-  <figure class="small">
-    <a href="img/s-overdue.png"><img src="img/s-overdue.png" width="343" height="339" alt="期限切れのカード。色が変わり、期限切れ（何分超過）と出ている" loading="lazy"></a>
-    <figcaption>期限を過ぎたカード（色が変わり、列の上に並びます）</figcaption>
-  </figure>
-  <ul>
-    <li>期限を過ぎると <span class="ui">期限切れ（○分超過）</span> と出て、列のいちばん上に来ます。時間で勝手に消えることはありません。</li>
-    <li>来ないと判断したら <span class="ui">未受取にする</span> を押します。確認が出るので、もう一度 <span class="ui">未受取にする</span>。取り置きをやめて、品は店頭で売ってかまいません。</li>
-    <li>期限の前でも押せますが、確認に「まだ期限前です」と出ます。</li>
-    <li>お客さんの画面には「受け取り期限を過ぎたため、ご注文の取り置きを終了しました。店頭でお声がけください」と出ます。あとで来た人には、店頭で相談してください。</li>
-  </ul>
-  <figure>
-    <a href="img/s-unclaim-confirm.png"><img src="img/s-unclaim-confirm.png" width="1180" height="820" alt="未受取にする確認。取り置きをやめて店頭販売に回します" loading="lazy"></a>
-    <figcaption>未受取にするときの確認</figcaption>
-  </figure>
-
-  <h3 id="s6-7">6-7. 注文の取り消し</h3>
-  <ul>
-    <li>カードの <span class="ui">取り消し</span> を押し、理由（任意。例: 来られなかった）を入れて <span class="ui">取り消す</span>。</li>
-    <li>支払い済みの注文（レジの注文など）を取り消したときは、<strong>返金を忘れずに</strong>。</li>
-    <li>お客さんは、調理が始まる前ならスマホから自分で取り消せます。取り消された注文は注文帳から消えます。</li>
-  </ul>
-  <div class="warn"><span class="note-title">取り消し・未受取は、注文帳では元に戻せません</span><p>間違えたときは、すぐ店長に連絡してください（店長が管理画面で直せます）。</p></div>
-
-  <h3 id="s6-8">6-8. お客さんの画面（聞かれたときのために）</h3>
-  <p>お客さんはスマホで、お店の一覧 → お品書き → 注文の確認 → 注文状況、と進みます。</p>
-  <figure class="phone">
-    <a href="img/c-status-waiting.png"><img src="img/c-status-waiting.png" width="780" height="1688" alt="お客さんのスマホの注文状況。お呼び出し番号と進み具合" loading="lazy"></a>
-    <figcaption>注文したあとのお客さんの画面</figcaption>
-  </figure>
-  <figure class="phone">
-    <a href="img/c-status-ready.png"><img src="img/c-status-ready.png" width="780" height="1688" alt="できあがったときのお客さんの画面。受け取りの期限の時刻" loading="lazy"></a>
-    <figcaption>できあがったとき（受け取りの期限の時刻が出ます）</figcaption>
-  </figure>
-  <ul>
-    <li>呼ばれると、音と画面いっぱいの表示で知らせます（画面を開いたまま待ってもらいます）。</li>
-    <li>iPhone はマナーモードだと音が鳴らないことがあります。</li>
-    <li>調理が始まる前なら、この画面から注文を取り消せます。</li>
-    <li>画面を閉じてしまった人は、お店の一覧の <span class="ui">番号で受付状況を確かめる</span> から、整理番号で今の状態を確かめられます。</li>
-  </ul>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="s7">
-  <h2>7. 困ったとき（スタッフ）</h2>
-  <details>
-    <summary>「○ 再接続中」が消えない</summary>
-    <div><p>Wi-Fi や電波を確かめてください。つながれば自動で戻り、受け付けた注文が消えることはありません。長く続くときは、画面を読み込み直します。</p></div>
-  </details>
-  <details>
-    <summary>急にログイン画面に戻った</summary>
-    <div><p>PIN が変わったか、ログインの期限が切れました。店長に PIN を確かめて、入れ直してください。</p></div>
-  </details>
-  <details>
-    <summary>注文が入っても音が鳴らない</summary>
-    <div><p>右上が <span class="ui">音：入</span> になっているか、画面を一度タップしたか、端末の音量・マナーモードを確かめてください。画面を読み込み直したときは、もう一度タップが必要です。</p></div>
-  </details>
-  <details>
-    <summary>「ほかの端末で操作されました」と出た</summary>
-    <div><p>ほかの端末で、同じ注文が先に進められました。画面は最新の状態に直るので、カードの位置を確かめてください。</p></div>
-  </details>
-  <details>
-    <summary>間違えて進めた・取り消した・未受取にした</summary>
-    <div><p>注文帳では元に戻せません。すぐ店長に連絡してください（店長が管理画面で直せます）。</p></div>
-  </details>
-  <details>
-    <summary>「受付を中止しています」と出た</summary>
-    <div><p>学園祭全体の受付が一時的に止まっています。再開するまで新しい注文は入らず、レジでも会計できません。受け付けた注文はふだんどおり進めてください。店長に知らせてください。</p></div>
-  </details>
-  <details>
-    <summary>お客さんが「注文できない」と言っている</summary>
-    <div>
-      <ul>
-        <li>売り切れになっていないか</li>
-        <li>1回に頼める数（合計の個数）を超えていないか</li>
-        <li>少し時間をおいてやり直してもらう</li>
-      </ul>
-      <p>解決しなければ、店長に連絡してください。急ぐときはレジで受け付けてもかまいません。</p>
-    </div>
-  </details>
-  <details>
-    <summary>大画面が暗くなる・番号が出ない</summary>
-    <div><p>全画面表示になっているか、機器のスリープが切ってあるかを確かめ、画面を読み込み直してください。右上が「接続中」になっていれば番号は届きます。</p></div>
-  </details>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<section id="s8">
-  <h2>8. 閉店するとき</h2>
-  <ol class="steps">
-    <li>注文帳に、お渡し待ち・受付の注文が残っていないか確かめます。残っていたら店長に相談します。</li>
-    <li>注文帳・レジは右上の <span class="ui">ログアウト</span> を押します。</li>
-    <li>大画面のページを閉じます。</li>
-    <li>機材を片付けて、充電しておきます。</li>
-  </ol>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
-<!-- ======================= 付録 ======================= -->
-<p class="part" id="part-appendix">付録<small>印刷して使えます。</small></p>
-
-<section id="checklist-manager">
-  <h2>A. 店長用チェックリスト</h2>
-  <p class="checklist-group">前日まで</p>
-  <ul class="checklist">
-    <li>管理画面にログインできる・パスワードを変えた</li>
-    <li>店舗設定（店名・添え書き・取り置き時間・数量の上限・メール）を確かめた</li>
-    <li>スタッフ用 PIN を設定した</li>
-    <li>メニュー（カテゴリ・値段・選択肢・写真）を登録し、お客さんの画面で確かめた</li>
-    <li>注文帳・レジ・大画面を開いて、テスト注文で一通り試した（テスト注文は取り消した）</li>
-  </ul>
-  <p class="checklist-group">当日 開店前</p>
-  <ul class="checklist">
-    <li>スタッフに注文帳・レジの URL と PIN、大画面の URL を伝えた</li>
-    <li>機材の配置・電源・通信を確かめた</li>
-    <li>スタッフのチェックリスト（開店前）が終わった</li>
-  </ul>
-  <p class="checklist-group">閉店後</p>
-  <ul class="checklist">
-    <li>注文帳に残っている注文がないか確かめた</li>
-    <li>売上を確かめた（必要なら CSV を書き出した）</li>
-    <li>次の日に向けて、売り切れを戻した</li>
+<section class="moved" aria-labelledby="moved-title">
+  <h2 id="moved-title">以前のマニュアルのリンクから来た方へ</h2>
+  <p>マニュアルをページに分けました。以前の項目は、次のページに移っています。</p>
+  <ul class="moved-list">
+    <li id="intro">はじめに → <a href="start.html">はじめに・言葉の意味</a></li>
+    <li id="terms">言葉の意味 → <a href="start.html#terms">はじめに・言葉の意味</a></li>
+    <li id="part-manager">第1部 店長編 → <a href="manager-prepare.html">前日までの準備</a></li>
+    <li id="m1">1. 前日までの準備 → <a href="manager-prepare.html">前日までの準備</a></li>
+    <li id="m1-1">1-1. 管理画面にログインする → <a href="manager-prepare.html#m1-1">前日までの準備</a></li>
+    <li id="m1-2">1-2. パスワードを変える → <a href="manager-prepare.html#m1-2">前日までの準備</a></li>
+    <li id="m1-3">1-3. 店舗設定を確かめる → <a href="manager-prepare.html#m1-3">前日までの準備</a></li>
+    <li id="m1-4">1-4. スタッフ用 PIN を設定する → <a href="manager-prepare.html#m1-4">前日までの準備</a></li>
+    <li id="m1-5">1-5. メニューを登録する → <a href="manager-prepare.html#m1-5">前日までの準備</a></li>
+    <li id="m1-6">1-6. 機材の動作確認 → <a href="manager-prepare.html#m1-6">前日までの準備</a></li>
+    <li id="m2">2. 当日（店長として） → <a href="manager-day.html">当日と閉店後</a></li>
+    <li id="m3">3. 閉店後 → <a href="manager-day.html#m3">当日と閉店後</a></li>
+    <li id="m3-1">3-1. 売上を確かめる → <a href="sales.html">売上の画面</a></li>
+    <li id="m3-2">3-2. 注文を検索・修正する → <a href="manager-day.html#m3-2">当日と閉店後</a></li>
+    <li id="m3-3">3-3. 次の日に向けて → <a href="manager-day.html#m3-3">当日と閉店後</a></li>
+    <li id="m4">4. 困ったとき（店長） → <a href="trouble.html#manager">困ったとき</a></li>
+    <li id="part-staff">第2部 スタッフ編 → <a href="staff-open.html">開店前と閉店するとき</a></li>
+    <li id="s5">5. 開店前 → <a href="staff-open.html">開店前と閉店するとき</a></li>
+    <li id="s5-1">5-1. 注文帳・レジにログインする → <a href="staff-open.html#s5-1">開店前と閉店するとき</a></li>
+    <li id="s5-2">5-2. 画面の見方 → <a href="staff-open.html#s5-2">開店前と閉店するとき</a></li>
+    <li id="s5-3">5-3. 注文が入ったときの音をオンにする → <a href="staff-open.html#s5-3">開店前と閉店するとき</a></li>
+    <li id="s5-4">5-4. 大画面をモニターに映す → <a href="staff-open.html#s5-4">開店前と閉店するとき</a></li>
+    <li id="s5-5">5-5. 売り切れがあれば先に設定する → <a href="staff-open.html#s5-5">開店前と閉店するとき</a></li>
+    <li id="s6">6. 営業中 → <a href="staff-board.html">注文帳とお渡し</a></li>
+    <li id="s6-1">6-1. Web 注文の流れ → <a href="staff-board.html#s6-1">注文帳とお渡し</a></li>
+    <li id="s6-2">6-2. 注文帳の使い方 → <a href="staff-board.html#s6-2">注文帳とお渡し</a></li>
+    <li id="s6-3">6-3. お渡しとお代金 → <a href="staff-board.html#s6-3">注文帳とお渡し</a></li>
+    <li id="s6-4">6-4. レジ → <a href="staff-register.html#s6-4">レジと売り切れ</a></li>
+    <li id="s6-5">6-5. 売り切れの設定 → <a href="staff-register.html#s6-5">レジと売り切れ</a></li>
+    <li id="s6-6">6-6. 取りに来ないお客さん → <a href="staff-board.html#s6-6">注文帳とお渡し</a></li>
+    <li id="s6-7">6-7. 注文の取り消し → <a href="staff-board.html#s6-7">注文帳とお渡し</a></li>
+    <li id="s6-8">6-8. お客さんの画面 → <a href="staff-register.html#s6-8">レジと売り切れ</a></li>
+    <li id="s7">7. 困ったとき（スタッフ） → <a href="trouble.html#staff">困ったとき</a></li>
+    <li id="s8">8. 閉店するとき → <a href="staff-open.html#s8">開店前と閉店するとき</a></li>
+    <li id="part-appendix">付録 → <a href="checklist.html">チェックリスト</a></li>
+    <li id="checklist-manager">A. 店長用チェックリスト → <a href="checklist.html#checklist-manager">チェックリスト</a></li>
+    <li id="checklist-staff">B. スタッフ用チェックリスト → <a href="checklist.html#checklist-staff">チェックリスト</a></li>
   </ul>
 </section>
-
-<section id="checklist-staff">
-  <h2>B. スタッフ用チェックリスト</h2>
-  <p class="checklist-group">開店前</p>
-  <ul class="checklist">
-    <li>注文帳・レジに PIN でログインした</li>
-    <li>右上が「● 接続中」になっている</li>
-    <li>画面をタップして「音：入」になった・端末の音量を上げた</li>
-    <li>大画面をモニターに全画面で映し、「音：入」にした</li>
-    <li>最初から無い商品を売り切れにした</li>
-  </ul>
-  <p class="checklist-group">営業中</p>
-  <ul class="checklist">
-    <li>「できあがり」を押したら、大画面に番号が出ている</li>
-    <li>お渡しのときは、整理番号を確かめてからお代金を受け取る</li>
-    <li>期限切れのカードがないか、ときどき見る</li>
-    <li>困ったら店長に連絡する</li>
-  </ul>
-  <p class="checklist-group">閉店時</p>
-  <ul class="checklist">
-    <li>お渡し待ち・受付が残っていない</li>
-    <li>注文帳・レジをログアウトした・大画面を閉じた</li>
-    <li>機材を片付けて充電した</li>
-  </ul>
-  <p class="back"><a href="#toc-title">目次へ戻る ↑</a></p>
-</section>
-
 </main>
 
+<nav class="pager" aria-label="前後のページ"><span></span><a class="pager-next" href="start.html"><small>次へ</small>はじめに・言葉の意味</a></nav>
 <footer class="footer">
-  <p>学園祭 注文システム 店舗向け 操作マニュアル。画面の写真は、テスト用の店とテスト用の注文で撮ったものです。</p>
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
 </footer>
 
 </div>

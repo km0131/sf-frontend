@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>開店前と閉店するとき｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">スタッフ</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>開店前と閉店するとき</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">注文帳・レジと大画面を使う、当日のスタッフのためのページです。困ったときの連絡先は店長です。</p>
+
+<section id="s5-1">
+  <h2>注文帳・レジにログインする</h2>
+  <ol class="steps">
+    <li>店長から伝えられた店の URL（<code>https://sf.a-kiis.com/s/（店のID）/pos</code>）を開きます。</li>
+    <li>店長から伝えられた <strong>PIN</strong> を入れて、<span class="ui">ログイン</span> を押します。</li>
+  </ol>
+  <figure>
+    <a href="img/s-login.png"><img src="img/s-login.png" width="1180" height="820" alt="注文帳・レジのログイン画面。スタッフ用 PIN の欄" loading="lazy"></a>
+    <figcaption>PIN を入れる画面</figcaption>
+  </figure>
+  <p>ログインは、その日の営業終了まで続きます（毎回入れ直す必要はありません）。</p>
+</section>
+
+<section id="s5-2">
+  <h2>画面の見方</h2>
+  <figure>
+    <a href="img/s-board-empty.png"><img src="img/s-board-empty.png" width="1180" height="820" alt="ログイン直後の注文帳。右上に注文帳・レジ・レシートの切り替え、接続中、音、ログアウト" loading="lazy"></a>
+    <figcaption>ログインした直後の注文帳（まだ注文がない状態）</figcaption>
+  </figure>
+  <ul>
+    <li><span class="ui">注文帳</span> <span class="ui">レジ</span> <span class="ui">レシート</span>: 右上で画面を切り替えます。レシートは、買い出しのレシートを送る画面です（→ <a href="receipts.html#staff">レシートの送り方</a>）。</li>
+    <li><span class="ui">● 接続中</span>: 注文がすぐ届く状態です。<span class="ui">○ 再接続中</span> のときは、つながり直すのを待ちます（→ <a href="trouble.html#staff">困ったとき</a>）。</li>
+    <li><span class="ui">音：入</span>: 注文が入ったときの音です（次の項目）。</li>
+    <li><span class="ui">ログアウト</span>: 閉店するときに押します。</li>
+  </ul>
+</section>
+
+<section id="s5-3">
+  <h2>注文が入ったときの音をオンにする</h2>
+  <p>注文が入ると「ピンポン」と鳴ります。最初は <span class="ui">音：入（タップで有効）</span> と出ているので、<strong>画面のどこかを一度タップ</strong>してください。<span class="ui">音：入</span> に変われば鳴るようになります。タブレットの音量とマナーモードも確かめてください。</p>
+</section>
+
+<section id="s5-4">
+  <h2>大画面をモニターに映す</h2>
+  <ol class="steps">
+    <li>モニターにつないだ機器で、店長から伝えられた大画面の URL（<code>https://sf.a-kiis.com/s/（店のID）/display</code>）を開きます。ログインはいりません。</li>
+    <li>全画面表示にします（パソコンなら F11 キー）。</li>
+    <li>右上の <span class="ui">音：切</span> を押して <span class="ui">音：入</span> にします。番号が出るときに音が鳴ります。</li>
+  </ol>
+  <figure>
+    <a href="img/d-display.png"><img src="img/d-display.png" width="1280" height="720" alt="大画面。お渡しできます の欄に大きな番号、調理中の欄に小さな番号" loading="lazy"></a>
+    <figcaption>大画面（左が「お渡しできます」、右が「調理中」）</figcaption>
+  </figure>
+  <p>画面が暗くならないよう、機器のスリープ（画面オフ）の設定は切っておくと安心です。</p>
+</section>
+
+<section id="s5-5">
+  <h2>売り切れがあれば先に設定する</h2>
+  <p>最初から用意できない商品があれば、開店前に売り切れにしておきます（→ <a href="staff-register.html#s6-5">売り切れの設定</a>）。</p>
+</section>
+
+<section id="s8">
+  <h2>閉店するとき</h2>
+  <ol class="steps">
+    <li>注文帳に、お渡し待ち・受付の注文が残っていないか確かめます。残っていたら店長に相談します。</li>
+    <li>その日のレシートを、まだ送っていなければ送ります（→ <a href="receipts.html#staff">レシートの送り方</a>）。</li>
+    <li>注文帳・レジは右上の <span class="ui">ログアウト</span> を押します。</li>
+    <li>大画面のページを閉じます。</li>
+    <li>機材を片付けて、充電しておきます。</li>
+  </ol>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="submit.html"><small>前へ</small>学校に出す書類（Excel・ZIP）</a><a class="pager-next" href="staff-board.html"><small>次へ</small>注文帳とお渡し</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

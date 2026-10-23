@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>学校に出す書類（Excel・ZIP）｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>学校に出す書類（Excel・ZIP）</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">収支の画面のいちばん下の「学校に出す書類」から、<strong>収支報告の Excel</strong> と <strong>レシートの画像（ZIP）</strong>をダウンロードできます。どちらも<strong>本番の開催回をすべて合わせたもの</strong>で、練習の開催回は入りません。</p>
+
+<figure class="phone">
+    <a href="img/m-ledger-export.png"><img src="img/m-ledger-export.png" width="716" height="772" alt="学校に出す書類の欄。説明、確定していないレシートが2件あります、Excel とレシート画像（ZIP）のボタン" loading="lazy"></a>
+    <figcaption>学校に出す書類（収支の画面）</figcaption>
+  </figure>
+
+<section id="flow">
+  <h2>提出までの流れ</h2>
+  <ol class="steps">
+    <li><strong>レシートをぜんぶ確定する</strong>: 「確定していないレシートが ○ 件あります。」と出ていたら、先に確定します。確定していないレシートは、Excel にも ZIP にも入りません（→ <a href="receipt-search.html#checks">照合チェック</a>）。</li>
+    <li><strong>手入力の支出を確かめる</strong>: レシートと二重になっている手入力の支出がないか確かめます（同じく照合チェック）。</li>
+    <li><strong>収支報告を確かめる</strong>: 収支の画面の収支報告と科目別の内訳を見て、おかしな数字がないか確かめます（→ <a href="ledger.html">収支の画面</a>）。</li>
+    <li><span class="ui">Excel</span> を押して、収支報告のファイル（<code>収支報告_開催名.xlsx</code>）を保存します。</li>
+    <li><span class="ui">レシート画像（ZIP）</span> を押して、レシートの画像をまとめたファイル（<code>レシート_開催名.zip</code>）を保存します。</li>
+    <li>Excel を開いて中身を確かめ、学校・運営の指示に従って提出します（提出のしかた・締め切りは、学校・運営の指示を見てください）。</li>
+  </ol>
+  <p>ファイルを作るのに少し時間がかかることがあります。ボタンが「作っています…」の間は待ってください。</p>
+</section>
+
+<section id="excel">
+  <h2>Excel の中身</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>シート</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>収支報告書</td><td>提出用の表。収入・支出の科目ごとの金額、合計、差引。</td></tr>
+        <tr><td>支出明細</td><td>支出1件ずつ（購入日・購入先・品目・科目・金額・レシート番号）。税率ごとに分けたレシートは、行が分かれます。</td></tr>
+        <tr><td>売上明細</td><td>商品別・営業日別の売上。</td></tr>
+        <tr><td>分析</td><td>時間帯別の売上、商品別の割合、待ち時間、ロス、売り切れの記録など（売上の画面とほぼ同じ内容）。</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <ul>
+    <li>合計・差引は数式になっているので、Excel で数字を直すと計算し直されます。ただし、Excel で直してもシステムの収支は変わりません。<strong>直すときはシステムの収支を直して、ダウンロードし直す</strong>のがおすすめです。</li>
+    <li>Excel・LibreOffice・Google スプレッドシートで開けます。</li>
+  </ul>
+</section>
+
+<section id="zip">
+  <h2>ZIP（レシートの画像）の中身</h2>
+  <p>確定したレシートの画像が、<code>R-0012_2026-10-11_店名.jpg</code> のような名前で入っています。名前の最初のレシート番号は、Excel の支出明細のレシート番号と同じです。税率ごとに分けたレシートも、画像は1枚です。</p>
+  <p>レシートの原本（紙）の扱いは、学校・運営の指示に従ってください。</p>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="receipt-search.html"><small>前へ</small>レシートの検索と照合チェック</a><a class="pager-next" href="staff-open.html"><small>次へ</small>開店前と閉店するとき</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

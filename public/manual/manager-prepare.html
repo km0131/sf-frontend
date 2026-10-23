@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>前日までの準備｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>前日までの準備</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">学園祭の前日までに、店長がしておくことです。困ったときの連絡先は運営（システム管理者）です。</p>
+
+<section id="m1-1">
+  <h2>管理画面にログインする</h2>
+  <ol class="steps">
+    <li>ブラウザで <code>https://sf.a-kiis.com/manage</code> を開きます。</li>
+    <li>運営から伝えられた<strong>メールアドレス</strong>と<strong>パスワード</strong>を入れて、<span class="ui">ログイン</span> を押します。</li>
+  </ol>
+  <figure>
+    <a href="img/m-login.png"><img src="img/m-login.png" width="1180" height="820" alt="管理画面のログイン画面。メールアドレスとパスワードの欄、ログインのボタン" loading="lazy"></a>
+    <figcaption>管理画面のログイン</figcaption>
+  </figure>
+  <p>ログインすると、左（スマホでは上）にメニューが出ます。<span class="ui">商品</span> <span class="ui">注文</span> <span class="ui">売上</span> <span class="ui">収支</span> <span class="ui">レシート</span> <span class="ui">店舗設定</span> <span class="ui">アカウント</span> と、注文帳・レジと大画面を開くリンク <span class="ui">レジ ↗</span> <span class="ui">大画面 ↗</span> です。</p>
+  <figure>
+    <a href="img/m-products.png"><img src="img/m-products.png" width="1180" height="820" alt="ログイン後の管理画面。左にメニュー、上に損益と見込みの2行、右に商品の一覧" loading="lazy"></a>
+    <figcaption>ログイン後の画面（最初は「商品」が開きます。上の2行は「損益と見込み」のページで説明します）</figcaption>
+  </figure>
+</section>
+
+<section id="m1-2">
+  <h2>パスワードを変える</h2>
+  <p>最初に渡されたパスワードは、自分だけが知るものに変えてください。</p>
+  <ol class="steps">
+    <li>メニューの <span class="ui">アカウント</span> を開きます。</li>
+    <li><strong>今のパスワード</strong>と、<strong>新しいパスワード（10文字以上）</strong>を2回入れて、変更のボタンを押します。</li>
+  </ol>
+  <figure>
+    <a href="img/m-account.png"><img src="img/m-account.png" width="1180" height="820" alt="アカウントの画面。ログイン中のアカウントと、パスワードの変更の欄" loading="lazy"></a>
+    <figcaption>アカウント（パスワードの変更）</figcaption>
+  </figure>
+  <div class="warn"><span class="note-title">パスワードを忘れたら</span><p>運営に連絡してください。</p></div>
+</section>
+
+<section id="m1-3">
+  <h2>店舗設定を確かめる</h2>
+  <p>メニューの <span class="ui">店舗設定</span> を開きます。変えたら、<span class="ui">保存する</span> を押してください。</p>
+  <figure>
+    <a href="img/m-settings.png"><img src="img/m-settings.png" width="1180" height="1640" alt="店舗設定の画面。今の開催回、店舗の情報、スタッフ用 PIN の欄" loading="lazy"></a>
+    <figcaption>店舗設定</figcaption>
+  </figure>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>内容</th></tr></thead>
+      <tbody>
+        <tr><td>今の開催回</td><td>今の学園祭と、整理番号の頭文字（例: A）。お客さんの注文画面・レジ・大画面の URL もここに出ます（スタッフに伝える URL です）。</td></tr>
+        <tr><td>店舗の種類</td><td>飲食／飲食以外。変えたいときは運営に連絡します。</td></tr>
+        <tr><td>店名・添え書き</td><td>お客さんの画面に出ます。添え書きはお品書きの横に縦書きで出るので短めに。</td></tr>
+        <tr><td>店舗色</td><td>選んでいる品の印や、呼び出し番号の下の線などに使う色です。</td></tr>
+        <tr><td>呼び出し後の取り置き時間（分）</td><td>呼び出してからこの時間を過ぎた注文は、注文帳で「期限切れ」と出ます（1〜120分）。自動で取り消されることはありません。</td></tr>
+        <tr><td>1回の注文で頼める合計数量の上限</td><td>Web 注文1回で頼める個数の上限です。空欄のときはデフォルトの値を使います（<span class="ui">デフォルトに戻す</span> で戻せます）。レジの注文には関係しません。</td></tr>
+        <tr><td>お客さんにメールを送る</td><td>メールアドレスを入れたお客さんに、注文の控えとできあがりの知らせを送ります。</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="m1-4">
+  <h2>スタッフ用 PIN を設定する</h2>
+  <p>スタッフが注文帳・レジに入るための数字です。店舗設定のいちばん下にあります。</p>
+  <ol class="steps">
+    <li><strong>新しい PIN（6〜12桁の数字）</strong>を入れます。誕生日や「123456」のような、すぐ分かる数字は避けてください。</li>
+    <li><span class="ui">PIN を変更する</span> を押します。</li>
+    <li>当日、スタッフにだけ口頭などで伝えます（掲示したり、SNS に書いたりしない）。</li>
+  </ol>
+  <figure class="small">
+    <a href="img/m-pin.png"><img src="img/m-pin.png" width="880" height="288" alt="スタッフ用 PIN の欄と、PIN を変更するボタン" loading="lazy"></a>
+    <figcaption>スタッフ用 PIN</figcaption>
+  </figure>
+  <div class="warn"><span class="note-title">営業中に PIN を変えると</span><p>ログイン中のスタッフは<strong>全員ログアウト</strong>になり、新しい PIN で入り直す必要があります。営業中に変えるのは、PIN が外にもれたときだけにしてください。</p></div>
+</section>
+
+<section id="m1-5">
+  <h2>メニューを登録する</h2>
+  <p>メニューの <span class="ui">商品</span> を開きます。</p>
+  <ol class="steps">
+    <li><strong>カテゴリを作る</strong>: 画面の下の「カテゴリ」に名前（例: 焼きもの、お飲みもの）を入れて <span class="ui">追加</span>。並び順の数字が小さいほど上に出ます。</li>
+    <li><strong>商品を足す</strong>: 右上の <span class="ui">商品を追加</span> を押し、品名・価格（円）・カテゴリ・並び順・説明を入れて <span class="ui">保存する</span>。</li>
+    <li><strong>写真をのせる</strong>（任意）: 一度保存した商品を開くと、写真を登録できます（JPEG・PNG・WebP、5MBまで）。</li>
+    <li><strong>選択肢をつける</strong>（任意）: 麺の種類やトッピングなど。下の囲みを見てください。</li>
+  </ol>
+  <figure>
+    <a href="img/m-product-edit.png"><img src="img/m-product-edit.png" width="1180" height="1104" alt="商品の編集画面。品名、価格、カテゴリ、並び順、説明、販売中、選択肢の欄" loading="lazy"></a>
+    <figcaption>商品の編集（一覧の商品を押すと開きます）</figcaption>
+  </figure>
+  <div class="note">
+    <span class="note-title">選択肢（麺・トッピングなど）のつけ方</span>
+    <p><span class="ui">選択肢の組を足す</span> で組（例: 麺、トッピング）を作り、<span class="ui">＋ 選択肢を足す</span> で中身（例: そば、うどん）を足します。</p>
+    <ul>
+      <li><strong>必須</strong>: お客さんが必ず1つ選ぶ組（例: 麺）にチェック。</li>
+      <li><strong>選べる数</strong>: その組からいくつまで選べるか（例: トッピングは2つまで）。</li>
+      <li><strong>追加料金</strong>: 選んだときに足す金額（例: うどん +50円。なければ 0）。</li>
+      <li><strong>まとめ値段</strong>: 「3つで100円」のように、まとめて安くするとき。使わないときは空欄。</li>
+    </ul>
+  </div>
+  <ul>
+    <li><strong>売り切れにする</strong>: 「販売中（外すと売り切れ）」のチェックを外します。当日はレジからも切り替えられます（→ <a href="staff-register.html#s6-5">レジと売り切れ</a>）。</li>
+    <li><strong>お品書きから消す</strong>: 商品を開いて <span class="ui">この商品を削除</span>。売上の記録は残り、<span class="ui">削除した商品も表示</span> から <span class="ui">お品書きに戻す</span> で戻せます。</li>
+  </ul>
+  <p>登録したら、スマホでお客さんの注文画面（店舗設定にある URL）を開いて、見え方を確かめてください。</p>
+</section>
+
+<section id="m1-6">
+  <h2>機材の動作確認（当日の前に一度）</h2>
+  <ol class="steps">
+    <li>管理画面の <span class="ui">レジ ↗</span> で注文帳・レジを開き、PIN でログインできるか確かめます（→ <a href="staff-open.html">開店前</a>）。</li>
+    <li><span class="ui">大画面 ↗</span> をモニターに映して、音が出るか確かめます。</li>
+    <li>自分のスマホからテスト注文をして、注文帳に入る → 進める → 大画面に番号が出る、まで試します。</li>
+    <li>テスト注文は注文帳の <span class="ui">取り消し</span> で消しておきます。</li>
+    <li>レシートを撮る係のスマホで、注文帳・レジの <span class="ui">レシート</span> を開けるか確かめます（→ <a href="receipts.html#staff">レシートの送り方</a>）。</li>
+  </ol>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="start.html"><small>前へ</small>はじめに・言葉の意味</a><a class="pager-next" href="manager-day.html"><small>次へ</small>当日と閉店後・注文の検索と修正</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

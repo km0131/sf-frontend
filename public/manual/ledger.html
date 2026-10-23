@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>収支の画面｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>収支の画面</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">メニューの <span class="ui">収支</span> を開きます。上の <strong>開催回</strong> で、入力・確認する日を選びます（最初は今日にいちばん近い開催回）。</p>
+
+<section id="report">
+  <h2>収支報告（本番の合計）</h2>
+  <figure class="phone">
+    <a href="img/m-ledger-report.png"><img src="img/m-ledger-report.png" width="780" height="986" alt="収支報告。本番の開催回をすべて合わせた収入計、支出計、差引" loading="lazy"></a>
+    <figcaption>収支報告（本番の合計）</figcaption>
+  </figure>
+  <ul>
+    <li><strong>本番の開催回をすべて合わせた</strong>収支です。どの日の開催回に入れた収支も、ここで合計されます。</li>
+    <li><strong>収入計</strong>: 売上（注文から自動で数えます）と、手で入れた収入（補助金など）。</li>
+    <li><strong>支出計・差引</strong>: 差引は 収入計 − 支出計。マイナスなら赤字です。</li>
+  </ul>
+  <div class="warn"><span class="note-title">練習の分は合計に入りません</span><p>練習の開催回に入れた支出・収入は、収支報告にも学校に出す書類にも入りません。練習の開催回を選ぶと「練習の開催回です。本番の合計（収支報告）には含まれません。」と出ます。</p></div>
+  <figure class="phone">
+    <a href="img/m-ledger-practice.png"><img src="img/m-ledger-practice.png" width="780" height="560" alt="練習の開催回を選んだところ。練習の開催回です、本番の合計には含まれません、と出ている" loading="lazy"></a>
+    <figcaption>練習の開催回を選んだところ</figcaption>
+  </figure>
+</section>
+
+<section id="categories">
+  <h2>科目別の内訳</h2>
+  <figure>
+    <a href="img/m-ledger-categories.png"><img src="img/m-ledger-categories.png" width="1080" height="747" alt="科目別の内訳の表。収入（売上、補助金など）と支出（食材、消耗品、備品、その他）の科目ごとの金額" loading="lazy"></a>
+    <figcaption>科目別の内訳（本番の合計）</figcaption>
+  </figure>
+  <p>収入・支出を科目ごとに分けた金額です。いちばん上の「売上」は注文から自動で数えた分です。学校に出す収支報告書の科目の欄と同じ数字になります。</p>
+</section>
+
+<section id="session">
+  <h2>この開催回の数字</h2>
+  <figure class="phone">
+    <a href="img/m-ledger-session.png"><img src="img/m-ledger-session.png" width="780" height="536" alt="この開催回の売上、収入、支出" loading="lazy"></a>
+    <figcaption>選んだ開催回だけの数字</figcaption>
+  </figure>
+  <p>その下には、選んだ開催回だけの売上（その日の注文）・収入・支出が出ます。</p>
+</section>
+
+<section id="entry">
+  <h2>補助金・支出を手で入れる</h2>
+  <p>レシートのある買い物は、レシートから登録してください（→ <a href="receipts.html#manager">レシートの確認と確定</a>）。<strong>レシートのない</strong>収入・支出（補助金、借りた機材の代金など）を、ここで入れます。</p>
+  <ol class="steps">
+    <li>上の <strong>開催回</strong> で、入れる日を選びます（本番のどの日でも合計されます）。</li>
+    <li><strong>種別</strong>（支出／収入）と <strong>科目</strong> を選びます。補助金は 収入・補助金 です。</li>
+    <li><strong>金額（円）</strong>と <strong>日付（購入日・受取日）</strong>を入れます。日付は開催日ではなく、買った日・受け取った日です。</li>
+    <li>必要なら <strong>摘要</strong>（例: 生徒会からの補助金）を入れて、<span class="ui">追加する</span> を押します。</li>
+  </ol>
+  <figure class="phone">
+    <a href="img/m-ledger-entry.png"><img src="img/m-ledger-entry.png" width="716" height="1432" alt="収支を入力の欄。種別、科目、金額、日付、摘要、追加するのボタン" loading="lazy"></a>
+    <figcaption>収支を入力</figcaption>
+  </figure>
+  <ul>
+    <li>売上は注文から自動で数えるので、入れないでください。注文に入らなかった売上や、間違いを直すときだけ「売上（補正）」を使います（減らすときは −500 のように入れます）。</li>
+  </ul>
+</section>
+
+<section id="edit">
+  <h2>直す・消す</h2>
+  <figure>
+    <a href="img/m-ledger-list.png"><img src="img/m-ledger-list.png" width="1080" height="1032" alt="明細の表。日付、種別、科目、摘要、入力者、金額と、直す・削除のボタン" loading="lazy"></a>
+    <figcaption>明細（選んだ開催回の分）</figcaption>
+  </figure>
+  <ul>
+    <li><strong>直す</strong>: 明細の <span class="ui">直す</span> を押すと、上の欄が「収支を直す」になります。直して <span class="ui">保存する</span>（やめるときは <span class="ui">やめる</span>）。</li>
+    <li><strong>消す</strong>: <span class="ui">削除</span> を押し、確認で OK を押します。</li>
+    <li>レシートから登録した支出も、ここで直せます。税率ごとに分けたレシートは、摘要に「（8%の分）」のように出ます。</li>
+    <li>受け付けを締め切った開催回は、見るだけで直せません。直したいときは運営に連絡してください。</li>
+  </ul>
+  <figure>
+    <a href="img/m-ledger-edit.png"><img src="img/m-ledger-edit.png" width="1080" height="729" alt="収支を直すの欄。保存する・やめるのボタン" loading="lazy"></a>
+    <figcaption>直すとき</figcaption>
+  </figure>
+</section>
+
+<section id="cash">
+  <h2>現金照合（レジ締め）</h2>
+  <p>閉店後にレジの現金を数えて、注文の売上と合っているか確かめます。開催回ごとに記録します。</p>
+  <ol class="steps">
+    <li><strong>数えた現金（円）</strong>: レジの中のお金をぜんぶ数えて入れます。</li>
+    <li><strong>釣り銭準備金（円）</strong>: 開店前にレジに入れておいたお釣り用のお金。</li>
+    <li>必要なら <strong>メモ</strong> を入れて、<span class="ui">記録する</span> を押します。</li>
+  </ol>
+  <figure class="phone">
+    <a href="img/m-ledger-cash.png"><img src="img/m-ledger-cash.png" width="716" height="1114" alt="現金照合の欄。数えた現金、釣り銭準備金、メモ、記録する、差額" loading="lazy"></a>
+    <figcaption>現金照合（レジ締め）</figcaption>
+  </figure>
+  <p>数えた現金 − 釣り銭準備金 と、その日の注文の売上を比べた<strong>差額</strong>が出ます。「±0 円（合っています）」なら合っています。「多い」「足りない」と出たら、取り消し・お釣りの間違いがないか確かめてください。</p>
+</section>
+
+<section id="waste">
+  <h2>廃棄（余った食材）</h2>
+  <p>その開催回で余って使えなかった食材の金額（買ったときの値段）を入れて、<span class="ui">記録する</span> を押します。売上の画面の「ロス」に出ます。支出はもう入っているので、収支には足しません。</p>
+  <figure class="phone">
+    <a href="img/m-ledger-waste.png"><img src="img/m-ledger-waste.png" width="716" height="868" alt="廃棄の欄。金額、メモ、記録する" loading="lazy"></a>
+    <figcaption>廃棄（余った食材）</figcaption>
+  </figure>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="sales.html"><small>前へ</small>売上の画面</a><a class="pager-next" href="outlook.html"><small>次へ</small>損益と見込み・目標利益</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

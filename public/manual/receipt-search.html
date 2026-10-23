@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レシートの検索と照合チェック｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>レシートの検索と照合チェック</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">メニューの <span class="ui">レシート</span> の「レシートを探す」で、登録したレシートを探せます。その下の「照合チェック」で、確定し忘れ・二重の登録がないかを確かめます。</p>
+
+<section id="search">
+  <h2>レシートを探す</h2>
+  <figure class="phone">
+    <a href="img/m-receipt-search.png"><img src="img/m-receipt-search.png" width="780" height="1076" alt="レシートを探すの欄。開催（今回の開催）、キーワード、状態、開催回、詳しい条件、探す・条件を消すのボタン" loading="lazy"></a>
+    <figcaption>レシートを探す</figcaption>
+  </figure>
+  <ul>
+    <li><strong>開催</strong>: 最初は <span class="ui">今回の開催（…）</span> です。<span class="ui">すべての開催</span> や、前の開催も選べます。選ぶとすぐ一覧が変わります。</li>
+    <li><strong>キーワード</strong>: 店名・品目・読み取った文字から探します。空白で区切ると「ぜんぶ含むもの」です（例: <code>キャベツ 業務</code>）。全角・半角、大文字・小文字の違いは気にしなくてかまいません（半角カナも見つかります）。</li>
+    <li><strong>状態</strong>: 要確認・確定済み など。<strong>開催回</strong>: その日の分だけ。</li>
+    <li>条件を入れて <span class="ui">探す</span>。<span class="ui">条件を消す</span> で最初に戻ります。新しい順に、100件まで出ます。</li>
+  </ul>
+</section>
+
+<section id="more">
+  <h2>詳しい条件</h2>
+  <p>「詳しい条件（金額・購入日・科目・番号・登録者）」を押すと開きます。</p>
+  <figure class="phone">
+    <a href="img/m-receipt-search-more.png"><img src="img/m-receipt-search-more.png" width="648" height="1448" alt="詳しい条件。金額（ちょうど・から・まで）、購入日（から・まで）、科目、レシート番号、登録者" loading="lazy"></a>
+    <figcaption>詳しい条件</figcaption>
+  </figure>
+  <ul>
+    <li><strong>金額</strong>: ちょうどの金額か、範囲（から・まで）。確定前のレシートは、読み取った合計で探します。</li>
+    <li><strong>購入日</strong>: 範囲で探します。</li>
+    <li><strong>科目（確定したもの）</strong>: 確定したときの科目。税率ごとに分けたレシートは、どれかの行の科目が合えば出ます。</li>
+    <li><strong>レシート番号</strong>: <code>R-0012</code> でも <code>12</code> でも探せます。</li>
+    <li><strong>登録者</strong>: 「スタッフの画面から」を選ぶと、スタッフが送ったものだけ。</li>
+  </ul>
+</section>
+
+<section id="viewer">
+  <h2>写真を拡大・回転する</h2>
+  <figure class="phone">
+    <a href="img/m-receipt-viewer.png"><img src="img/m-receipt-viewer.png" width="513" height="866" alt="レシートの写真。上に、右に回す・縮小・拡大のボタン" loading="lazy"></a>
+    <figcaption>写真の上のボタン</figcaption>
+  </figure>
+  <p>一覧のレシートを押すと、写真が大きく開きます。<span class="ui">拡大</span>（3倍まで）・<span class="ui">縮小</span>・<span class="ui">右に回す</span>（90°ずつ）で見やすくできます。キーワードで探したときは、「読み取った文字」の中の探した言葉に印が付きます。</p>
+</section>
+
+<section id="checks">
+  <h2>照合チェック</h2>
+  <figure>
+    <a href="img/m-receipt-checks.png"><img src="img/m-receipt-checks.png" width="1080" height="1299" alt="照合チェック。確定していないレシートの一覧と、レシートを結んでいない支出の表" loading="lazy"></a>
+    <figcaption>照合チェック（今回の開催の分）</figcaption>
+  </figure>
+  <ul>
+    <li><strong>確定していないレシート</strong>: まだ確定していないレシートです。確定するまで、収支にも学校に出す書類にも入りません。押すと開くので、確かめて確定してください（→ <a href="receipts.html#manager">確認と確定</a>）。</li>
+    <li><strong>レシートを結んでいない支出</strong>: 収支の画面で手で入れた支出です。その買い物のレシートがあるなら、レシートを送って確定し、手で入れた分は収支の画面で消してください（<strong>二重に数えないため</strong>）。レシートのない支出（借りた機材の代金など）は、そのままでかまいません。</li>
+  </ul>
+  <p>学校に書類を出す前に、「確定していないレシート」が 0 件になっているか確かめてください。</p>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="receipts.html"><small>前へ</small>レシートの登録と確定</a><a class="pager-next" href="submit.html"><small>次へ</small>学校に出す書類（Excel・ZIP）</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>
