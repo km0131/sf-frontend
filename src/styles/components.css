@@ -891,6 +891,47 @@
   font-size: 14px;
 }
 
+/* 支出の内訳（税率ごと）。行ごとに 税率・科目・金額 */
+.receipt-lines {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid var(--c-card-line);
+  min-width: 0;
+}
+
+.receipt-lines legend {
+  padding: 0 4px;
+}
+
+.receipt-line {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 88px;
+  gap: 8px;
+  align-items: center;
+}
+
+.receipt-line .select {
+  min-width: 0;
+}
+
+.receipt-line-remove {
+  margin-left: auto;
+}
+
+.receipt-line-basis {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-top: -4px;
+  color: var(--c-ink-sub);
+  font-size: 12px;
+}
+
+
 .receipt-tab {
   display: grid;
   gap: 28px;

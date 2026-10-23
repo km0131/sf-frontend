@@ -162,7 +162,11 @@ function Checks({ eventId, categories, onOpen }: { eventId: number; categories: 
   )
 }
 
-type Draft = { store_name: string; purchase_date: string; total: string; category: string; memo: string; items: { name: string; amount: string }[] }
+type LineDraft = { tax_rate: number | null; category: string; amount: string; basis: string; suggested: string | null }
+type ItemDraft = { name: string; quantity: string; amount: string; tax_rate: number | null; category: string | null }
+type Draft = { store_name: string; purchase_date: string; total: string; memo: string; lines: LineDraft[]; items: ItemDraft[] }
+
+const rateLabel = (rate: number | null) => (rate == null ? '税率不明' : `${rate}%`)
 
 /** レシートの確認と確定。画像と読み取りの結果を並べ、店長が直して確定する（AI・OCR の結果だけでは確定しない）。 */
 function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string[]; onClose: () => void }) {
@@ -227,6 +231,7 @@ function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string
 }
 
 function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: LedgerCategory[] }) {
+  const label = (code: string) => categoryLabel(categories, 'expense', code)
   return (
     <div className="stack" style={{ gap: 8 }}>
       <p>
@@ -240,13 +245,18 @@ function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: L
         <dt>合計</dt>
         <dd className="mono">{r.total != null ? yen(r.total) : '—'}</dd>
         <dt>科目</dt>
-        <dd>{categories.find((c) => c.kind === 'expense' && c.code === r.category)?.label ?? r.category}</dd>
+        <dd>
+          {r.breakdown.length > 1
+            ? r.breakdown.map((b) => `${label(b.category)} ${yen(b.amount)}（${rateLabel(b.tax_rate)}）`).join('、')
+            : r.category && label(r.category)}
+        </dd>
       </dl>
       {r.items.length > 0 && (
         <ul className="receipt-items">
           {r.items.map((it, i) => (
             <li key={i}>
-              {it.name} <span className="mono">{yen(it.amount)}</span>
+              {it.name}
+              {it.quantity != null && it.quantity > 1 && ` ×${it.quantity}`} <span className="mono">{yen(it.amount)}</span>
             </li>
           ))}
         </ul>
@@ -254,6 +264,33 @@ function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: L
       <p className="field-hint">収支の支出に登録しました。直すときは「収支」の明細から直してください。</p>
     </div>
   )
+}
+
+/** 下書き（読み取った行から作ったもの）を、画面の入力の形にする。科目マスタにない科目は未選択にする */
+function initialDraft(r: Receipt, categories: LedgerCategory[]): Draft {
+  const known = (code: string | null | undefined) => (code && categories.some((c) => c.code === code) ? code : '')
+  const total = r.ocr?.total != null ? String(r.ocr.total) : ''
+  const lines: LineDraft[] = (r.draft?.lines ?? []).map((l) => ({
+    tax_rate: l.tax_rate,
+    category: known(l.category),
+    amount: String(l.amount),
+    basis: l.basis,
+    suggested: known(l.suggested) || null,
+  }))
+  return {
+    store_name: r.ocr?.store_name ?? '',
+    purchase_date: r.ocr?.purchase_date ?? '',
+    total,
+    memo: '',
+    lines: lines.length > 0 ? lines : [{ tax_rate: null, category: '', amount: total, basis: '', suggested: null }],
+    items: (r.draft?.items ?? []).map((it) => ({
+      name: it.name,
+      quantity: String(it.quantity),
+      amount: String(it.amount),
+      tax_rate: it.tax_rate ?? null,
+      category: it.category ?? null,
+    })),
+  }
 }
 
 function ConfirmForm({
@@ -271,21 +308,36 @@ function ConfirmForm({
   onDeleted: () => void
 }) {
   const { token } = useManage()
-  // 読み取った内容を下書きにする（必ず人が確かめて直してから確定する）
-  const [draft, setDraft] = useState<Draft>(() => ({
-    store_name: r.ocr?.store_name ?? '',
-    purchase_date: r.ocr?.purchase_date ?? '',
-    total: r.ocr?.total != null ? String(r.ocr.total) : '',
-    category: '',
-    memo: '',
-    items: [],
-  }))
+  // 読み取った内容と、税率ごとの支出の下書きを入れておく（必ず人が確かめて直してから確定する）
+  const [draft, setDraft] = useState<Draft>(() => initialDraft(r, categories))
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const category = draft.category || categories[0]?.code || ''
   const total = Number(draft.total)
-  const valid = draft.store_name.trim() !== '' && /^\d{4}-\d{2}-\d{2}$/.test(draft.purchase_date) && Number.isInteger(total) && total >= 1 && total <= 10_000_000 && category !== ''
+  const totalOk = draft.total !== '' && Number.isInteger(total) && total >= 1 && total <= 10_000_000
+  const sum = draft.lines.reduce((a, l) => a + (Number(l.amount) || 0), 0)
+  const linesOk = draft.lines.every((l) => l.category !== '' && /^\d+$/.test(l.amount) && Number(l.amount) >= 1)
+  const valid = draft.store_name.trim() !== '' && /^\d{4}-\d{2}-\d{2}$/.test(draft.purchase_date) && totalOk && linesOk && sum === total
+  const problem = !draft.total
+    ? null
+    : !totalOk
+      ? '合計は 1〜10,000,000 円で入れてください。'
+      : draft.lines.some((l) => l.category === '')
+        ? '科目を選んでいない行があります（税率が読めなかった分など）。'
+        : !linesOk
+          ? '内訳の金額を入れてください。'
+          : sum !== total
+            ? `内訳の合計 ${yen(sum)} が、合計 ${yen(total)} と合いません。`
+            : draft.store_name.trim() === '' || !/^\d{4}-\d{2}-\d{2}$/.test(draft.purchase_date)
+              ? '店名と購入日を入れてください。'
+              : null
+  const setLine = (i: number, patch: Partial<LineDraft>) => setDraft({ ...draft, lines: draft.lines.map((l, j) => (j === i ? { ...l, ...patch } : l)) })
+  const setItem = (i: number, patch: Partial<ItemDraft>) => setDraft({ ...draft, items: draft.items.map((x, j) => (j === i ? { ...x, ...patch } : x)) })
+  const setTotal = (value: string) => {
+    // 内訳が1行で、合計と同じ（か空）なら、合計に合わせる
+    const only = draft.lines.length === 1 && (draft.lines[0].amount === draft.total || draft.lines[0].amount === '')
+    setDraft({ ...draft, total: value, lines: only ? [{ ...draft.lines[0], amount: value }] : draft.lines })
+  }
 
   const run = async (fn: () => Promise<unknown>, done: string) => {
     setBusy(true)
@@ -305,13 +357,26 @@ function ConfirmForm({
   const confirm = (e: FormEvent) => {
     e.preventDefault()
     if (!valid) return
-    const items: ReceiptItem[] = draft.items.filter((it) => it.name.trim()).map((it) => ({ name: it.name.trim(), amount: Number(it.amount) || 0 }))
+    // 品目は参考（名前のないものは送らない）
+    const items: ReceiptItem[] = draft.items
+      .filter((it) => it.name.trim())
+      .map((it) => {
+        const q = Number(it.quantity)
+        return {
+          name: it.name.trim().slice(0, 100),
+          amount: Number(it.amount) || 0,
+          ...(Number.isInteger(q) && q >= 1 && q <= 9999 ? { quantity: q } : {}),
+          ...(it.tax_rate != null ? { tax_rate: it.tax_rate } : {}),
+          ...(it.category ? { category: it.category } : {}),
+        }
+      })
+    const lines = draft.lines.map((l) => ({ tax_rate: l.tax_rate, category: l.category, amount: Number(l.amount) }))
     void run(
       () =>
         apiFetch(`/api/manage/receipts/${r.id}/confirm`, {
           method: 'POST',
           token,
-          body: { store_name: draft.store_name.trim(), purchase_date: draft.purchase_date, total, category, memo: draft.memo.trim(), items },
+          body: { store_name: draft.store_name.trim(), purchase_date: draft.purchase_date, total, lines, memo: draft.memo.trim(), items },
         }),
       '確定し、収支の支出に登録しました。',
     )
@@ -336,17 +401,7 @@ function ConfirmForm({
         </label>
         <label className="field">
           <span className="field-label">合計（円）</span>
-          <input className="input" inputMode="numeric" value={draft.total} onChange={(e) => setDraft({ ...draft, total: e.target.value.replace(/\D/g, '') })} />
-        </label>
-        <label className="field">
-          <span className="field-label">科目</span>
-          <select className="select" value={category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-            {categories.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <input className="input" inputMode="numeric" value={draft.total} onChange={(e) => setTotal(e.target.value.replace(/\D/g, ''))} />
         </label>
         <label className="field" style={{ gridColumn: '1 / -1' }}>
           <span className="field-label">摘要（任意）</span>
@@ -354,34 +409,109 @@ function ConfirmForm({
         </label>
       </div>
 
+      <fieldset className="receipt-lines">
+        <legend className="field-label">支出の内訳（税率ごと）</legend>
+        <p className="field-hint">8% の分は食材、10% の分は消耗品にしてあります。写真と見比べて、科目と金額を確かめてください（行ごとに収支の支出になります）。</p>
+        {r.draft?.mismatch && <p className="receipt-dup">読み取った税率ごとの金額の和が、合計と合いません。写真と見比べて直してください。</p>}
+        {draft.lines.map((l, i) => (
+          <div key={i} className="receipt-line">
+            <select className="select" value={l.tax_rate ?? ''} aria-label={`内訳${i + 1}の税率`} onChange={(e) => setLine(i, { tax_rate: e.target.value ? Number(e.target.value) : null })}>
+              <option value="8">8%</option>
+              <option value="10">10%</option>
+              <option value="">不明</option>
+            </select>
+            <select className="select" value={l.category} aria-label={`内訳${i + 1}の科目`} onChange={(e) => setLine(i, { category: e.target.value })}>
+              <option value="">未選択</option>
+              {categories.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <input
+              className="input mono"
+              inputMode="numeric"
+              value={l.amount}
+              placeholder="金額"
+              aria-label={`内訳${i + 1}の金額`}
+              onChange={(e) => setLine(i, { amount: e.target.value.replace(/\D/g, '') })}
+            />
+            {(l.basis || l.suggested || draft.lines.length > 1) && (
+              <span className="receipt-line-basis">
+                {l.basis}
+                {l.suggested && l.category === '' && (
+                  <button type="button" className="btn btn-text" onClick={() => setLine(i, { category: l.suggested! })}>
+                    候補「{categoryLabel(categories, 'expense', l.suggested)}」にする
+                  </button>
+                )}
+                {draft.lines.length > 1 && (
+                  <button
+                    type="button"
+                    className="btn btn-text receipt-line-remove"
+                    onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, j) => j !== i) })}
+                  >
+                    この行を外す
+                  </button>
+                )}
+              </span>
+            )}
+          </div>
+        ))}
+        <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-text"
+            onClick={() =>
+              setDraft({
+                ...draft,
+                lines: [...draft.lines, { tax_rate: null, category: '', amount: totalOk && total > sum ? String(total - sum) : '', basis: '', suggested: null }],
+              })
+            }
+          >
+            ＋ 行を足す（科目を分ける）
+          </button>
+          <span className={`mono ${totalOk && sum !== total ? 'error-text' : 'sub'}`}>内訳の合計 {yen(sum)}</span>
+        </div>
+      </fieldset>
+
       <details>
-        <summary className="field-label">品目（任意・{draft.items.length}件）</summary>
+        <summary className="field-label">品目（参考・任意・{draft.items.length}件）</summary>
+        <p className="field-hint" style={{ marginTop: 8 }}>
+          読み取った品目です。間違っていても確定できます（直すと、あとで検索しやすくなります）。
+        </p>
         <div className="stack" style={{ gap: 8, marginTop: 8 }}>
           {draft.items.map((it, i) => (
             <div key={i} className="row" style={{ gap: 8 }}>
+              <input className="input" style={{ flex: 1 }} value={it.name} placeholder="品名" aria-label={`品目${i + 1}の品名`} onChange={(e) => setItem(i, { name: e.target.value })} />
               <input
-                className="input"
-                style={{ flex: 1 }}
-                value={it.name}
-                placeholder="品名"
-                aria-label={`品目${i + 1}の品名`}
-                onChange={(e) => setDraft({ ...draft, items: draft.items.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)) })}
+                className="input mono"
+                style={{ width: 56 }}
+                inputMode="numeric"
+                value={it.quantity}
+                placeholder="数"
+                aria-label={`品目${i + 1}の数量`}
+                onChange={(e) => setItem(i, { quantity: e.target.value.replace(/\D/g, '') })}
               />
               <input
-                className="input"
-                style={{ width: 110 }}
+                className="input mono"
+                style={{ width: 96 }}
                 inputMode="numeric"
                 value={it.amount}
                 placeholder="金額"
                 aria-label={`品目${i + 1}の金額`}
-                onChange={(e) => setDraft({ ...draft, items: draft.items.map((x, j) => (j === i ? { ...x, amount: e.target.value.replace(/[^\d-]/g, '') } : x)) })}
+                onChange={(e) => setItem(i, { amount: e.target.value.replace(/[^\d-]/g, '') })}
               />
               <button type="button" className="btn btn-text" onClick={() => setDraft({ ...draft, items: draft.items.filter((_, j) => j !== i) })}>
                 外す
               </button>
             </div>
           ))}
-          <button type="button" className="btn btn-text" style={{ alignSelf: 'flex-start' }} onClick={() => setDraft({ ...draft, items: [...draft.items, { name: '', amount: '' }] })}>
+          <button
+            type="button"
+            className="btn btn-text"
+            style={{ alignSelf: 'flex-start' }}
+            onClick={() => setDraft({ ...draft, items: [...draft.items, { name: '', quantity: '1', amount: '', tax_rate: null, category: null }] })}
+          >
             ＋ 品目を足す
           </button>
         </div>
@@ -410,7 +540,7 @@ function ConfirmForm({
           削除
         </button>
       </div>
-      <Notice error={error ?? (draft.total && !valid ? '店名・購入日・合計（1〜10,000,000円）・科目を入れてください。' : null)} ok={ok} />
+      <Notice error={error ?? problem} ok={ok} />
     </form>
   )
 }
