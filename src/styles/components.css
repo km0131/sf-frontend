@@ -908,13 +908,19 @@
 /* 開催回の営業時間（開店〜閉店） */
 .session-hours {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 6px;
 }
 
 .session-hours .input {
-  width: auto;
+  width: 8.5em;
   min-width: 0;
+  padding-inline: 8px;
+}
+
+.session-kind {
+  min-width: 5.5em;
 }
 
 /* 商品画面の上の損益・見込み（スマホでも2行まで。見込みは点線と薄い字で確定の値と分ける） */

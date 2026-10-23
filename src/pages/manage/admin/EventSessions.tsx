@@ -70,7 +70,7 @@ export function EventSessions({ eventId, name }: { eventId: number; name: string
                 <td className="mono cell-title">{s.date}</td>
                 <td data-label="名前">{s.name}</td>
                 <td data-label="種類">
-                  <select className="select" value={s.kind} onChange={(e) => void patch(s, { kind: e.target.value as EventSession['kind'] })}>
+                  <select className="select session-kind" value={s.kind} onChange={(e) => void patch(s, { kind: e.target.value as EventSession['kind'] })}>
                     <option value="production">{kindLabels.production}</option>
                     <option value="practice">{kindLabels.practice}</option>
                   </select>
