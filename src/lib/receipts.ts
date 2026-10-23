@@ -17,7 +17,24 @@ export type OCRResult = {
   model: string
 }
 
-export type ReceiptItem = { name: string; amount: number }
+/** 品目（参考。間違っていても確定できる）。数量・税率・科目は分かるときだけ */
+export type ReceiptItem = { name: string; amount: number; quantity?: number; tax_rate?: number | null; category?: string | null }
+
+/** 支出の下書きの1行（税率・科目ごと）。科目が決められないときは category が null（未選択） */
+export type DraftLine = { tax_rate: number | null; category: string | null; amount: number; basis: string; suggested?: string }
+
+/** 読み取った行から作った下書き（税率ごとの支出と品目）。科目は税率で決め、辞書で補正したもの */
+export type ReceiptDraft = {
+  source: 'rules' | 'llm'
+  lines: DraftLine[]
+  items: (ReceiptItem & { quantity: number })[]
+  tax_mode: 'inclusive' | 'exclusive' | ''
+  /** 税率ごとの金額の和が、読み取った合計と合わない */
+  mismatch: boolean
+}
+
+/** 確定した内訳の1行（収支の支出1件） */
+export type BreakdownLine = { tax_rate: number | null; category: string; amount: number }
 
 export type Receipt = {
   id: number
@@ -28,12 +45,16 @@ export type Receipt = {
   ocr: OCRResult | null
   ocr_attempts: number
   ocr_error: string | null
+  /** 下書き（読み取ったあとに作る）。まだなら null */
+  draft: ReceiptDraft | null
   /** 確定した内容（確定前は null） */
   store_name: string | null
   purchase_date: string | null
   total: number | null
   category: string | null
   items: ReceiptItem[]
+  /** 確定した内訳（税率・科目ごと）。category はいちばん大きい行の科目 */
+  breakdown: BreakdownLine[]
   ledger_entry_id: number | null
   confirmed_at: string | null
   uploaded_by_role: 'system_admin' | 'shop_manager' | 'staff'
