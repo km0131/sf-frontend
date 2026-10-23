@@ -6,6 +6,7 @@ import { apiFetch, errorMessage, setUnauthorizedHandler } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { userSession, type Session } from '../../lib/session'
 import type { LoginResponse } from '../../lib/types'
+import { ServerStatus } from './admin/ServerStatus'
 import type { ManageContext } from './context'
 
 const managerNav = [
@@ -94,19 +95,22 @@ export function ManageApp() {
         }
       />
       <div className="manage">
-        <nav className="mnav" aria-label="管理メニュー">
-          {nav.map((n) => (
-            <NavLink key={n.to} to={n.to}>
-              {n.label}
-            </NavLink>
-          ))}
-          {screens.length > 0 && <span className="mnav-sep">画面を開く</span>}
-          {screens.map((n) => (
-            <a key={n.href} href={n.href} target="_blank" rel="noopener">
-              {n.label} ↗
-            </a>
-          ))}
-        </nav>
+        <div className="manage-side">
+          <nav className="mnav" aria-label="管理メニュー">
+            {nav.map((n) => (
+              <NavLink key={n.to} to={n.to}>
+                {n.label}
+              </NavLink>
+            ))}
+            {screens.length > 0 && <span className="mnav-sep">画面を開く</span>}
+            {screens.map((n) => (
+              <a key={n.href} href={n.href} target="_blank" rel="noopener">
+                {n.label} ↗
+              </a>
+            ))}
+          </nav>
+          {isAdmin && <ServerStatus token={session.token} />}
+        </div>
         <Outlet context={{ token: session.token, session, updateShop } satisfies ManageContext} />
       </div>
     </div>
