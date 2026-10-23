@@ -74,7 +74,17 @@ export function ReceiptUploader({ token, base }: { token: string; base: '/api/st
       refresh()
       if (r.ocr_state === 'reading') void waitForRead(r)
     } catch (e) {
-      setError(e instanceof ApiError ? (e.code === 'session_closed' ? 'この開催回は、レシートの受け付けを締め切りました。' : errorMessage(e)) : e instanceof Error ? e.message : String(e))
+      setError(
+        e instanceof ApiError
+          ? e.code === 'session_closed'
+            ? 'この開催回は、レシートの受け付けを締め切りました。'
+            : e.code === 'payload_too_large'
+              ? '画像が大きすぎます。もう一度撮影してください。'
+              : errorMessage(e)
+          : e instanceof Error
+            ? e.message
+            : String(e),
+      )
     } finally {
       setBusy(false)
       if (input.current) input.current.value = ''
