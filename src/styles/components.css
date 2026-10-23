@@ -897,3 +897,10 @@
   max-width: 720px;
   padding-top: 24px;
 }
+
+/* 収支報告の Excel・レシートの ZIP のダウンロード */
+.ledger-export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}

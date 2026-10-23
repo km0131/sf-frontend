@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
+import { LedgerExport } from '../../../components/LedgerExport'
 import { apiFetch, errorMessage } from '../../../lib/api'
 import { yen } from '../../../lib/format'
 import { entryKindLabels, sessionLabel, type EntryKind, type EventSession, type LedgerCategory } from '../../../lib/ledger'
@@ -103,6 +104,7 @@ export function AllLedgerPage() {
                   <th className="num">支出計</th>
                   <th className="num">差引</th>
                   {mode === 'session' && <th className="num">現金の差額</th>}
+                  {mode === 'event' && <th>書類</th>}
                 </tr>
               </thead>
               <tbody>
@@ -116,6 +118,17 @@ export function AllLedgerPage() {
                     {mode === 'session' && (
                       <td className="num" data-label="現金の差額">{t.cash_difference == null ? '未入力' : signed(t.cash_difference)}</td>
                     )}
+                    {mode === 'event' && eventId != null && (
+                      <td data-label="書類">
+                        <LedgerExport
+                          token={token}
+                          eventId={eventId}
+                          shopId={t.shop_id}
+                          name={`${events.data?.find((e) => e.id === eventId)?.name ?? ''}_${t.shop_name}`}
+                          compact
+                        />
+                      </td>
+                    )}
                   </tr>
                 ))}
                 {items.length > 0 && (
@@ -125,7 +138,7 @@ export function AllLedgerPage() {
                     <td className="num" data-label="収入計">{yen(sum('income'))}</td>
                     <td className="num" data-label="支出計">{yen(sum('expense'))}</td>
                     <td className="num" data-label="差引">{signed(sum('balance'))}</td>
-                    {mode === 'session' && <td />}
+                    <td />
                   </tr>
                 )}
               </tbody>

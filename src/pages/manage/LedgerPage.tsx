@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
+import { LedgerExport } from '../../components/LedgerExport'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { yen } from '../../lib/format'
 import {
@@ -14,6 +15,8 @@ import {
   type LedgerEntry,
   type LedgerSummary,
 } from '../../lib/ledger'
+import type { Receipt } from '../../lib/receipts'
+import type { List } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
 
@@ -112,6 +115,9 @@ export function LedgerPage() {
               </div>
               <Panel title="科目別の内訳（本番の合計）">
                 <CategoryTable summary={r} />
+              </Panel>
+              <Panel title="学校に出す書類">
+                <ExportPanel eventId={report.data.event_id} eventName={report.data.event_name} productionSessions={report.data.sessions.map((x) => x.id)} />
               </Panel>
             </section>
           )}
@@ -446,5 +452,24 @@ function CashCount({ sessionId, summary, writable }: { sessionId: number; summar
       </p>
       <Notice error={error} ok={ok} />
     </Panel>
+  )
+}
+
+/** 収支報告の Excel とレシートの画像の ZIP。確定していないレシートは入らないので、件数を知らせる。 */
+function ExportPanel({ eventId, eventName, productionSessions }: { eventId: number; eventName: string; productionSessions: number[] }) {
+  const { token } = useManage()
+  const receipts = useQuery({
+    queryKey: ['receipts', 'list', ''],
+    queryFn: () => apiFetch<List<Receipt>>('/api/manage/receipts', { token }).then((r) => r.items),
+  })
+  const unconfirmed = (receipts.data ?? []).filter((x) => productionSessions.includes(x.session_id) && x.status !== 'confirmed').length
+  return (
+    <div className="stack" style={{ gap: 12 }}>
+      <p className="sub" style={{ fontSize: 13 }}>
+        Excel には、収支報告書・支出明細・売上明細（商品別・営業日別）が入ります。合計は数式なので、開いたあとに直しても計算し直されます。ZIP のレシートの画像は、支出明細のレシート番号の名前です。
+      </p>
+      {unconfirmed > 0 && <p className="receipt-dup">確定していないレシートが {unconfirmed} 件あります。確定するまで、Excel と ZIP には入りません。</p>}
+      <LedgerExport token={token} eventId={eventId} name={eventName} />
+    </div>
   )
 }
