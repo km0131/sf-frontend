@@ -116,6 +116,9 @@ export function LedgerPage() {
               <Panel title="科目別の内訳（本番の合計）">
                 <CategoryTable summary={r} />
               </Panel>
+              <Panel title="目標利益">
+                <TargetProfit />
+              </Panel>
               <Panel title="学校に出す書類">
                 <ExportPanel eventId={report.data.event_id} eventName={report.data.event_name} productionSessions={report.data.sessions.map((x) => x.id)} />
               </Panel>
@@ -471,5 +474,49 @@ function ExportPanel({ eventId, eventName, productionSessions }: { eventId: numb
       {unconfirmed > 0 && <p className="receipt-dup">確定していないレシートが {unconfirmed} 件あります。確定するまで、Excel と ZIP には入りません。</p>}
       <LedgerExport token={token} eventId={eventId} name={eventName} />
     </div>
+  )
+}
+
+/** 目標利益（商品画面の「あと何件」に使う。0 円なら黒字が目標） */
+function TargetProfit() {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const settings = useQuery({
+    queryKey: ['manage', 'ledger', 'settings'],
+    queryFn: () => apiFetch<{ target_profit: number }>('/api/manage/ledger/settings', { token }),
+  })
+  const [draft, setDraft] = useState<string | null>(null)
+  const [msg, setMsg] = useState<{ error?: string; ok?: string }>({})
+  const value = draft ?? String(settings.data?.target_profit ?? '')
+  const n = Number(value)
+  const valid = value !== '' && Number.isInteger(n) && n >= 0 && n <= 10_000_000
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    setMsg({})
+    try {
+      await apiFetch('/api/manage/ledger/settings', { method: 'PUT', token, body: { target_profit: n } })
+      setDraft(null)
+      void queryClient.invalidateQueries({ queryKey: ['manage', 'ledger'] })
+      setMsg({ ok: '保存しました。' })
+    } catch (err) {
+      setMsg({ error: errorMessage(err) })
+    }
+  }
+
+  return (
+    <form className="stack" style={{ gap: 12 }} onSubmit={save}>
+      <p className="sub" style={{ fontSize: 13 }}>商品画面の上の「あと何件」は、この金額の利益（本番の合計）に届くまでの件数です。0 円なら黒字が目標です。</p>
+      <div className="row">
+        <label className="field">
+          <span className="field-label">目標利益（円）</span>
+          <input className="input mono" inputMode="numeric" value={value} onChange={(e) => setDraft(e.target.value.trim())} />
+        </label>
+        <button type="submit" className="btn btn-secondary" disabled={!valid || draft === null}>
+          保存
+        </button>
+      </div>
+      <Notice error={msg.error} ok={msg.ok} />
+    </form>
   )
 }

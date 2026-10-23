@@ -904,3 +904,76 @@
   flex-wrap: wrap;
   gap: 8px 16px;
 }
+
+/* 開催回の営業時間（開店〜閉店） */
+.session-hours {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.session-hours .input {
+  width: auto;
+  min-width: 0;
+}
+
+/* 商品画面の上の損益・見込み（スマホでも2行まで。見込みは点線と薄い字で確定の値と分ける） */
+.outlook-bar {
+  display: block;
+  margin-bottom: 20px;
+  padding: 10px 14px;
+  border: 1px solid var(--c-card-line);
+  border-left: 3px solid var(--c-shion);
+  background: var(--c-card);
+  color: var(--c-ink);
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.outlook-now {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.outlook-label {
+  color: var(--c-ink-sub);
+}
+
+.outlook-now strong {
+  font-size: 16px;
+}
+
+.outlook-minus {
+  color: var(--c-store);
+}
+
+.outlook-goal {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--c-ink-sub);
+}
+
+.outlook-forecast {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--c-shion-soft);
+  color: var(--c-shion-deep);
+}
+
+.outlook-final {
+  border-top-style: solid;
+  color: var(--c-ink);
+}
+
+.outlook-now,
+.outlook-forecast {
+  white-space: nowrap;
+}
+
+.outlook-forecast {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
