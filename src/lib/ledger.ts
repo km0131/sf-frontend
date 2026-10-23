@@ -14,6 +14,9 @@ export type EventSession = {
   /** 選択肢に出すか */
   is_active: boolean
   sort_order: number
+  /** 営業時間（"10:00"。未設定なら null）。イベント終了時の見込みに使う */
+  opens_at: string | null
+  closes_at: string | null
 }
 
 export type EntryKind = 'income' | 'expense'

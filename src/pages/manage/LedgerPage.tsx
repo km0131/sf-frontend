@@ -15,6 +15,7 @@ import {
   type LedgerEntry,
   type LedgerSummary,
 } from '../../lib/ledger'
+import { projectionText, toGoalText, type Outlook } from '../../lib/outlook'
 import type { Receipt } from '../../lib/receipts'
 import type { List } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
@@ -115,6 +116,9 @@ export function LedgerPage() {
               </div>
               <Panel title="科目別の内訳（本番の合計）">
                 <CategoryTable summary={r} />
+              </Panel>
+              <Panel title="目標と見込み（商品画面の上の表示）">
+                <OutlookPanel eventId={report.data.event_id} />
               </Panel>
               <Panel title="学校に出す書類">
                 <ExportPanel eventId={report.data.event_id} eventName={report.data.event_name} productionSessions={report.data.sessions.map((x) => x.id)} />
@@ -471,5 +475,87 @@ function ExportPanel({ eventId, eventName, productionSessions }: { eventId: numb
       {unconfirmed > 0 && <p className="receipt-dup">確定していないレシートが {unconfirmed} 件あります。確定するまで、Excel と ZIP には入りません。</p>}
       <LedgerExport token={token} eventId={eventId} name={eventName} />
     </div>
+  )
+}
+
+/** 商品画面の上の表示（損益・あと何点・イベント終了時の見込み）の中身と、その前提。スマホでも読めるよう、ここにはっきり出す */
+function OutlookPanel({ eventId }: { eventId: number }) {
+  const { token } = useManage()
+  const q = useQuery({
+    queryKey: ['manage', 'ledger', 'outlook', eventId],
+    queryFn: () => apiFetch<{ outlook: Outlook | null }>(`/api/manage/ledger/outlook?event_id=${eventId}`, { token }).then((r) => r.outlook),
+  })
+  const o = q.data
+  return (
+    <div className="stack" style={{ gap: 16 }}>
+      {o && (
+        <>
+          <div className="stats">
+            <Stat label="目標利益" value={o.target_profit > 0 ? yen(o.target_profit) : '¥0（黒字）'} note={o.shortfall > 0 ? `あと ${yen(o.shortfall)}` : '届いています'} />
+            <Stat
+              label="平均単価（1点あたり）"
+              value={o.average_unit_price != null ? yen(o.average_unit_price) : '—'}
+              note="本番の売上 ÷ 販売数量（ハーフ・トッピングも実績のまま）"
+            />
+            <Stat
+              label="目標まであと"
+              value={o.units_to_target != null ? `約${o.units_to_target.toLocaleString('ja-JP')}点` : o.shortfall === 0 ? '0点' : '—'}
+              note={toGoalText(o)}
+            />
+          </div>
+          <p className={`outlook-forecast ${o.final ? 'outlook-final' : ''}`} style={{ fontSize: 14 }}>
+            {projectionText(o)}
+          </p>
+          <p className="field-hint">
+            見込みは、今後の支出がない前提で計算しています。今日の残りは直近1時間の売上のペース、これからの日は前の日の時間帯ごとの売上から見積もります（本番の開催回の営業時間が必要です）。
+          </p>
+        </>
+      )}
+      <TargetProfit />
+    </div>
+  )
+}
+
+/** 目標利益（商品画面の「あと何点」に使う。0 円なら黒字が目標） */
+function TargetProfit() {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const settings = useQuery({
+    queryKey: ['manage', 'ledger', 'settings'],
+    queryFn: () => apiFetch<{ target_profit: number }>('/api/manage/ledger/settings', { token }),
+  })
+  const [draft, setDraft] = useState<string | null>(null)
+  const [msg, setMsg] = useState<{ error?: string; ok?: string }>({})
+  const value = draft ?? String(settings.data?.target_profit ?? '')
+  const n = Number(value)
+  const valid = value !== '' && Number.isInteger(n) && n >= 0 && n <= 10_000_000
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    setMsg({})
+    try {
+      await apiFetch('/api/manage/ledger/settings', { method: 'PUT', token, body: { target_profit: n } })
+      setDraft(null)
+      void queryClient.invalidateQueries({ queryKey: ['manage', 'ledger'] })
+      setMsg({ ok: '保存しました。' })
+    } catch (err) {
+      setMsg({ error: errorMessage(err) })
+    }
+  }
+
+  return (
+    <form className="stack" style={{ gap: 12 }} onSubmit={save}>
+      <p className="sub" style={{ fontSize: 13 }}>商品画面の上の「あと何点」は、この金額の利益（本番の合計）に届くまでの販売数量です。0 円なら黒字が目標です。</p>
+      <div className="row">
+        <label className="field">
+          <span className="field-label">目標利益（円）</span>
+          <input className="input mono" inputMode="numeric" value={value} onChange={(e) => setDraft(e.target.value.trim())} />
+        </label>
+        <button type="submit" className="btn btn-secondary" disabled={!valid || draft === null}>
+          保存
+        </button>
+      </div>
+      <Notice error={msg.error} ok={msg.ok} />
+    </form>
   )
 }

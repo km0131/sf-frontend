@@ -6,6 +6,7 @@ import { yen } from '../../lib/format'
 import type { Category, List, MenuItem } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
+import { OutlookBar } from './OutlookBar'
 
 const keys = {
   categories: ['manage', 'categories'] as const,
@@ -31,6 +32,7 @@ export function ProductsPage() {
 
   return (
     <div className="mpage">
+      <OutlookBar />
       <PageHead title="商品">
         <label className="check" style={{ fontSize: 13 }}>
           <input type="checkbox" checked={showArchived} onChange={(e) => setShowArchived(e.target.checked)} />
