@@ -12,6 +12,7 @@ import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
 import { OrderBoard } from './OrderBoard'
 import { PosPage } from './PosPage'
+import { ReceiptTab } from './ReceiptTab'
 import { StaffLogin } from './StaffLogin'
 
 /** スタッフ画面（/s/:slug/pos）。PIN でログインし、「注文帳」と「レジ」を切り替える。 */
@@ -47,7 +48,7 @@ export function StaffApp() {
 
 function StaffShell({ slug, token, onLogout }: { slug: string; token: string; onLogout: () => void }) {
   const [params, setParams] = useSearchParams()
-  const tab = params.get('tab') === 'register' ? 'register' : 'board'
+  const tab = params.get('tab') === 'register' ? 'register' : params.get('tab') === 'receipt' ? 'receipt' : 'board'
   const queryClient = useQueryClient()
   const [connected, setConnected] = useState(false)
   const soundOn = useSyncExternalStore(orderSound.subscribe, orderSound.isOn)
@@ -90,7 +91,7 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
   return (
     <div className="page-pc" style={storeStyle(shop?.color)}>
       <Header
-        name={`${title}　${tab === 'board' ? w.boardTab : 'レジ'}`}
+        name={`${title}　${tab === 'board' ? w.boardTab : tab === 'register' ? 'レジ' : 'レシート'}`}
         aside={
           <div className="row" style={{ gap: 16 }}>
             <nav className="staff-tabs" aria-label="画面の切り替え">
@@ -110,6 +111,14 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
               >
                 レジ
               </button>
+              <button
+                type="button"
+                className="staff-tab"
+                aria-current={tab === 'receipt' ? 'page' : undefined}
+                onClick={() => setParams({ tab: 'receipt' })}
+              >
+                レシート
+              </button>
             </nav>
             <span className="conn">{connected ? '● 接続中' : '○ 再接続中'}</span>
             <button
@@ -128,7 +137,13 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
           </div>
         }
       />
-      {tab === 'board' ? <OrderBoard slug={slug} token={token} businessType={shop?.business_type} /> : <PosPage slug={slug} token={token} shop={shop} />}
+      {tab === 'board' ? (
+        <OrderBoard slug={slug} token={token} businessType={shop?.business_type} />
+      ) : tab === 'register' ? (
+        <PosPage slug={slug} token={token} shop={shop} />
+      ) : (
+        <ReceiptTab token={token} />
+      )}
     </div>
   )
 }

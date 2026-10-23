@@ -32,6 +32,7 @@ export const router = createBrowserRouter([
       { path: 'orders', lazy: () => import('./pages/manage/OrdersPage').then((m) => ({ Component: m.OrdersPage })) },
       { path: 'sales', lazy: () => import('./pages/manage/SalesPage').then((m) => ({ Component: m.SalesPage })) },
       { path: 'ledger', lazy: () => import('./pages/manage/LedgerPage').then((m) => ({ Component: m.LedgerPage })) },
+      { path: 'receipts', lazy: () => import('./pages/manage/ReceiptsPage').then((m) => ({ Component: m.ReceiptsPage })) },
       { path: 'settings', lazy: () => import('./pages/manage/SettingsPage').then((m) => ({ Component: m.SettingsPage })) },
       { path: 'account', lazy: () => import('./pages/manage/AccountPage').then((m) => ({ Component: m.AccountPage })) },
       { path: 'shops', lazy: () => import('./pages/manage/admin/ShopsPage').then((m) => ({ Component: m.ShopsPage })) },

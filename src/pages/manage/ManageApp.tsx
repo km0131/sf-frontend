@@ -13,6 +13,7 @@ const managerNav = [
   { to: 'orders', label: '注文' },
   { to: 'sales', label: '売上' },
   { to: 'ledger', label: '収支' },
+  { to: 'receipts', label: 'レシート' },
   { to: 'settings', label: '店舗設定' },
   { to: 'account', label: 'アカウント' },
 ]
