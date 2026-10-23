@@ -43,17 +43,36 @@ export type LedgerSummary = {
   income: number
   expense: number
   balance: number
-  by_category: { kind: EntryKind; category: string; amount: number }[]
+  by_category: { kind: EntryKind; category: string; label: string; amount: number }[]
   cash: { counted_amount: number; float_amount: number; note: string; updated_at: string; difference: number } | null
 }
 
 export const kindLabels: Record<EventSession['kind'], string> = { practice: '練習', production: '本番' }
 export const entryKindLabels: Record<EntryKind, string> = { income: '収入', expense: '支出' }
 
-/** 科目（学校の区分が決まったら差し替える。サーバーの科目と合わせること） */
-export const categoryLabels: Record<EntryKind, Record<string, string>> = {
-  income: { subsidy: '補助金', sales_adjust: '売上（補正）', other: 'その他' },
-  expense: { food: '食材', supplies: '消耗品', equipment: '備品', other: 'その他' },
+/** 科目（科目マスタ。システム管理者が追加・変更する） */
+export type LedgerCategory = {
+  kind: EntryKind
+  code: string
+  label: string
+  sort_order: number
+  is_active: boolean
+  /** 負の金額（減らす補正）を入れられるか */
+  allow_negative: boolean
+}
+
+/** 科目の表示名（科目マスタにない・読み込み前ならコードのまま） */
+export function categoryLabel(cats: LedgerCategory[] | undefined, kind: EntryKind, code: string): string {
+  return cats?.find((c) => c.kind === kind && c.code === code)?.label ?? code
+}
+
+/** 回の本番の開催回をすべて合わせた収支（収支報告・損益分岐・Excel に使う。練習は含めない） */
+export type EventReport = {
+  event_id: number
+  event_name: string
+  /** 合計に含めた本番の開催回 */
+  sessions: EventSession[]
+  summary: LedgerSummary
 }
 
 /** 開催回の表示名（例: 「本番1日目（本番・10/26）」） */

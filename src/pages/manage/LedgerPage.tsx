@@ -4,11 +4,13 @@ import { useSearchParams } from 'react-router'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { yen } from '../../lib/format'
 import {
-  categoryLabels,
+  categoryLabel,
   entryKindLabels,
   sessionLabel,
   type EntryKind,
+  type EventReport,
   type EventSession,
+  type LedgerCategory,
   type LedgerEntry,
   type LedgerSummary,
 } from '../../lib/ledger'
@@ -58,6 +60,19 @@ export function LedgerPage() {
   const session = ledger.data?.session
   const writable = !!session && session.is_active && session.receipt_open
   const s = ledger.data?.summary
+  // 収支報告は、回の本番の開催回をすべて合わせて出す（練習は含めない）
+  const report = useQuery({
+    queryKey: ['manage', 'ledger', 'report', session?.event_id],
+    queryFn: () => apiFetch<EventReport>(`/api/manage/ledger/report?event_id=${session!.event_id}`, { token }),
+    enabled: session != null,
+    placeholderData: keepPreviousData,
+  })
+  // 表示名のため、無効な科目も読む（入力の選択肢は有効なものだけ）
+  const categories = useQuery({
+    queryKey: ['manage', 'ledger', 'categories'],
+    queryFn: () => apiFetch<{ items: LedgerCategory[] }>('/api/manage/ledger/categories?all=1', { token }).then((r) => r.items),
+  })
+  const r = report.data?.summary
 
   return (
     <div className="mpage">
@@ -82,47 +97,42 @@ export function LedgerPage() {
 
       {s && session && (
         <div className="stack" style={{ gap: 32, opacity: ledger.isFetching ? 0.6 : 1, transition: 'opacity var(--dur-hover)' }}>
-          <div className="stats">
-            <Stat label="収入計" value={yen(s.income)} note={`うち売上 ${yen(s.sales)}（注文から自動）`} />
-            <Stat label="支出計" value={yen(s.expense)} />
-            <Stat label="差引" value={`${s.balance < 0 ? '−' : ''}${yen(Math.abs(s.balance))}`} note={s.balance < 0 ? '赤字' : s.balance > 0 ? '黒字' : ''} />
-          </div>
+          {r && report.data && (
+            <section className="stack" style={{ gap: 16 }}>
+              <h2 className="panel-title" style={{ marginBottom: 0 }}>
+                収支報告：{report.data.event_name}（本番の合計）
+              </h2>
+              <p className="sub" style={{ fontSize: 13 }}>
+                本番の開催回（{report.data.sessions.map((x) => x.name).join('・') || 'まだありません'}）をすべて合わせた収支です。練習の開催回は含めません。どの日の開催回に登録した収支も、ここで合計されます。
+              </p>
+              <div className="stats">
+                <Stat label="収入計" value={yen(r.income)} note={`うち売上 ${yen(r.sales)}（注文から自動）`} />
+                <Stat label="支出計" value={yen(r.expense)} />
+                <Stat label="差引" value={`${r.balance < 0 ? '−' : ''}${yen(Math.abs(r.balance))}`} note={r.balance < 0 ? '赤字' : r.balance > 0 ? '黒字' : ''} />
+              </div>
+              <Panel title="科目別の内訳（本番の合計）">
+                <CategoryTable summary={r} />
+              </Panel>
+            </section>
+          )}
 
-          <Panel title="科目別の内訳">
-            <div className="table-wrap">
-              <table className="table">
-                <thead>
-                  <tr>
-                    <th>種別</th>
-                    <th>科目</th>
-                    <th className="num">金額</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>収入</td>
-                    <td>
-                      売上<span className="sub">（注文から自動・{s.sales_orders}件。支払い済み、取り消し・未受取を除く）</span>
-                    </td>
-                    <td className="num">{yen(s.sales)}</td>
-                  </tr>
-                  {s.by_category.map((c) => (
-                    <tr key={`${c.kind}/${c.category}`}>
-                      <td>{entryKindLabels[c.kind]}</td>
-                      <td>{categoryLabels[c.kind][c.category] ?? c.category}</td>
-                      <td className="num">{c.amount < 0 ? `−${yen(-c.amount)}` : yen(c.amount)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <section className="stack" style={{ gap: 16 }}>
+            <h2 className="panel-title" style={{ marginBottom: 0 }}>
+              この開催回：{sessionLabel(session)}
+            </h2>
+            {session.kind === 'practice' && <p className="field-hint">練習の開催回です。本番の合計（収支報告）には含まれません。</p>}
+            <div className="stats">
+              <Stat label="売上（この日の注文）" value={yen(s.sales)} note={`${s.sales_orders}件`} />
+              <Stat label="収入（この開催回）" value={yen(s.income)} />
+              <Stat label="支出（この開催回）" value={yen(s.expense)} />
             </div>
-          </Panel>
+          </section>
 
           {!writable && (
             <p className="field-hint">この開催回は、収支の受け付けを締め切りました（見ることはできます）。直したいときは運営に連絡してください。</p>
           )}
           {/* 開催回を切り替えたら、入力欄を空にする */}
-          <Entries key={`e${session.id}`} sessionId={session.id} entries={ledger.data!.entries} writable={writable} />
+          <Entries key={`e${session.id}`} sessionId={session.id} entries={ledger.data!.entries} writable={writable} categories={categories.data ?? []} />
           <CashCount key={`c${session.id}`} sessionId={session.id} summary={s} writable={writable} />
         </div>
       )}
@@ -130,14 +140,63 @@ export function LedgerPage() {
   )
 }
 
+/** 科目別の内訳の表（売上の自動集計の行を先頭に）。 */
+function CategoryTable({ summary: s }: { summary: LedgerSummary }) {
+  return (
+    <div className="table-wrap">
+      <table className="table">
+        <thead>
+          <tr>
+            <th>種別</th>
+            <th>科目</th>
+            <th className="num">金額</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>収入</td>
+            <td>
+              売上<span className="sub">（注文から自動・{s.sales_orders}件。支払い済み、取り消し・未受取を除く）</span>
+            </td>
+            <td className="num">{yen(s.sales)}</td>
+          </tr>
+          {s.by_category.map((c) => (
+            <tr key={`${c.kind}/${c.category}`}>
+              <td>{entryKindLabels[c.kind]}</td>
+              <td>{c.label}</td>
+              <td className="num">{c.amount < 0 ? `−${yen(-c.amount)}` : yen(c.amount)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )
+}
+
 type Draft = { kind: EntryKind; category: string; amount: string; entry_date: string; memo: string }
-const emptyDraft = (): Draft => ({ kind: 'expense', category: 'food', amount: '', entry_date: todayStr(), memo: '' })
+const emptyDraft = (category = ''): Draft => ({ kind: 'expense', category, amount: '', entry_date: todayStr(), memo: '' })
 
 /** 収支の入力欄と明細。 */
-function Entries({ sessionId, entries, writable }: { sessionId: number; entries: LedgerEntry[]; writable: boolean }) {
+function Entries({
+  sessionId,
+  entries,
+  writable,
+  categories,
+}: {
+  sessionId: number
+  entries: LedgerEntry[]
+  writable: boolean
+  categories: LedgerCategory[]
+}) {
   const { token } = useManage()
   const queryClient = useQueryClient()
-  const [draft, setDraft] = useState<Draft>(emptyDraft)
+  const [draft, setDraft] = useState<Draft>(() => emptyDraft())
+  // 入力に使える科目（有効なもの）。直している行の科目は、無効になっていても選べるように残す
+  const choices = (kind: EntryKind) =>
+    categories.filter((c) => c.kind === kind && (c.is_active || (editing != null && c.code === draft.category && kind === draft.kind)))
+  // 科目が未選択（読み込み前など）なら、その種別の最初の科目
+  const category = draft.category || choices(draft.kind)[0]?.code || ''
+  const negativeOk = categories.find((c) => c.kind === draft.kind && c.code === category)?.allow_negative ?? false
   const [editing, setEditing] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
@@ -145,8 +204,8 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['manage', 'ledger'] })
   const amount = Number(draft.amount)
-  // 金額は整数（円）。売上の補正だけは負の金額（減らす補正）を入れられる
-  const amountOk = draft.amount.trim() !== '' && Number.isInteger(amount) && amount !== 0 && Math.abs(amount) <= 10_000_000 && (amount > 0 || draft.category === 'sales_adjust')
+  // 金額は整数（円）。負の金額（減らす補正）は、許した科目（売上の補正）だけ
+  const amountOk = draft.amount.trim() !== '' && Number.isInteger(amount) && amount !== 0 && Math.abs(amount) <= 10_000_000 && (amount > 0 || negativeOk)
 
   const save = async (e: FormEvent) => {
     e.preventDefault()
@@ -154,7 +213,7 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
     setBusy(true)
     setError(null)
     setOk(null)
-    const body = { session_id: sessionId, kind: draft.kind, category: draft.category, amount, entry_date: draft.entry_date, memo: draft.memo }
+    const body = { session_id: sessionId, kind: draft.kind, category, amount, entry_date: draft.entry_date, memo: draft.memo }
     try {
       if (editing) {
         await apiFetch(`/api/manage/ledger/entries/${editing}`, { method: 'PUT', token, body })
@@ -174,7 +233,7 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
   }
 
   const remove = async (entry: LedgerEntry) => {
-    const label = `${entry.entry_date} ${categoryLabels[entry.kind][entry.category] ?? entry.category} ${yen(entry.amount)}`
+    const label = `${entry.entry_date} ${categoryLabel(categories, entry.kind, entry.category)} ${yen(entry.amount)}`
     if (!window.confirm(`「${label}」を削除しますか？`)) return
     setError(null)
     setOk(null)
@@ -209,7 +268,7 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
                 value={draft.kind}
                 onChange={(e) => {
                   const kind = e.target.value as EntryKind
-                  setDraft({ ...draft, kind, category: Object.keys(categoryLabels[kind])[0] })
+                  setDraft({ ...draft, kind, category: '' })
                 }}
               >
                 <option value="expense">支出</option>
@@ -218,10 +277,11 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
             </label>
             <label className="field">
               <span className="field-label">科目</span>
-              <select className="select" value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
-                {Object.entries(categoryLabels[draft.kind]).map(([k, v]) => (
-                  <option key={k} value={k}>
-                    {v}
+              <select className="select" value={category} onChange={(e) => setDraft({ ...draft, category: e.target.value })}>
+                {choices(draft.kind).map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.label}
+                    {c.is_active ? '' : '（無効）'}
                   </option>
                 ))}
               </select>
@@ -265,7 +325,7 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
           <p className="field-hint" style={{ marginTop: 12 }}>
             売上は注文から自動で数えるので、入力しないでください。「売上（補正）」は、注文に入らなかった売上や間違いを直すときだけ使います（減らすときは −500 のように入れます）。日付は、開催日ではなく、買った日・受け取った日です。
           </p>
-          <Notice error={draft.amount && !amountOk ? '金額は 1〜10,000,000 円の整数で入れてください（売上の補正だけは負の金額も可）。' : error} ok={ok} />
+          <Notice error={draft.amount && !amountOk ? '金額は 1〜10,000,000 円の整数で入れてください（負の金額は、売上の補正などの科目だけ）。' : error} ok={ok} />
         </Panel>
       )}
 
@@ -289,7 +349,7 @@ function Entries({ sessionId, entries, writable }: { sessionId: number; entries:
                 <tr key={e.id} style={editing === e.id ? { background: 'rgba(134,123,169,.08)' } : undefined}>
                   <td className="mono cell-title">{e.entry_date}</td>
                   <td data-label="種別">{entryKindLabels[e.kind]}</td>
-                  <td data-label="科目">{categoryLabels[e.kind][e.category] ?? e.category}</td>
+                  <td data-label="科目">{categoryLabel(categories, e.kind, e.category)}</td>
                   <td data-label="摘要">{e.memo || '—'}</td>
                   <td data-label="入力者">{e.created_by_name ?? (e.created_by_role === 'staff' ? 'スタッフ' : '—')}</td>
                   <td className="num" data-label="金額">
