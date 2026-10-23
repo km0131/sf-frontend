@@ -5,6 +5,7 @@ import { mdhm } from '../../../lib/format'
 import type { List } from '../../../lib/types'
 import { Notice, PageHead, Panel } from '../common'
 import { useManage } from '../context'
+import { EventSessions } from './EventSessions'
 import type { AdminShop } from './ShopsPage'
 
 type Event = {
@@ -113,6 +114,7 @@ export function EventsPage() {
       </Panel>
 
       {selected !== null && <EventShops eventId={selected} name={events.data?.find((e) => e.id === selected)?.name ?? ''} />}
+      {selected !== null && <EventSessions eventId={selected} name={events.data?.find((e) => e.id === selected)?.name ?? ''} />}
 
       <Panel title="開催回を追加">
         <form className="form-grid" onSubmit={create}>
