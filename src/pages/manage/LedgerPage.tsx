@@ -144,6 +144,7 @@ export function LedgerPage() {
           {/* 開催回を切り替えたら、入力欄を空にする */}
           <Entries key={`e${session.id}`} sessionId={session.id} entries={ledger.data!.entries} writable={writable} categories={categories.data ?? []} />
           <CashCount key={`c${session.id}`} sessionId={session.id} summary={s} writable={writable} />
+          <WasteRecord key={`w${session.id}`} session={session} writable={writable} />
         </div>
       )}
     </div>
@@ -557,5 +558,62 @@ function TargetProfit() {
       </div>
       <Notice error={msg.error} ok={msg.ok} />
     </form>
+  )
+}
+
+type Waste = { session_id: number; amount: number | null; memo: string }
+
+/** 廃棄（その開催回で余った食材の金額）。支出はもう計上しているので収支には足さず、売上の画面のロスに出す */
+function WasteRecord({ session, writable }: { session: EventSession; writable: boolean }) {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const list = useQuery({
+    queryKey: ['manage', 'ledger', 'waste', session.event_id],
+    queryFn: () => apiFetch<List<Waste>>(`/api/manage/ledger/waste?event_id=${session.event_id}`, { token }).then((r) => r.items),
+  })
+  const saved = list.data?.find((w) => w.session_id === session.id)
+  const [draft, setDraft] = useState<{ amount: string; memo: string } | null>(null)
+  const form = draft ?? { amount: saved?.amount != null ? String(saved.amount) : '', memo: saved?.memo ?? '' }
+  const [msg, setMsg] = useState<{ error?: string; ok?: string }>({})
+  const amount = Number(form.amount)
+  const valid = form.amount !== '' && Number.isInteger(amount) && amount >= 0 && amount <= 10_000_000
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    if (!valid) return
+    setMsg({})
+    try {
+      await apiFetch('/api/manage/ledger/waste', { method: 'PUT', token, body: { session_id: session.id, amount, memo: form.memo.trim() } })
+      setDraft(null)
+      setMsg({ ok: '保存しました。' })
+      void queryClient.invalidateQueries({ queryKey: ['manage', 'ledger', 'waste'] })
+      void queryClient.invalidateQueries({ queryKey: ['sales'] })
+    } catch (err) {
+      setMsg({ error: ledgerError(err) })
+    }
+  }
+
+  return (
+    <Panel title="廃棄（余った食材）">
+      <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>
+        この開催回で余って使えなかった食材の金額（買ったときの値段）を入れます。支出はもう計上しているので収支には足さず、売上の画面の「ロス」に出します。
+      </p>
+      <form className="form-grid" onSubmit={save}>
+        <label className="field">
+          <span className="field-label">金額（円）</span>
+          <input className="input mono" inputMode="numeric" value={form.amount} disabled={!writable} onChange={(e) => setDraft({ ...form, amount: e.target.value.replace(/\D/g, '') })} />
+        </label>
+        <label className="field">
+          <span className="field-label">メモ（任意）</span>
+          <input className="input" value={form.memo} maxLength={200} placeholder="例: キャベツ半玉・麺 3玉" disabled={!writable} onChange={(e) => setDraft({ ...form, memo: e.target.value })} />
+        </label>
+        {writable && (
+          <button type="submit" className="btn btn-secondary" disabled={!valid || draft === null}>
+            記録する
+          </button>
+        )}
+      </form>
+      <Notice error={msg.error} ok={msg.ok} />
+    </Panel>
   )
 }
