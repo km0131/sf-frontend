@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ApiError, apiFetch, errorMessage } from '../lib/api'
 import { yen } from '../lib/format'
 import { sessionLabel, type EventSession } from '../lib/ledger'
@@ -7,8 +7,13 @@ import { receiptNo, shrinkForUpload, type UploadResult } from '../lib/receipts'
 
 type Sessions = { items: EventSession[]; default_session_id: number | null }
 
+/** 読み取りの結果を待つ間隔と、待つのをやめるまでの時間（サーバーは 25 秒で区切り、あとで読み取る） */
+const POLL_MS = 2000
+const WAIT_MS = 40_000
+
 /** レシートの登録（スタッフ・店長で共通）。開催回を選び、撮影または画像を選んで送る。
- *  画像はブラウザで縮めてから送る（長辺 2000px・JPEG）。読み取りの結果をその場で出す。 */
+ *  画像はブラウザで縮めてから送る（長辺 2000px・JPEG）。保存できたら、裏の読み取りの結果を待って出す。
+ *  「あとで確認する」で待つのをやめても、読み取りはサーバーで続き、一覧に結果が出る。 */
 export function ReceiptUploader({ token, base }: { token: string; base: '/api/staff' | '/api/manage' }) {
   const queryClient = useQueryClient()
   // 開催回の選択肢は、受付中のものだけ
@@ -25,12 +30,40 @@ export function ReceiptUploader({ token, base }: { token: string; base: '/api/st
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<UploadResult | null>(null)
+  const [later, setLater] = useState(false)
+  // 待っている読み取りの番号。変えると、待つのをやめる（「あとで確認する」・別の画像を送る・画面を離れる）
+  const waiting = useRef(0)
+  useEffect(() => () => void waiting.current++, [])
+
+  const refresh = () => void queryClient.invalidateQueries({ queryKey: ['receipts'] })
+
+  /** 裏の読み取りが終わるまで、状態を読み直す */
+  const waitForRead = async (first: UploadResult) => {
+    const mine = ++waiting.current
+    const deadline = Date.now() + WAIT_MS
+    let r = first
+    while (r.ocr_state === 'reading' && Date.now() < deadline) {
+      await new Promise((resolve) => setTimeout(resolve, POLL_MS))
+      if (waiting.current !== mine) return
+      try {
+        r = await apiFetch<UploadResult>(`${base}/receipts/${r.receipt.id}/status`, { token })
+      } catch {
+        continue // 電波が途切れたときなどは、次の回にもう一度
+      }
+      if (waiting.current !== mine) return
+    }
+    // 時間内に終わらなければ「後で読み取る」として出す（サーバーで読み取りは続く）
+    setResult(r.ocr_state === 'reading' ? { ...r, ocr_state: 'pending' } : r)
+    refresh()
+  }
 
   const send = async (file: File) => {
     if (!sessionId) return
+    waiting.current++
     setBusy(true)
     setError(null)
     setResult(null)
+    setLater(false)
     try {
       const blob = await shrinkForUpload(file)
       const form = new FormData()
@@ -38,7 +71,8 @@ export function ReceiptUploader({ token, base }: { token: string; base: '/api/st
       form.append('image', blob, 'receipt.jpg')
       const r = await apiFetch<UploadResult>(`${base}/receipts`, { method: 'POST', token, body: form })
       setResult(r)
-      void queryClient.invalidateQueries({ queryKey: ['receipts'] })
+      refresh()
+      if (r.ocr_state === 'reading') void waitForRead(r)
     } catch (e) {
       setError(e instanceof ApiError ? (e.code === 'session_closed' ? 'この開催回は、レシートの受け付けを締め切りました。' : errorMessage(e)) : e instanceof Error ? e.message : String(e))
     } finally {
@@ -80,20 +114,54 @@ export function ReceiptUploader({ token, base }: { token: string; base: '/api/st
           if (f) void send(f)
         }}
       />
-      <button type="button" className="btn btn-primary btn-block" disabled={!sessionId || busy} onClick={() => input.current?.click()}>
+      <button
+        type="button"
+        className="btn btn-primary btn-block"
+        disabled={!sessionId || busy || result?.ocr_state === 'reading'}
+        onClick={() => input.current?.click()}
+      >
         {busy ? '送っています…' : 'レシートを撮る・選ぶ'}
       </button>
       <p className="field-hint">レシート全体が入るように、明るい場所で真上から撮ってください。画像は縮めてから送ります。</p>
 
       {error && <p className="error-text">{error}</p>}
-      {result && <UploadMessage result={result} />}
+      {result && (
+        <UploadMessage
+          result={result}
+          onLater={() => {
+            waiting.current++
+            setResult(null)
+            setLater(true)
+            refresh()
+          }}
+        />
+      )}
+      {later && (
+        <p className="receipt-result" role="status">
+          保存しました。読み取りは続けています。終わると、レシートの一覧に結果が出ます。
+        </p>
+      )}
     </div>
   )
 }
 
-function UploadMessage({ result }: { result: UploadResult }) {
+function UploadMessage({ result, onLater }: { result: UploadResult; onLater: () => void }) {
   const r = result.receipt
   const ocr = r.ocr
+  if (result.ocr_state === 'reading') {
+    return (
+      <div className="receipt-result receipt-result-reading" role="status">
+        <p className="receipt-result-title">
+          <span className="spinner" aria-hidden="true" />
+          読み取り中…（15秒ほどかかります）
+        </p>
+        <p className="field-hint">{receiptNo(r.id)} として保存しました。画面を離れても、読み取りは続きます。</p>
+        <button type="button" className="btn btn-secondary btn-block" onClick={onLater}>
+          あとで確認する
+        </button>
+      </div>
+    )
+  }
   return (
     <div className={`receipt-result receipt-result-${result.ocr_state}`} role="status">
       <p className="receipt-result-title">

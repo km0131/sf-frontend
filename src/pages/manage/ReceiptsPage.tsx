@@ -5,7 +5,16 @@ import { Sheet } from '../../components/Sheet'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
 import { sessionLabel, type EventSession, type LedgerCategory } from '../../lib/ledger'
-import { receiptNo, statusLabels, useAuthImage, type Receipt, type ReceiptItem, type ReceiptStatus } from '../../lib/receipts'
+import {
+  receiptNo,
+  refetchWhileReading,
+  statusLabels,
+  useAuthImage,
+  type Receipt,
+  type ReceiptItem,
+  type ReceiptStatus,
+  type UploadResult,
+} from '../../lib/receipts'
 import type { List } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
@@ -27,6 +36,8 @@ export function ReceiptsPage() {
     queryKey: ['receipts', 'list', params.toString()],
     queryFn: () => apiFetch<List<Receipt>>(`/api/manage/receipts?${params}`, { token }).then((r) => r.items),
     placeholderData: keepPreviousData,
+    // 読み取りの途中のものがあれば、終わるまで読み直す
+    refetchInterval: (q) => refetchWhileReading(q.state.data),
   })
 
   return (
@@ -99,7 +110,9 @@ function ReceiptDetail({ id, onClose }: { id: number; onClose: () => void }) {
   const queryClient = useQueryClient()
   const detail = useQuery({
     queryKey: ['receipts', 'detail', id],
-    queryFn: () => apiFetch<{ receipt: Receipt; duplicates: number[] }>(`/api/manage/receipts/${id}`, { token }),
+    queryFn: () => apiFetch<UploadResult>(`/api/manage/receipts/${id}/status`, { token }),
+    // 裏で読み取っている間は、終わるまで読み直す
+    refetchInterval: (q) => (q.state.data?.ocr_state === 'reading' ? 2000 : false),
   })
   const categories = useQuery({
     queryKey: ['manage', 'ledger', 'categories'],
@@ -128,6 +141,7 @@ function ReceiptDetail({ id, onClose }: { id: number; onClose: () => void }) {
               <ConfirmForm
                 key={`${r.id}-${r.ocr_attempts}`}
                 receipt={r}
+                reading={detail.data?.ocr_state === 'reading'}
                 categories={(categories.data ?? []).filter((c) => c.kind === 'expense' && c.is_active)}
                 onDone={() => {
                   void queryClient.invalidateQueries({ queryKey: ['receipts'] })
@@ -184,11 +198,14 @@ function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: L
 
 function ConfirmForm({
   receipt: r,
+  reading,
   categories,
   onDone,
   onDeleted,
 }: {
   receipt: Receipt
+  /** 裏で読み取っている（終わると読み取った内容で作り直す） */
+  reading: boolean
   categories: LedgerCategory[]
   onDone: () => void
   onDeleted: () => void
@@ -244,7 +261,8 @@ function ConfirmForm({
     <form className="stack" style={{ gap: 12 }} onSubmit={confirm}>
       <p className={r.status === 'ocr_failed' ? 'receipt-dup' : 'field-hint'}>
         {r.status === 'ocr_failed' && '合計を読み取れませんでした。写真を見ながら入力するか、撮り直してください。'}
-        {r.status === 'uploaded' && (r.ocr_error ? '読み取りは後で行います（まだ読み取れていません）。手で入力して確定もできます。' : '読み取りをしていません。写真を見ながら入力してください。')}
+        {r.status === 'uploaded' && reading && '読み取り中です（15秒ほどかかります）。終わると、ここに読み取った内容が入ります。'}
+        {r.status === 'uploaded' && !reading && (r.ocr_error ? '読み取りは後で行います（まだ読み取れていません）。手で入力して確定もできます。' : '読み取りをしていません。写真を見ながら入力してください。')}
         {(r.status === 'ocr_done' || r.status === 'llm_done') && '読み取った内容です。写真と見比べて、違うところを直してから確定してください。'}
       </p>
       <div className="form-grid">
