@@ -24,6 +24,7 @@ const adminNav = [
   { to: 'users', label: '店長・管理者' },
   { to: 'all-sales', label: '全店の売上' },
   { to: 'all-ledger', label: '全店の収支' },
+  { to: 'all-receipts', label: '全店のレシート' },
   { to: 'account', label: 'アカウント' },
 ]
 

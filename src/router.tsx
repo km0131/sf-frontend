@@ -40,6 +40,7 @@ export const router = createBrowserRouter([
       { path: 'users', lazy: () => import('./pages/manage/admin/UsersPage').then((m) => ({ Component: m.UsersPage })) },
       { path: 'all-sales', lazy: () => import('./pages/manage/admin/AllSalesPage').then((m) => ({ Component: m.AllSalesPage })) },
       { path: 'all-ledger', lazy: () => import('./pages/manage/admin/AllLedgerPage').then((m) => ({ Component: m.AllLedgerPage })) },
+      { path: 'all-receipts', lazy: () => import('./pages/manage/admin/AllReceiptsPage').then((m) => ({ Component: m.AllReceiptsPage })) },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

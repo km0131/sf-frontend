@@ -39,6 +39,8 @@ export type Receipt = {
   uploaded_by_role: 'system_admin' | 'shop_manager' | 'staff'
   uploaded_by_name: string | null
   created_at: string
+  shop_id: number
+  shop_name: string
 }
 
 export type UploadResult = { receipt: Receipt; ocr_state: OCRState; duplicates: number[] }
