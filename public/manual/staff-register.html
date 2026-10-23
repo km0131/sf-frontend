@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>レジと売り切れ｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">スタッフ</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>レジと売り切れ</h1>
+  </div>
+</header>
+
+<main>
+<section id="s6-4">
+  <h2>レジ（お店の前での注文）</h2>
+  <p>右上の <span class="ui">レジ</span> を押します。</p>
+  <ol class="steps">
+    <li>商品を押すと、右（スマホでは下）の「お会計」に入ります。選択肢のある商品は、選ぶ画面が出ます。</li>
+    <li>数は <span class="ui">−</span> <span class="ui">+</span> で変えます。品ごとのご希望は <span class="ui">＋ ご希望</span> から。</li>
+    <li><strong>お預かり</strong>に受け取った金額を入れます（<span class="ui">ちょうど</span> <span class="ui">¥1,000</span> などのボタンも使えます）。お釣りが出ます。</li>
+    <li><span class="ui">会計を確定</span> を押します。</li>
+    <li>「会計が終わりました」に出る<strong>整理番号</strong>をお客さんに伝えて、<span class="ui">次のお客様へ</span> を押します。</li>
+  </ol>
+  <figure>
+    <a href="img/s-register-options.png"><img src="img/s-register-options.png" width="1180" height="820" alt="選択肢を選ぶ画面。麺の種類とトッピングを選ぶ" loading="lazy"></a>
+    <figcaption>選択肢のある商品を押したとき</figcaption>
+  </figure>
+  <figure>
+    <a href="img/s-register.png"><img src="img/s-register.png" width="1180" height="1161" alt="レジの画面。左に商品のボタン、右にお会計の欄。合計、お預かり、お釣り、会計を確定のボタン" loading="lazy"></a>
+    <figcaption>レジ（お預かりを入れると、お釣りが出ます）</figcaption>
+  </figure>
+  <figure>
+    <a href="img/s-register-done.png"><img src="img/s-register-done.png" width="1180" height="820" alt="会計が終わりました。お呼び出し番号とお釣り、次のお客様へのボタン" loading="lazy"></a>
+    <figcaption>会計が終わったところ。この番号をお客さんに伝えます</figcaption>
+  </figure>
+  <p>レジの注文も注文帳に入ります（支払い済み）。あとは Web 注文と同じように進めます。</p>
+</section>
+
+<section id="s6-5">
+  <h2>売り切れの設定</h2>
+  <ol class="steps">
+    <li>レジの画面で <span class="ui">売り切れを設定する</span> を押します。</li>
+    <li>商品を押すと、<strong>押したとたんに</strong>売り切れ／販売中が切り替わります。</li>
+    <li>選択肢のある商品を押すと、選択肢ごと（例: トッピングの1つだけ）に切り替える画面が出ます。</li>
+    <li>終わったら <span class="ui">売り切れ設定を終える</span> を押します。</li>
+  </ol>
+  <figure>
+    <a href="img/s-soldout.png"><img src="img/s-soldout.png" width="1180" height="820" alt="売り切れ設定中のレジ。商品を押すと売り切れと販売中が切り替わる" loading="lazy"></a>
+    <figcaption>売り切れの設定中</figcaption>
+  </figure>
+  <figure>
+    <a href="img/s-soldout-options.png"><img src="img/s-soldout-options.png" width="1180" height="820" alt="選択肢ごとの売り切れの設定。選択肢ごとに売り切れと販売中を切り替える" loading="lazy"></a>
+    <figcaption>選択肢ごとの売り切れ</figcaption>
+  </figure>
+  <p>切り替えは、すぐお客さんの画面にも反映されます。売り切れにした時刻と戻した時刻は記録され、店長が売上の画面で見られます。</p>
+</section>
+
+<section id="s6-8">
+  <h2>お客さんの画面（聞かれたときのために）</h2>
+  <p>お客さんはスマホで、お店の一覧 → お品書き → 注文の確認 → 注文状況、と進みます。</p>
+  <figure class="phone">
+    <a href="img/c-status-waiting.png"><img src="img/c-status-waiting.png" width="780" height="1688" alt="お客さんのスマホの注文状況。お呼び出し番号と進み具合" loading="lazy"></a>
+    <figcaption>注文したあとのお客さんの画面</figcaption>
+  </figure>
+  <figure class="phone">
+    <a href="img/c-status-ready.png"><img src="img/c-status-ready.png" width="780" height="1688" alt="できあがったときのお客さんの画面。受け取りの期限の時刻" loading="lazy"></a>
+    <figcaption>できあがったとき（受け取りの期限の時刻が出ます）</figcaption>
+  </figure>
+  <ul>
+    <li>呼ばれると、音と画面いっぱいの表示で知らせます（画面を開いたまま待ってもらいます）。</li>
+    <li>iPhone はマナーモードだと音が鳴らないことがあります。</li>
+    <li>調理が始まる前なら、この画面から注文を取り消せます。</li>
+    <li>画面を閉じてしまった人は、お店の一覧の <span class="ui">番号で受付状況を確かめる</span> から、整理番号で今の状態を確かめられます。</li>
+  </ul>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="staff-board.html"><small>前へ</small>注文帳とお渡し</a><a class="pager-next" href="trouble.html"><small>次へ</small>困ったとき</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

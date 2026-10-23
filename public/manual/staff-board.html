@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>注文帳とお渡し｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">スタッフ</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>注文帳とお渡し</h1>
+  </div>
+</header>
+
+<main>
+<section id="s6-1">
+  <h2>Web 注文の流れ</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th></th><th>お客さん</th><th>お店</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>スマホで注文する</td><td>注文帳の「受付」に入り、「ピンポン」と鳴る</td></tr>
+        <tr><td>2</td><td>整理番号の画面で待つ</td><td><span class="ui">調理をはじめる</span> → 調理する</td></tr>
+        <tr><td>3</td><td>呼ばれると、スマホに音と画面で知らせが来る</td><td><span class="ui">できあがり</span> → 大画面に番号が出る</td></tr>
+        <tr><td>4</td><td>番号を見せて受け取り、お代金を払う</td><td>番号を確かめて渡し、お代金を受け取る → <span class="ui">お渡し済み</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="s6-2">
+  <h2>注文帳の使い方</h2>
+  <figure>
+    <a href="img/s-board.png"><img src="img/s-board.png" width="1237" height="820" alt="注文帳。受付・調理中・お渡し待ちの3列に、注文のカードが並んでいる" loading="lazy"></a>
+    <figcaption>注文帳（左から 受付 → 調理中 → お渡し待ち）</figcaption>
+  </figure>
+  <p>注文は1件ずつカードになっていて、左の列から右の列へ進めます。</p>
+  <ul>
+    <li><strong>カードの見方</strong>: 整理番号（例: A-01）、Web かレジか、注文した時刻と何分たったか、お名前、品と選択肢・数、ご希望、<span class="ui">未払い ¥…</span> か <span class="ui">支払済</span>。</li>
+    <li><strong>進め方</strong>: カードの下のボタンを押します。<span class="ui">調理をはじめる</span> → <span class="ui">できあがり</span> → <span class="ui">お渡し済み</span>。</li>
+    <li><span class="ui">できあがり</span> を押すと、大画面に番号が出て、お客さんのスマホにも知らせが届きます。</li>
+    <li>品ごとのご希望（例: ネギ抜き）は品の下に、全体へのご希望はカードの中ほどに出ます。必ず見てから作ってください。</li>
+  </ul>
+  <div class="note"><span class="note-title">ほかの端末と一緒に使えます</span><p>注文帳は何台で開いても同じ内容になります（例: 調理場とお渡し口で1台ずつ）。だれかが進めると、ほかの端末にもすぐ反映されます。</p></div>
+</section>
+
+<section id="s6-3">
+  <h2>お渡しとお代金</h2>
+  <p>Web 注文のお代金は、<strong>受け取りのときに</strong>いただきます。</p>
+  <ol class="steps">
+    <li>お客さんのスマホの整理番号を見せてもらい、カードの番号と同じか確かめます。</li>
+    <li>品を渡して、カードの金額のお代金を受け取ります。</li>
+    <li><span class="ui">お渡し済み</span> を押します。未払いの注文では確認が出るので、金額を確かめて <span class="ui">受け取って、お渡し済みにする</span> を押します。</li>
+  </ol>
+  <figure>
+    <a href="img/s-pay-confirm.png"><img src="img/s-pay-confirm.png" width="1180" height="820" alt="お代金の確認。まだお代金を受け取っていない注文です、金額を受け取りましたか" loading="lazy"></a>
+    <figcaption>未払いの注文で「お渡し済み」を押したとき</figcaption>
+  </figure>
+</section>
+
+<section id="s6-6">
+  <h2>取りに来ないお客さん（取り置き期限と未受取）</h2>
+  <p>お渡し待ちのカードには、受け取りの期限までの残り時間（<span class="ui">期限まで ○:○○</span>）が出ます。期限は店長が決めた取り置き時間で決まります。</p>
+  <figure class="small">
+    <a href="img/s-overdue.png"><img src="img/s-overdue.png" width="343" height="266" alt="期限切れのカード。色が変わり、期限切れ（何分超過）と出ている" loading="lazy"></a>
+    <figcaption>期限を過ぎたカード（色が変わり、列の上に並びます）</figcaption>
+  </figure>
+  <ul>
+    <li>期限を過ぎると <span class="ui">期限切れ（○分超過）</span> と出て、列のいちばん上に来ます。時間で勝手に消えることはありません。</li>
+    <li>来ないと判断したら <span class="ui">未受取にする</span> を押します。確認が出るので、もう一度 <span class="ui">未受取にする</span>。取り置きをやめて、品は店頭で売ってかまいません。</li>
+    <li>期限の前でも押せますが、確認に「まだ期限前です」と出ます。</li>
+    <li>お客さんの画面には「受け取り期限を過ぎたため、ご注文の取り置きを終了しました。店頭でお声がけください」と出ます。あとで来た人には、店頭で相談してください。</li>
+  </ul>
+  <figure>
+    <a href="img/s-unclaim-confirm.png"><img src="img/s-unclaim-confirm.png" width="1180" height="820" alt="未受取にする確認。取り置きをやめて店頭販売に回します" loading="lazy"></a>
+    <figcaption>未受取にするときの確認</figcaption>
+  </figure>
+</section>
+
+<section id="s6-7">
+  <h2>注文の取り消し</h2>
+  <ul>
+    <li>カードの <span class="ui">取り消し</span> を押し、理由（任意。例: 来られなかった）を入れて <span class="ui">取り消す</span>。</li>
+    <li>支払い済みの注文（レジの注文など）を取り消したときは、<strong>返金を忘れずに</strong>。</li>
+    <li>お客さんは、調理が始まる前ならスマホから自分で取り消せます。取り消された注文は注文帳から消えます。</li>
+  </ul>
+  <div class="warn"><span class="note-title">取り消し・未受取は、注文帳では元に戻せません</span><p>間違えたときは、すぐ店長に連絡してください（店長が管理画面で直せます）。</p></div>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="staff-open.html"><small>前へ</small>開店前と閉店するとき</a><a class="pager-next" href="staff-register.html"><small>次へ</small>レジと売り切れ</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

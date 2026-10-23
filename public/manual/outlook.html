@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>損益と見込み・目標利益｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">店長</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>損益と見込み・目標利益</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">管理画面の <span class="ui">商品</span> の画面のいちばん上に、今の開催の<strong>本番の合計</strong>の損益が2行で出ます。1分ごとに新しくなり、押すと収支の画面が開きます。</p>
+
+<figure class="phone">
+    <a href="img/m-outlook-bar.png"><img src="img/m-outlook-bar.png" width="716" height="156" alt="商品の画面の上の2行。損益 ＋64,328円、目標まであと約90点、イベント終了時の見込み ＋133,678円" loading="lazy"></a>
+    <figcaption>商品の画面の上の2行</figcaption>
+  </figure>
+
+<section id="line1">
+  <h2>1行目: 損益と「あと何点」</h2>
+  <ul>
+    <li><strong>損益</strong>: 収支報告の差引（本番の合計の 収入 − 支出）と同じです。</li>
+    <li><strong>黒字まであと約N点</strong>: 赤字のとき、あと何点売れば黒字になるかの目安です。目標利益を決めているときは「<strong>目標まであと約N点</strong>」になります。</li>
+    <li>点数は、足りない金額 ÷ 1点あたりの平均単価（本番の売上 ÷ 売れた数）で、切り上げています。ハーフやトッピングも、売れた実績のまま平均に入ります。</li>
+    <li>届いているときは「黒字です」「目標に届きました」と出ます。</li>
+  </ul>
+</section>
+
+<section id="line2">
+  <h2>2行目: イベント終了時の見込み</h2>
+  <ul>
+    <li>このまま売れたら、最後の日の閉店のときに損益がいくらになるかの見込みです。</li>
+    <li>今日の残りは、直近1時間の売上のペースで、これからの日は、前の日の時間帯ごとの売上で見積もります。</li>
+    <li>終わったあとは「イベント終了時 ＋¥…（確定）」と出ます。</li>
+    <li>「営業時間が未設定です」と出るときは、見込みを計算できません。運営に連絡してください。「売上が出てから計算します」は、まだ売上がないときです。</li>
+  </ul>
+  <div class="warn"><span class="note-title">見込みは、今後の支出がない前提です</span><p>これから材料を買い足すと、そのぶん損益は見込みより下がります。あくまで目安にしてください。</p></div>
+</section>
+
+<section id="target">
+  <h2>目標利益を決める</h2>
+  <p>「目標まであと何点」の目標は、収支の画面の「目標と見込み（商品画面の上の表示）」で決めます。</p>
+  <ol class="steps">
+    <li>メニューの <span class="ui">収支</span> を開き、「目標と見込み」の欄まで下がります。</li>
+    <li><strong>目標利益（円）</strong>に、本番の合計で出したい利益を入れて <span class="ui">保存</span> を押します。<strong>0 円なら「黒字」が目標</strong>です。</li>
+  </ol>
+  <figure class="phone">
+    <a href="img/m-ledger-goal.png"><img src="img/m-ledger-goal.png" width="716" height="1392" alt="目標と見込みの欄。目標利益、平均単価、目標まであと何点、イベント終了時の見込み、目標利益の入力欄と保存ボタン" loading="lazy"></a>
+    <figcaption>目標と見込み（収支の画面）</figcaption>
+  </figure>
+  <p>この欄には、目標利益・平均単価（1点あたり）・目標まであと何点と、見込みの計算のしかたも出ます。</p>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="ledger.html"><small>前へ</small>収支の画面</a><a class="pager-next" href="receipts.html"><small>次へ</small>レシートの登録と確定</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

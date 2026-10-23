@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>困ったとき｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">みんな</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>困ったとき</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">画面に出ることと、どうするかです。押すと開きます。「〜できますか？」という質問は <a href="faq.html">よくある質問</a> にまとめています。</p>
+
+<section id="staff">
+  <h2>スタッフ（注文帳・レジ）</h2>
+  <details>
+    <summary>「○ 再接続中」が消えない</summary>
+    <div><p>Wi-Fi や電波を確かめてください。つながれば自動で戻り、受け付けた注文が消えることはありません。長く続くときは、画面を読み込み直します。</p></div>
+  </details>
+  <details>
+    <summary>急にログイン画面に戻った</summary>
+    <div><p>PIN が変わったか、ログインの期限が切れました。店長に PIN を確かめて、入れ直してください。</p></div>
+  </details>
+  <details>
+    <summary>注文が入っても音が鳴らない</summary>
+    <div><p>右上が <span class="ui">音：入</span> になっているか、画面を一度タップしたか、端末の音量・マナーモードを確かめてください。画面を読み込み直したときは、もう一度タップが必要です。</p></div>
+  </details>
+  <details>
+    <summary>「ほかの端末で操作されました」と出た</summary>
+    <div><p>ほかの端末で、同じ注文が先に進められました。画面は最新の状態に直るので、カードの位置を確かめてください。</p></div>
+  </details>
+  <details>
+    <summary>間違えて進めた・取り消した・未受取にした</summary>
+    <div><p>注文帳では元に戻せません。すぐ店長に連絡してください（店長が管理画面で直せます）。</p></div>
+  </details>
+  <details>
+    <summary>「受付を中止しています」と出た</summary>
+    <div><p>学園祭全体の受付が一時的に止まっています。再開するまで新しい注文は入らず、レジでも会計できません。受け付けた注文はふだんどおり進めてください。店長に知らせてください。</p></div>
+  </details>
+  <details>
+    <summary>お客さんが「注文できない」と言っている</summary>
+    <div>
+      <ul>
+        <li>売り切れになっていないか</li>
+        <li>1回に頼める数（合計の個数）を超えていないか</li>
+        <li>少し時間をおいてやり直してもらう</li>
+      </ul>
+      <p>解決しなければ、店長に連絡してください。急ぐときはレジで受け付けてもかまいません。</p>
+    </div>
+  </details>
+  <details>
+    <summary>大画面が暗くなる・番号が出ない</summary>
+    <div><p>全画面表示になっているか、機器のスリープが切ってあるかを確かめ、画面を読み込み直してください。右上が「接続中」になっていれば番号は届きます。</p></div>
+  </details>
+  <details>
+    <summary>レシートを送ったらエラーが出た</summary>
+    <div><p>出た文字ごとの対処を、<a href="receipts.html#errors">レシートの送り方の「エラーが出たとき」</a> にまとめています。</p></div>
+  </details>
+</section>
+
+<section id="manager">
+  <h2>店長（管理画面）</h2>
+  <details>
+    <summary>ログインできない・パスワードを忘れた</summary>
+    <div><p>運営に連絡してください。何度も間違えると、しばらくログインできなくなります。</p></div>
+  </details>
+  <details>
+    <summary>店舗の種類・整理番号の頭文字・URL を変えたい</summary>
+    <div><p>店長の画面では変えられません。運営に連絡してください。</p></div>
+  </details>
+  <details>
+    <summary>スタッフが間違えて進めた・取り消した・未受取にした</summary>
+    <div><p>管理画面の <span class="ui">注文</span> で、その注文の状態を直してください（→ <a href="manager-day.html#m3-2">注文を検索・修正する</a>）。</p></div>
+  </details>
+  <details>
+    <summary>お客さんから「注文できない」と言われた</summary>
+    <div>
+      <p>まず次を確かめます。</p>
+      <ul>
+        <li>売り切れになっていないか（必須の選択肢がぜんぶ売り切れだと、その商品は頼めません）</li>
+        <li>1回の数量の上限を超えていないか（→ <a href="manager-prepare.html#m1-3">店舗設定</a>）</li>
+        <li>画面に「受付を中止しています」と出ていないか（学園祭全体の一時中止。運営が再開するまで待ちます）</li>
+      </ul>
+      <p>どれでもなければ、少し時間をおいてやり直してもらい、それでもだめなら運営に連絡してください。</p>
+    </div>
+  </details>
+  <details>
+    <summary>「この開催回は、収支の受け付けを締め切りました。」と出た</summary>
+    <div><p>その開催回の収支・レシートは、見ることはできますが、入れたり直したりできません。直したいときは運営に連絡してください。</p></div>
+  </details>
+  <details>
+    <summary>レシートの「確定して収支に登録」が押せない</summary>
+    <div>
+      <p>次のどれかです。画面の下に理由が出ています。</p>
+      <ul>
+        <li>科目が「未選択」の行がある（→ <a href="receipts.html#unselected">科目が未選択のとき</a>）</li>
+        <li>内訳の合計が合計と合わない（→ <a href="receipts.html#mismatch">合計が合わないとき</a>）</li>
+        <li>店名・購入日・合計のどれかが空</li>
+      </ul>
+    </div>
+  </details>
+  <details>
+    <summary>現金照合で「足りない」「多い」と出た</summary>
+    <div><p>数え間違い、お釣りの渡し間違い、取り消した注文の返金、レジで会計せずに渡した品がないかを確かめてください。数え直したら、もう一度 <span class="ui">記録する</span> を押せば上書きされます。</p></div>
+  </details>
+  <details>
+    <summary>商品の画面の上に「営業時間が未設定です」と出た</summary>
+    <div><p>イベント終了時の見込みを計算できない状態です。運営に連絡してください。損益と「あと何点」は、そのままで正しく出ています。</p></div>
+  </details>
+  <details>
+    <summary>Excel・ZIP に、あるはずのレシートが入っていない</summary>
+    <div><p>確定していないレシートと、練習の開催回のレシートは入りません。照合チェックで確定していないものがないか、開催回が本番になっているかを確かめてください（→ <a href="receipt-search.html#checks">照合チェック</a>）。</p></div>
+  </details>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="staff-register.html"><small>前へ</small>レジと売り切れ</a><a class="pager-next" href="faq.html"><small>次へ</small>よくある質問</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>

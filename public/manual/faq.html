@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>よくある質問｜店舗向け 操作マニュアル</title>
+<meta name="description" content="学園祭 注文システムの、店長と店舗スタッフ向けの操作マニュアル。">
+<meta name="robots" content="noindex">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="manual.css">
+</head>
+<body>
+<div class="page">
+
+<header class="masthead">
+  <p class="crumbs"><a href="index.html">マニュアルのトップ</a> <span aria-hidden="true">›</span> <span class="who">みんな</span></p>
+  <div class="masthead-row">
+    <span class="seal" aria-hidden="true">祭</span>
+    <h1>よくある質問</h1>
+  </div>
+</header>
+
+<main>
+<p class="lead">よく聞かれることです。押すと開きます。画面に出たエラーの対処は <a href="trouble.html">困ったとき</a> を見てください。</p>
+
+<section id="money">
+  <h2>収支・レシート</h2>
+  <details id="q-practice" open>
+    <summary>練習で登録した支出は、学校に出す書類に入りますか？</summary>
+    <div>
+      <p><strong>入りません。</strong>練習の開催回に入れた支出・収入とレシートは、収支報告（本番の合計）にも、Excel・ZIP にも入りません。</p>
+      <p>練習のときに買ったものでも、本番で使う材料なら、本番の開催回を選んで登録してください。練習の開催回を選んで登録してしまったときは、手で入れた支出は収支の明細で消して本番の開催回で入れ直し、レシートはレシートの画面で削除して、本番の開催回を選んで送り直します（→ <a href="receipts.html#fix">確定したレシートを直す・消す</a>）。</p>
+    </div>
+  </details>
+  <details id="q-day" open>
+    <summary>1日目に買った食材は、どの開催回で登録すればいいですか？</summary>
+    <div>
+      <p><strong>本番のどの日の開催回でもかまいません。</strong>収支報告は本番の開催回をすべて合わせて計算するので、1日目・2日目のどちらで登録しても、合計は同じです。迷ったら、レシートを送る画面で最初に選ばれている日のままで大丈夫です。</p>
+      <p>日付は、開催回とは別に「購入日」として残ります（学校に出す支出明細には購入日が出ます）。</p>
+    </div>
+  </details>
+  <details id="q-fix" open>
+    <summary>間違えて確定したレシートは直せますか？</summary>
+    <div>
+      <p><strong>直せます。</strong>レシートの画面でそのレシートを開いて直します（→ <a href="receipts.html#fix">確定したレシートを直す・消す</a>）。収支の支出も一緒に変わります。</p>
+      <ul>
+        <li><strong>金額・科目・店名などが違う</strong>: <span class="ui">内容を直す</span> を押して直し、<span class="ui">直した内容で保存</span>。</li>
+        <li><strong>登録すべきでなかった</strong>（二重に登録したなど）: <span class="ui">削除</span>。収支の支出も一緒に消えます（税率ごとに分けた分もすべて）。</li>
+      </ul>
+      <p>受け付けを締め切った開催回は直せないので、運営に連絡してください。</p>
+    </div>
+  </details>
+  <details id="q-slow" open>
+    <summary>レシートの読み取りに時間がかかるときは？</summary>
+    <div>
+      <p><span class="ui">あとで確認する</span> を押してください。待たずに次のレシートを送れます。読み取りはそのまま続き、終わると「最近のレシート」（店長はレシートの一覧）に結果が出ます。</p>
+      <p>混んでいるときは「読み取りは後で行います」と出ることがあります。これもあとで自動で読み取られるので、撮り直す必要はありません。</p>
+    </div>
+  </details>
+  <details>
+    <summary>レシートの品目が間違っています。直さないといけませんか？</summary>
+    <div><p>直さなくても確定できます。品目は参考です。店長が必ず確かめるのは、合計と、税率ごとの金額・科目だけです（→ <a href="receipts.html#lines">支出の内訳</a>）。</p></div>
+  </details>
+  <details>
+    <summary>レシートがない買い物は、どう登録しますか？</summary>
+    <div><p>収支の画面で手で入れます（→ <a href="ledger.html#entry">補助金・支出を手で入れる</a>）。あとでレシートが見つかったら、レシートを送って確定し、手で入れた分は消してください（二重に数えないため）。</p></div>
+  </details>
+  <details>
+    <summary>なぜ 8% は食材、10% は消耗品になるのですか？</summary>
+    <div><p>食べもの・飲みもの（お酒を除く）の税率が 8%、それ以外が 10% なので、税率で分けています。10% でも備品のときや、8% でも食材でないときは、内訳の科目を直してください。</p></div>
+  </details>
+</section>
+
+<section id="orders">
+  <h2>注文・売上</h2>
+  <details>
+    <summary>売上は、収支に手で入れる必要がありますか？</summary>
+    <div><p>いりません。売上は注文から自動で数えます（支払い済み・取り消しを除く）。注文に入らなかった売上を足すときだけ、収支に「売上（補正）」で入れます。</p></div>
+  </details>
+  <details>
+    <summary>売上の画面と収支の画面で、売上の金額が違います</summary>
+    <div><p>売上の画面の「数える日」が「すべての日（練習も）」になっていると、練習の日の注文も入ります。「本番の日だけ」にすると、収支と同じ数字になります（→ <a href="sales.html#days">数える日</a>）。</p></div>
+  </details>
+</section>
+</main>
+
+<nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="trouble.html"><small>前へ</small>困ったとき</a><a class="pager-next" href="checklist.html"><small>次へ</small>チェックリスト</a></nav>
+<footer class="footer">
+  <p><a href="index.html">マニュアルのトップへ</a>　画面の写真は、見本の店（架空）と見本のデータで撮ったものです。</p>
+</footer>
+
+</div>
+</body>
+</html>
