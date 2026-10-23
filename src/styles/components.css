@@ -761,6 +761,39 @@
   margin-bottom: 8px;
 }
 
+.receipt-result-reading .receipt-result-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.receipt-result-reading .btn {
+  margin-top: 12px;
+}
+
+/* 読み取り中の印（動きを減らす設定では止める） */
+.receipt-result .spinner {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border: 2px solid var(--c-card-line);
+  border-top-color: var(--c-shion);
+  border-radius: 50%;
+  animation: receipt-spin 0.9s linear infinite;
+}
+
+@keyframes receipt-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .receipt-result .spinner {
+    animation: none;
+  }
+}
+
 .receipt-result-fields {
   display: grid;
   grid-template-columns: auto 1fr;
@@ -863,4 +896,11 @@
   gap: 28px;
   max-width: 720px;
   padding-top: 24px;
+}
+
+/* 収支報告の Excel・レシートの ZIP のダウンロード */
+.ledger-export-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
 }

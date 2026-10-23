@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ReceiptUploader } from '../../components/ReceiptUploader'
 import { apiFetch } from '../../lib/api'
 import { yen } from '../../lib/format'
-import { receiptNo, statusLabels, useAuthImage, type Receipt } from '../../lib/receipts'
+import { receiptNo, refetchWhileReading, statusLabels, useAuthImage, type Receipt } from '../../lib/receipts'
 import type { List } from '../../lib/types'
 
 /** スタッフ: レシートの登録（アップロードだけ）と、最近登録したレシート。確定は店長が管理画面で行う。 */
@@ -10,6 +10,8 @@ export function ReceiptTab({ token }: { token: string }) {
   const recent = useQuery({
     queryKey: ['receipts', 'recent'],
     queryFn: () => apiFetch<List<Receipt>>('/api/staff/receipts/recent', { token }).then((r) => r.items),
+    // 読み取りの途中のものがあれば、終わるまで読み直す
+    refetchInterval: (q) => refetchWhileReading(q.state.data),
   })
   return (
     <div className="receipt-tab">

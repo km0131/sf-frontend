@@ -4,8 +4,8 @@ import { API_BASE_URL } from './api'
 
 export type ReceiptStatus = 'uploaded' | 'ocr_done' | 'ocr_failed' | 'llm_done' | 'confirmed'
 
-/** その場の読み取りの結果（アップロードの応答） */
-export type OCRState = 'read' | 'unreadable' | 'pending' | 'disabled'
+/** 読み取りの状態（アップロード・status の応答）。reading は裏で読み取っている（画面を離れても続く） */
+export type OCRState = 'reading' | 'read' | 'unreadable' | 'pending' | 'disabled'
 
 export type OCRResult = {
   total: number | null
@@ -51,17 +51,28 @@ export const statusLabels: Record<ReceiptStatus, string> = {
   confirmed: '確定済み',
 }
 
+/** 一覧の読み直しの間隔: 登録したばかり（2分以内）で読み取り待ちのものがあれば 5 秒ごと、なければ読み直さない */
+export function refetchWhileReading(items: Receipt[] | undefined): number | false {
+  const since = Date.now() - 2 * 60_000
+  return items?.some((r) => r.status === 'uploaded' && Date.parse(r.created_at) > since) ? 5000 : false
+}
+
 /** レシート番号の表示（例: R-0012） */
 export const receiptNo = (id: number) => `R-${String(id).padStart(4, '0')}`
 
 /** アップロードの前の縮小（長辺 2000px、JPEG 品質 85）。EXIF の向きは画像を読むときに直す。
- *  HEIC はブラウザが読める場合（iPhone の Safari など）だけ JPEG にする。読めない形式は Error。 */
+ *  HEIC はブラウザが読める場合（iPhone の Safari など）だけ JPEG にする。読めない形式は、対処のしかたを書いた Error。 */
 export async function shrinkForUpload(file: File, maxEdge = 2000, quality = 0.85): Promise<Blob> {
   let bitmap: ImageBitmap
   try {
     bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' })
   } catch {
-    throw new Error('この画像は読み込めませんでした。カメラで撮り直すか、JPEG の画像を選んでください。')
+    const heic = /hei[cf]/i.test(file.type) || /\.hei[cf]$/i.test(file.name)
+    throw new Error(
+      heic
+        ? 'この形式（HEIC）は読み込めません。カメラの設定を「互換性優先（JPEG）」にするか、スクリーンショットで送ってください。'
+        : 'この画像は読み込めません。カメラで撮り直すか、JPEG・PNG の画像を選んでください。',
+    )
   }
   const scale = Math.min(1, maxEdge / Math.max(bitmap.width, bitmap.height))
   const w = Math.max(1, Math.round(bitmap.width * scale))
