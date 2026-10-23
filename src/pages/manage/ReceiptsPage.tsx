@@ -184,6 +184,19 @@ function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string
   })
   const image = useAuthImage(`/api/manage/receipts/${id}/image`, token)
   const r = detail.data?.receipt
+  // 確定したレシートを直しているところか。saved は直したあとのお知らせ
+  const [editing, setEditing] = useState(false)
+  const [saved, setSaved] = useState<string | null>(null)
+  const refresh = () => {
+    void queryClient.invalidateQueries({ queryKey: ['receipts'] })
+    void queryClient.invalidateQueries({ queryKey: ['manage', 'ledger'] })
+  }
+  // 消したレシートは読み直さない（404 になる）
+  const deleted = () => {
+    onClose()
+    queryClient.removeQueries({ queryKey: ['receipts', 'detail', id] })
+    refresh()
+  }
 
   return (
     <Sheet title={`レシート ${receiptNo(id)}`} onClose={onClose} wide>
@@ -199,22 +212,33 @@ function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string
             {detail.data!.duplicates.length > 0 && (
               <p className="receipt-dup">同じレシートかもしれないものがあります：{detail.data!.duplicates.map(receiptNo).join('、')}</p>
             )}
-            {r.status === 'confirmed' ? (
-              <Confirmed receipt={r} categories={categories.data ?? []} />
+            {r.status === 'confirmed' && !editing ? (
+              <Confirmed
+                receipt={r}
+                categories={categories.data ?? []}
+                saved={saved}
+                onEdit={() => {
+                  setSaved(null)
+                  setEditing(true)
+                }}
+                onDeleted={deleted}
+              />
             ) : (
               <ConfirmForm
-                key={`${r.id}-${r.ocr_attempts}`}
+                key={`${r.id}-${r.ocr_attempts}-${r.status}`}
                 receipt={r}
+                editing={r.status === 'confirmed'}
                 reading={detail.data?.ocr_state === 'reading'}
                 categories={(categories.data ?? []).filter((c) => c.kind === 'expense' && c.is_active)}
                 onDone={() => {
-                  void queryClient.invalidateQueries({ queryKey: ['receipts'] })
-                  void queryClient.invalidateQueries({ queryKey: ['manage', 'ledger'] })
+                  refresh()
+                  if (r.status === 'confirmed') {
+                    setEditing(false)
+                    setSaved('直した内容で保存し、収支の支出を作り直しました。')
+                  }
                 }}
-                onDeleted={() => {
-                  void queryClient.invalidateQueries({ queryKey: ['receipts'] })
-                  onClose()
-                }}
+                onCancel={() => setEditing(false)}
+                onDeleted={deleted}
               />
             )}
             {r.ocr && r.ocr.lines.length > 0 && (
@@ -230,8 +254,33 @@ function ReceiptDetail({ id, keywords, onClose }: { id: number; keywords: string
   )
 }
 
-function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: LedgerCategory[] }) {
+function Confirmed({
+  receipt: r,
+  categories,
+  saved,
+  onEdit,
+  onDeleted,
+}: {
+  receipt: Receipt
+  categories: LedgerCategory[]
+  saved: string | null
+  onEdit: () => void
+  onDeleted: () => void
+}) {
+  const { token } = useManage()
   const label = (code: string) => categoryLabel(categories, 'expense', code)
+  const [error, setError] = useState<string | null>(null)
+  const [busy, setBusy] = useState(false)
+  const entries = Math.max(r.breakdown.length, 1)
+  const remove = () => {
+    if (!window.confirm(`${receiptNo(r.id)} を削除しますか？\n収支に登録した支出（${entries}件・${r.total != null ? yen(r.total) : ''}）も一緒に消えます。`)) return
+    setBusy(true)
+    setError(null)
+    apiFetch(`/api/manage/receipts/${r.id}`, { method: 'DELETE', token })
+      .then(onDeleted)
+      .catch((e) => setError(errorMessage(e)))
+      .finally(() => setBusy(false))
+  }
   return (
     <div className="stack" style={{ gap: 8 }}>
       <p>
@@ -244,6 +293,12 @@ function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: L
         <dd className="mono">{r.purchase_date}</dd>
         <dt>合計</dt>
         <dd className="mono">{r.total != null ? yen(r.total) : '—'}</dd>
+        {r.memo && (
+          <>
+            <dt>摘要</dt>
+            <dd>{r.memo}</dd>
+          </>
+        )}
         <dt>科目</dt>
         <dd>
           {r.breakdown.length > 1
@@ -261,7 +316,16 @@ function Confirmed({ receipt: r, categories }: { receipt: Receipt; categories: L
           ))}
         </ul>
       )}
-      <p className="field-hint">収支の支出に登録しました。直すときは「収支」の明細から直してください。</p>
+      <p className="field-hint">収支の支出に登録しました。間違いに気づいたら、ここで直すか削除してください（収支の支出も一緒に変わります）。</p>
+      <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
+        <button type="button" className="btn" disabled={busy} onClick={onEdit}>
+          内容を直す
+        </button>
+        <button type="button" className="btn btn-text" disabled={busy} onClick={remove}>
+          削除
+        </button>
+      </div>
+      <Notice error={error} ok={saved} />
     </div>
   )
 }
@@ -293,23 +357,49 @@ function initialDraft(r: Receipt, categories: LedgerCategory[]): Draft {
   }
 }
 
+/** 確定した内容を、画面の入力の形にする（直すとき）。いま使えない科目は未選択にする */
+function confirmedDraft(r: Receipt, categories: LedgerCategory[]): Draft {
+  const known = (code: string | null | undefined) => (code && categories.some((c) => c.code === code) ? code : '')
+  const total = r.total != null ? String(r.total) : ''
+  const lines = r.breakdown.length > 0 ? r.breakdown : [{ tax_rate: null, category: r.category ?? '', amount: r.total ?? 0 }]
+  return {
+    store_name: r.store_name ?? '',
+    purchase_date: r.purchase_date ?? '',
+    total,
+    memo: r.memo ?? '',
+    lines: lines.map((l) => ({ tax_rate: l.tax_rate, category: known(l.category), amount: String(l.amount), basis: '', suggested: null })),
+    items: r.items.map((it) => ({
+      name: it.name,
+      quantity: it.quantity != null ? String(it.quantity) : '',
+      amount: String(it.amount),
+      tax_rate: it.tax_rate ?? null,
+      category: it.category ?? null,
+    })),
+  }
+}
+
 function ConfirmForm({
   receipt: r,
+  editing,
   reading,
   categories,
   onDone,
+  onCancel,
   onDeleted,
 }: {
   receipt: Receipt
+  /** 確定したレシートを直している（確定した内容から始め、保存すると収支の支出を作り直す） */
+  editing: boolean
   /** 裏で読み取っている（終わると読み取った内容で作り直す） */
   reading: boolean
   categories: LedgerCategory[]
   onDone: () => void
+  onCancel: () => void
   onDeleted: () => void
 }) {
   const { token } = useManage()
   // 読み取った内容と、税率ごとの支出の下書きを入れておく（必ず人が確かめて直してから確定する）
-  const [draft, setDraft] = useState<Draft>(() => initialDraft(r, categories))
+  const [draft, setDraft] = useState<Draft>(() => (editing ? confirmedDraft(r, categories) : initialDraft(r, categories)))
   const [error, setError] = useState<string | null>(null)
   const [ok, setOk] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -371,13 +461,12 @@ function ConfirmForm({
         }
       })
     const lines = draft.lines.map((l) => ({ tax_rate: l.tax_rate, category: l.category, amount: Number(l.amount) }))
+    const body = { store_name: draft.store_name.trim(), purchase_date: draft.purchase_date, total, lines, memo: draft.memo.trim(), items }
     void run(
       () =>
-        apiFetch(`/api/manage/receipts/${r.id}/confirm`, {
-          method: 'POST',
-          token,
-          body: { store_name: draft.store_name.trim(), purchase_date: draft.purchase_date, total, lines, memo: draft.memo.trim(), items },
-        }),
+        editing
+          ? apiFetch(`/api/manage/receipts/${r.id}`, { method: 'PUT', token, body })
+          : apiFetch(`/api/manage/receipts/${r.id}/confirm`, { method: 'POST', token, body }),
       '確定し、収支の支出に登録しました。',
     )
   }
@@ -385,6 +474,7 @@ function ConfirmForm({
   return (
     <form className="stack" style={{ gap: 12 }} onSubmit={confirm}>
       <p className={r.status === 'ocr_failed' ? 'receipt-dup' : 'field-hint'}>
+        {editing && '確定した内容を直しています。保存すると、このレシートの収支の支出を、この内訳で作り直します（収支の明細で直した分も、この内容に置き換わります）。'}
         {r.status === 'ocr_failed' && '合計を読み取れませんでした。写真を見ながら入力するか、撮り直してください。'}
         {r.status === 'uploaded' && reading && '読み取り中です（15秒ほどかかります）。終わると、ここに読み取った内容が入ります。'}
         {r.status === 'uploaded' && !reading && (r.ocr_error ? '読み取りは後で行います（まだ読み取れていません）。手で入力して確定もできます。' : '読み取りをしていません。写真を見ながら入力してください。')}
@@ -411,8 +501,12 @@ function ConfirmForm({
 
       <fieldset className="receipt-lines">
         <legend className="field-label">支出の内訳（税率ごと）</legend>
-        <p className="field-hint">8% の分は食材、10% の分は消耗品にしてあります。写真と見比べて、科目と金額を確かめてください（行ごとに収支の支出になります）。</p>
-        {r.draft?.mismatch && <p className="receipt-dup">読み取った税率ごとの金額の和が、合計と合いません。写真と見比べて直してください。</p>}
+        <p className="field-hint">
+          {editing
+            ? '写真と見比べて、科目と金額を直してください（行ごとに収支の支出になります）。'
+            : '8% の分は食材、10% の分は消耗品にしてあります。写真と見比べて、科目と金額を確かめてください（行ごとに収支の支出になります）。'}
+        </p>
+        {!editing && r.draft?.mismatch && <p className="receipt-dup">読み取った税率ごとの金額の和が、合計と合いません。写真と見比べて直してください。</p>}
         {draft.lines.map((l, i) => (
           <div key={i} className="receipt-line">
             <select className="select" value={l.tax_rate ?? ''} aria-label={`内訳${i + 1}の税率`} onChange={(e) => setLine(i, { tax_rate: e.target.value ? Number(e.target.value) : null })}>
@@ -519,26 +613,35 @@ function ConfirmForm({
 
       <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
         <button type="submit" className="btn btn-primary" disabled={!valid || busy}>
-          確定して収支に登録
+          {editing ? '直した内容で保存' : '確定して収支に登録'}
         </button>
-        <button type="button" className="btn btn-text" disabled={busy} onClick={() => void run(() => apiFetch(`/api/manage/receipts/${r.id}/ocr`, { method: 'POST', token }), '読み取り直しました。')}>
-          読み取り直す
-        </button>
-        <button
-          type="button"
-          className="btn btn-text"
-          disabled={busy}
-          onClick={() => {
-            if (!window.confirm(`${receiptNo(r.id)} を削除しますか？（撮り直すときなど）`)) return
-            setBusy(true)
-            apiFetch(`/api/manage/receipts/${r.id}`, { method: 'DELETE', token })
-              .then(onDeleted)
-              .catch((e) => setError(errorMessage(e)))
-              .finally(() => setBusy(false))
-          }}
-        >
-          削除
-        </button>
+        {editing && (
+          <button type="button" className="btn btn-text" disabled={busy} onClick={onCancel}>
+            やめる
+          </button>
+        )}
+        {!editing && (
+          <>
+            <button type="button" className="btn btn-text" disabled={busy} onClick={() => void run(() => apiFetch(`/api/manage/receipts/${r.id}/ocr`, { method: 'POST', token }), '読み取り直しました。')}>
+              読み取り直す
+            </button>
+            <button
+              type="button"
+              className="btn btn-text"
+              disabled={busy}
+              onClick={() => {
+                if (!window.confirm(`${receiptNo(r.id)} を削除しますか？（撮り直すときなど）`)) return
+                setBusy(true)
+                apiFetch(`/api/manage/receipts/${r.id}`, { method: 'DELETE', token })
+                  .then(onDeleted)
+                  .catch((e) => setError(errorMessage(e)))
+                  .finally(() => setBusy(false))
+              }}
+            >
+              削除
+            </button>
+          </>
+        )}
       </div>
       <Notice error={error ?? problem} ok={ok} />
     </form>

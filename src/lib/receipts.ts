@@ -52,6 +52,8 @@ export type Receipt = {
   purchase_date: string | null
   total: number | null
   category: string | null
+  /** 確定したときの摘要（確定前は空） */
+  memo: string
   items: ReceiptItem[]
   /** 確定した内訳（税率・科目ごと）。category はいちばん大きい行の科目 */
   breakdown: BreakdownLine[]
