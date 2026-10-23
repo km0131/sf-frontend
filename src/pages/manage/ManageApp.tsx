@@ -12,6 +12,7 @@ const managerNav = [
   { to: 'products', label: '商品' },
   { to: 'orders', label: '注文' },
   { to: 'sales', label: '売上' },
+  { to: 'ledger', label: '収支' },
   { to: 'settings', label: '店舗設定' },
   { to: 'account', label: 'アカウント' },
 ]
@@ -21,6 +22,7 @@ const adminNav = [
   { to: 'events', label: '開催回' },
   { to: 'users', label: '店長・管理者' },
   { to: 'all-sales', label: '全店の売上' },
+  { to: 'all-ledger', label: '全店の収支' },
   { to: 'account', label: 'アカウント' },
 ]
 
