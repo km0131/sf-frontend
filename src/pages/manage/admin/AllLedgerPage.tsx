@@ -7,6 +7,7 @@ import { entryKindLabels, sessionLabel, type EntryKind, type EventSession, type 
 import type { List } from '../../../lib/types'
 import { Notice, PageHead, Panel } from '../common'
 import { useManage } from '../context'
+import { useCurrentEvent } from './currentEvent'
 
 type ShopTotal = { shop_id: number; shop_name: string; sales: number; income: number; expense: number; balance: number; cash_difference?: number | null }
 type Event = { id: number; name: string; is_current: boolean }
@@ -29,7 +30,9 @@ export function AllLedgerPage() {
   const [pickedSession, setPickedSession] = useState<number | null>(null)
   // 選んでいなければ、今の回・今日に最も近い開催回
   const [today] = useState(() => new Date().toISOString().slice(0, 10))
-  const eventId = pickedEvent ?? (events.data?.find((e) => e.is_current) ?? events.data?.[0])?.id ?? null
+  // 今回の開催（店長の収支の画面の既定と同じ基準）
+  const current = useCurrentEvent()
+  const eventId = pickedEvent ?? current.id
   const nearest = [...(sessions.data ?? [])].sort(
     (a, b) => Math.abs(Date.parse(a.date) - Date.parse(today)) - Math.abs(Date.parse(b.date) - Date.parse(today)),
   )[0]

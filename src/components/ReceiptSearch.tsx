@@ -7,11 +7,16 @@ import { receiptNo, statusLabels, useAuthImage, type Receipt } from '../lib/rece
 /** レシートの検索の条件。よく使う条件だけ出し、ほかは「詳しい条件」にしまう。「探す」で決める */
 export function ReceiptSearchForm({
   sessions,
+  events,
+  currentEventId,
   categories,
   shops,
   onSearch,
 }: {
   sessions: EventSession[]
+  /** 開催（event）の選択肢。既定は「今回の開催」（currentEventId） */
+  events: { id: number; name: string }[]
+  currentEventId: number | null | undefined
   categories: LedgerCategory[]
   /** システム管理者だけ（店舗で絞る） */
   shops?: { id: number; name: string }[]
@@ -24,9 +29,33 @@ export function ReceiptSearchForm({
     e.preventDefault()
     onSearch(q)
   }
+  const currentName = events.find((ev) => ev.id === currentEventId)?.name
+  // 開催回は、選んだ開催のものだけ出す
+  const eventOf = q.event_id === 'current' ? currentEventId : q.event_id === 'all' ? null : Number(q.event_id)
+  const shownSessions = eventOf ? sessions.filter((s) => s.event_id === eventOf) : sessions
+  const pickEvent = (e: { target: { value: string } }) => {
+    // 開催を変えたら、すぐ探す（開催回の選択は外す）
+    const next = { ...q, event_id: e.target.value, session_id: '' }
+    setQ(next)
+    onSearch(next)
+  }
   return (
     <form className="stack" style={{ gap: 12 }} onSubmit={submit}>
       <div className="form-grid">
+        <label className="field">
+          <span className="field-label">開催</span>
+          <select className="select" value={q.event_id} onChange={pickEvent}>
+            <option value="current">今回の開催{currentName ? `（${currentName}）` : ''}</option>
+            <option value="all">すべての開催</option>
+            {events
+              .filter((ev) => ev.id !== currentEventId)
+              .map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.name}
+                </option>
+              ))}
+          </select>
+        </label>
         <label className="field">
           <span className="field-label">キーワード（店名・品目・読み取った文字）</span>
           <input className="input" type="search" value={q.q} maxLength={100} placeholder="例: キャベツ 業務" onChange={set('q')} />
@@ -59,7 +88,7 @@ export function ReceiptSearchForm({
             <span className="field-label">開催回</span>
             <select className="select" value={q.session_id} onChange={set('session_id')}>
               <option value="">すべて</option>
-              {sessions.map((s) => (
+              {shownSessions.map((s) => (
                 <option key={s.id} value={s.id}>
                   {sessionLabel(s)}
                 </option>
@@ -120,7 +149,7 @@ export function ReceiptSearchForm({
               <span className="field-label">開催回</span>
               <select className="select" value={q.session_id} onChange={set('session_id')}>
                 <option value="">すべて</option>
-                {sessions.map((s) => (
+                {shownSessions.map((s) => (
                   <option key={s.id} value={s.id}>
                     {s.event_name}：{sessionLabel(s)}
                   </option>
