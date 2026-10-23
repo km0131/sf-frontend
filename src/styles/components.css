@@ -734,3 +734,133 @@
   color: var(--c-shion-deep);
   overflow-wrap: anywhere;
 }
+
+/* ===== レシート（スタッフ・店長で共通） ===== */
+.receipt-session {
+  font-size: 14px;
+}
+
+.receipt-session strong {
+  color: var(--c-shion-deep);
+  font-size: 16px;
+}
+
+.receipt-result {
+  padding: 14px 16px;
+  border: 1px solid var(--c-card-line);
+  border-left: 3px solid var(--c-shion);
+  background: var(--c-card);
+}
+
+.receipt-result-unreadable {
+  border-left-color: var(--c-store);
+}
+
+.receipt-result-title {
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.receipt-result-fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 16px;
+  font-size: 14px;
+}
+
+.receipt-result-fields dt {
+  color: var(--c-ink-sub);
+}
+
+.receipt-dup {
+  padding: 8px 12px;
+  border-left: 3px solid var(--c-store);
+  background: rgba(184, 134, 59, 0.1);
+  font-size: 13px;
+}
+
+.receipt-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+  gap: 12px;
+}
+
+.receipt-card {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  gap: 12px;
+  align-items: start;
+  padding: 10px;
+  background: var(--c-card);
+  border: 1px solid var(--c-card-line);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.receipt-card-button {
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.receipt-card-button:hover {
+  border-color: var(--c-shion);
+}
+
+.receipt-card img,
+.receipt-thumb-empty {
+  display: block;
+  width: 72px;
+  height: 96px;
+  object-fit: cover;
+  background: var(--c-photo);
+}
+
+.receipt-card-session {
+  color: var(--c-shion-deep);
+}
+
+.receipt-detail {
+  display: grid;
+  gap: 20px;
+}
+
+@media (min-width: 900px) {
+  .receipt-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.receipt-image img {
+  display: block;
+  width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  background: var(--c-photo);
+}
+
+.receipt-ocr-text {
+  margin-top: 8px;
+  padding: 10px;
+  max-height: 260px;
+  overflow: auto;
+  background: var(--c-photo);
+  font-family: var(--f-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.receipt-items {
+  padding-left: 1.2em;
+  font-size: 14px;
+}
+
+.receipt-tab {
+  display: grid;
+  gap: 28px;
+  max-width: 720px;
+  padding-top: 24px;
+}

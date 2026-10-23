@@ -86,6 +86,7 @@ const messages: Record<string, string> = {
   shop_has_orders: '注文がある出店は取り消せません。',
   active_orders_exist: '進行中（受付・調理中）の注文があるため、店舗の種類を変えられません。取り消すか完了にしてから変えてください。',
   session_closed: 'この開催回は、収支の受け付けを締め切りました。',
+  receipt_confirmed: 'このレシートは確定済みです。直すときは「収支」の明細から直してください。',
   invalid_category: 'その科目は使えません（無効になったか、負の金額を入れられない科目です）。',
   category_in_use: 'この科目は収支で使われているので削除できません。「無効」にしてください。',
   session_exists: 'その日の開催回は、もうあります（1つの回の1日に1つ）。',
