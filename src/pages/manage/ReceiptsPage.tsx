@@ -24,7 +24,7 @@ export function ReceiptsPage() {
   const { token } = useManage()
   const sessions = useQuery({
     queryKey: ['manage', 'ledger', 'sessions'],
-    queryFn: () => apiFetch<{ items: EventSession[]; default_session_id: number | null }>('/api/manage/ledger/sessions', { token }),
+    queryFn: () => apiFetch<{ items: EventSession[]; default_session_id: number | null; default_event_id: number | null }>('/api/manage/ledger/sessions', { token }),
   })
   const categories = useQuery({
     queryKey: ['manage', 'ledger', 'categories'],
@@ -32,18 +32,22 @@ export function ReceiptsPage() {
   })
   const [query, setQuery] = useState<ReceiptQuery>(emptyQuery)
   const [selected, setSelected] = useState<number | null>(null)
-  const params = toParams(query)
+  // 今回の開催（収支の画面の既定と同じ: 今日に最も近い受付中の開催回の回）
+  const currentEventId = sessions.data?.default_event_id
+  const params = toParams(query, currentEventId)
   const list = useQuery({
     queryKey: ['receipts', 'list', params.toString()],
     queryFn: () => apiFetch<List<Receipt>>(`/api/manage/receipts?${params}`, { token }).then((r) => r.items),
+    enabled: sessions.isSuccess, // 今回の開催がわかってから探す
     placeholderData: keepPreviousData,
     // 読み取りの途中のものがあれば、終わるまで読み直す
     refetchInterval: (q) => refetchWhileReading(q.state.data),
   })
   const keywords = keywordsOf(query.q)
-  // 照合チェックは、ふだん使う開催回（今日に近いもの）の回
+  // 照合チェックも今回の開催
   const items = sessions.data?.items ?? []
-  const eventId = (items.find((s) => s.id === sessions.data?.default_session_id) ?? items[0])?.event_id
+  const eventId = currentEventId ?? items[0]?.event_id
+  const events = [...new Map(items.map((s) => [s.event_id, { id: s.event_id, name: s.event_name }])).values()]
 
   return (
     <div className="mpage">
@@ -53,7 +57,7 @@ export function ReceiptsPage() {
       </Panel>
 
       <Panel title="レシートを探す">
-        <ReceiptSearchForm sessions={items} categories={categories.data ?? []} onSearch={setQuery} />
+        <ReceiptSearchForm sessions={items} events={events} currentEventId={currentEventId} categories={categories.data ?? []} onSearch={setQuery} />
         {list.error && <p className="error-text">{errorMessage(list.error)}</p>}
         <p className="sub" style={{ fontSize: 13, marginTop: 16 }}>
           {list.data ? `${list.data.length}${list.data.length >= 100 ? '件以上（新しい100件）' : '件'}` : ''}

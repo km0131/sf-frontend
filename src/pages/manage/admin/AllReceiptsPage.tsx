@@ -10,6 +10,7 @@ import { receiptNo, statusLabels, useAuthImage, type Receipt } from '../../../li
 import type { List } from '../../../lib/types'
 import { PageHead, Panel } from '../common'
 import { useManage } from '../context'
+import { useCurrentEvent } from './currentEvent'
 import type { AdminShop } from './ShopsPage'
 
 type Event = { id: number; name: string; is_current: boolean }
@@ -23,16 +24,19 @@ export function AllReceiptsPage() {
     queryKey: ['admin', 'event-sessions', 'all'],
     queryFn: () => apiFetch<List<EventSession>>('/api/admin/event-sessions', { token }).then((r) => r.items),
   })
+  const events = useQuery({ queryKey: ['admin', 'events'], queryFn: () => apiFetch<List<Event>>('/api/admin/events', { token }).then((r) => r.items) })
+  const current = useCurrentEvent()
   const categories = useQuery({
     queryKey: ['admin', 'ledger', 'categories'],
     queryFn: () => apiFetch<List<LedgerCategory>>('/api/admin/ledger/categories', { token }).then((r) => r.items),
   })
   const [query, setQuery] = useState<ReceiptQuery>(emptyQuery)
   const [selected, setSelected] = useState<number | null>(null)
-  const params = toParams(query)
+  const params = toParams(query, current.id)
   const list = useQuery({
     queryKey: ['admin', 'receipts', params.toString()],
     queryFn: () => apiFetch<List<Receipt>>(`/api/admin/receipts?${params}`, { token }).then((r) => r.items),
+    enabled: current.ready, // 今回の開催がわかってから探す
     placeholderData: keepPreviousData,
   })
 
@@ -40,7 +44,14 @@ export function AllReceiptsPage() {
     <div className="mpage">
       <PageHead title="全店のレシート" />
       <Panel title="レシートを探す">
-        <ReceiptSearchForm sessions={sessions.data ?? []} categories={categories.data ?? []} shops={shops.data ?? []} onSearch={setQuery} />
+        <ReceiptSearchForm
+          sessions={sessions.data ?? []}
+          events={events.data ?? []}
+          currentEventId={current.id}
+          categories={categories.data ?? []}
+          shops={shops.data ?? []}
+          onSearch={setQuery}
+        />
         {list.error && <p className="error-text">{errorMessage(list.error)}</p>}
         <p className="sub" style={{ fontSize: 13, marginTop: 16 }}>
           {list.data ? `${list.data.length}${list.data.length >= 100 ? '件以上（新しい100件）' : '件'}` : ''}
@@ -60,8 +71,9 @@ export function AllReceiptsPage() {
 function AdminChecks({ onOpen }: { onOpen: (id: number) => void }) {
   const { token } = useManage()
   const events = useQuery({ queryKey: ['admin', 'events'], queryFn: () => apiFetch<List<Event>>('/api/admin/events', { token }).then((r) => r.items) })
+  const current = useCurrentEvent()
   const [picked, setPicked] = useState<number | null>(null)
-  const eventId = picked ?? (events.data?.find((e) => e.is_current) ?? events.data?.[0])?.id ?? null
+  const eventId = picked ?? current.id ?? null
   const checks = useQuery({
     queryKey: ['admin', 'checks', eventId],
     queryFn: () => apiFetch<{ unconfirmed_receipts: Receipt[]; unlinked_expenses: UnlinkedExpense[] }>(`/api/admin/ledger/checks?event_id=${eventId}`, { token }),

@@ -27,6 +27,10 @@ type WaitTimes = {
   p90_seconds: number | null
   max_seconds: number | null
   avg_cook_seconds: number | null
+  handover_count: number
+  avg_handover_seconds: number | null
+  p50_handover_seconds: number | null
+  p90_handover_seconds: number | null
 }
 type Losses = {
   cancelled_orders: number
@@ -34,21 +38,27 @@ type Losses = {
   cancel_reasons: { reason: string; count: number }[]
   unclaimed_orders: number
   unclaimed_amount: number
+  /** 廃棄（余った食材の金額。収支の画面で開催回ごとに入力） */
+  waste: number
 }
+type SoldOut = { item_name: string; date: string; sold_out_at: string; restocked_at: string | null }
 type EventRow = { event_id: number; name: string; starts_on: string; revenue: number; orders: number; average_order_value: number }
 
 const minutes = (s: number | null) => (s == null ? '—' : `${Math.round(s / 60)}分`)
+const hm = (iso: string) => new Date(iso).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Tokyo' })
 
 /** 店長: 売上分析。上の1行の条件（開催回・時間の区切り・日）がすべてのグラフに効く。 */
 export function SalesPage() {
   const { token } = useManage()
   const w = useShopWording()
   const [eventId, setEventId] = useState<string>('') // '' = 今の開催回
+  // 本番の日だけ（収支・Excel と同じ範囲）か、回のすべての日（練習の日も）か
+  const [onlyProduction, setOnlyProduction] = useState(false)
   const [interval, setInterval] = useState(30)
   const [day, setDay] = useState<string>('')
   const [csvError, setCsvError] = useState<string | null>(null)
 
-  const scope = eventId ? `event_id=${eventId}` : ''
+  const scope = [eventId ? `event_id=${eventId}` : '', onlyProduction ? 'production=1' : ''].filter(Boolean).join('&')
   const get = <T,>(path: string, extra = '') => {
     const q = [scope, extra].filter(Boolean).join('&')
     return apiFetch<T>(`/api/manage/analytics/${path}${q ? `?${q}` : ''}`, { token })
@@ -65,6 +75,7 @@ export function SalesPage() {
   })
   const waits = useQuery({ queryKey: ['sales', 'waits', scope], queryFn: () => get<WaitTimes>('wait-times'), ...opts })
   const losses = useQuery({ queryKey: ['sales', 'losses', scope], queryFn: () => get<Losses>('losses'), ...opts })
+  const soldOuts = useQuery({ queryKey: ['sales', 'sold-outs', scope], queryFn: () => get<{ items: SoldOut[] }>('sold-outs'), ...opts })
 
   const days = summary.data?.by_day.map((d) => d.date) ?? []
   const selectedDay = day && days.includes(day) ? day : days.at(-1) ?? ''
@@ -116,6 +127,13 @@ export function SalesPage() {
                 {e.name}
               </option>
             ))}
+          </select>
+        </label>
+        <label className="field">
+          <span className="field-label">数える日</span>
+          <select className="select" value={onlyProduction ? 'production' : 'all'} onChange={(e) => { setOnlyProduction(e.target.value === 'production'); setDay('') }}>
+            <option value="all">すべての日（練習も）</option>
+            <option value="production">本番の日だけ（収支・Excel と同じ）</option>
           </select>
         </label>
         <label className="field">
@@ -258,12 +276,18 @@ export function SalesPage() {
             {/* 飲食以外の店は調理の段階がないので出さない */}
             {w.usesCooking && <Stat label="調理時間の平均" value={minutes(waits.data?.avg_cook_seconds ?? null)} note="調理中 → できあがり" />}
           </div>
+          <div className="stats" style={{ marginTop: 16 }}>
+            <Stat label="受け渡しまで（中央値）" value={minutes(waits.data?.p50_handover_seconds ?? null)} note={`注文 → 受け渡し（完了）・${waits.data?.handover_count ?? 0}件`} />
+            <Stat label="受け渡しまで（平均）" value={minutes(waits.data?.avg_handover_seconds ?? null)} />
+            <Stat label="受け渡しまで（遅いほうの1割）" value={minutes(waits.data?.p90_handover_seconds ?? null)} />
+          </div>
         </Panel>
 
         <Panel title="ロス">
           <div className="stats">
             <Stat label="取り消し" value={`${losses.data?.cancelled_orders ?? 0}件`} note={yen(losses.data?.cancelled_amount ?? 0)} />
             <Stat label={w.unclaimedLabel} value={`${losses.data?.unclaimed_orders ?? 0}件`} note={`${yen(losses.data?.unclaimed_amount ?? 0)}${w.unclaimedNote}`} />
+            <Stat label="廃棄（余った食材）" value={yen(losses.data?.waste ?? 0)} note="収支の画面で開催回ごとに入力（原価。収支には足さない）" />
           </div>
           {losses.data && losses.data.cancel_reasons.length > 0 && (
             <table className="table" style={{ marginTop: 16 }}>
@@ -272,6 +296,34 @@ export function SalesPage() {
                   <tr key={r.reason}>
                     <td>{r.reason}</td>
                     <td className="num">{r.count}件</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+
+        <Panel title={`売り切れ（${soldOuts.data?.items.length ?? 0}回）`}>
+          <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>商品を売り切れにした時刻と、販売に戻した時刻です（レジ・商品の画面の売り切れのボタンで記録）。</p>
+          {soldOuts.data?.items.length === 0 ? (
+            <p className="empty">売り切れはありません</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>商品</th>
+                  <th>日</th>
+                  <th>売り切れ</th>
+                  <th>戻した</th>
+                </tr>
+              </thead>
+              <tbody>
+                {soldOuts.data?.items.map((r, i) => (
+                  <tr key={i}>
+                    <td>{r.item_name}</td>
+                    <td className="mono">{r.date.slice(5).replace('-', '/')}</td>
+                    <td className="mono">{hm(r.sold_out_at)}</td>
+                    <td className="mono">{r.restocked_at ? hm(r.restocked_at) : '売り切れのまま'}</td>
                   </tr>
                 ))}
               </tbody>

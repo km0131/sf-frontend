@@ -16,6 +16,8 @@ export type ReceiptQuery = {
   uploader: '' | 'staff'
   session_id: string
   shop_id: string
+  /** 開催（event）: 'current' = 今回の開催（収支の画面の既定と同じ基準）、'all' = すべて、数字 = その回 */
+  event_id: string
 }
 
 export const emptyQuery: ReceiptQuery = {
@@ -31,11 +33,15 @@ export const emptyQuery: ReceiptQuery = {
   uploader: '',
   session_id: '',
   shop_id: '',
+  event_id: 'current',
 }
 
-export const toParams = (q: ReceiptQuery) => {
+/** API の条件にする。今回の開催は currentEventId（まだわからなければ絞らない） */
+export const toParams = (q: ReceiptQuery, currentEventId: number | null | undefined) => {
   const p = new URLSearchParams()
-  for (const [k, v] of Object.entries(q)) if (v.trim()) p.set(k, v.trim())
+  for (const [k, v] of Object.entries(q)) if (k !== 'event_id' && v.trim()) p.set(k, v.trim())
+  const event = q.event_id === 'current' ? currentEventId : q.event_id === 'all' ? null : Number(q.event_id)
+  if (event) p.set('event_id', String(event))
   return p
 }
 
