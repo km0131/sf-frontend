@@ -166,6 +166,16 @@
   gap: 8px;
 }
 
+/* 「呼び出し音：オン（タップで有効にする）」はスマホの幅に収まらないので折り返す */
+.call-sound .btn {
+  height: auto;
+  min-height: 48px;
+  padding-top: 8px;
+  padding-bottom: 8px;
+  white-space: normal;
+  line-height: 1.6;
+}
+
 .call-sound .btn[aria-pressed='true'] {
   border-color: var(--c-store);
   color: var(--c-ink);
