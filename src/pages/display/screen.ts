@@ -1,28 +1,5 @@
-import { useEffect } from 'react'
-
 /** 整理番号の並び順（A-2 < A-10）。 */
 export const byNumber = (a: string, b: string) => a.localeCompare(b, 'ja', { numeric: true })
-
-/** 一日中つけっぱなしにするので、画面が暗くならないようにする。 */
-export function useWakeLock() {
-  useEffect(() => {
-    let lock: { release: () => Promise<void> } | null = null
-    const request = async () => {
-      try {
-        lock = await (navigator as Navigator & { wakeLock?: { request: (t: string) => Promise<typeof lock> } }).wakeLock?.request('screen') ?? null
-      } catch {
-        // 対応していない端末では何もしない
-      }
-    }
-    void request()
-    const onVisible = () => document.visibilityState === 'visible' && void request()
-    document.addEventListener('visibilitychange', onVisible)
-    return () => {
-      document.removeEventListener('visibilitychange', onVisible)
-      void lock?.release()
-    }
-  }, [])
-}
 
 let audio: AudioContext | null = null
 

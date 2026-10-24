@@ -100,6 +100,9 @@ export const myOrders = {
     if (kept.length !== all.length) writeOrders(kept)
     return kept
   },
+  has(token: string): boolean {
+    return myOrders.list().some((o) => o.token === token)
+  },
   add(o: RememberedOrder) {
     writeOrders(trim([o, ...myOrders.list().filter((x) => x.token !== o.token)]))
   },

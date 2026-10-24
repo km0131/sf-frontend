@@ -1,4 +1,4 @@
-import type { BusinessType, NumberStatus, OrderStatus } from './types'
+import type { BusinessType, CustomerOrder, OrderStatus } from './types'
 
 /** 画面の言葉（店舗の種類ごと）。飲食以外の店は「お品書き」「ご注文」「お渡し」などを汎用の言葉にする。
  *  状態の流れも種類で変わる（飲食: 受付 → 調理中 → お渡し待ち、飲食以外: 待ち → 呼び出し中）。 */
@@ -291,7 +291,7 @@ export function wording(type: BusinessType | undefined): Wording {
 }
 
 /** 状態ごとの案内（注文状況ページと同じ言い回し。店舗の種類で言葉を変える）。 */
-export function orderStatusText(s: Pick<NumberStatus, 'status' | 'shop' | 'waiting_ahead' | 'estimated_wait_minutes'>): string {
+export function orderStatusText(s: Pick<CustomerOrder, 'status' | 'shop' | 'waiting_ahead' | 'estimated_wait_minutes'>): string {
   const w = wording(s.shop.business_type)
   switch (s.status) {
     case 'waiting':

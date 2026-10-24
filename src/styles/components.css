@@ -1052,3 +1052,12 @@
   background: rgba(184, 134, 59, 0.35);
   color: inherit;
 }
+
+/* QR コード（白地に黒。読み取りやすいよう角は丸めない） */
+.qr {
+  display: block;
+  flex-shrink: 0;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--c-line);
+}

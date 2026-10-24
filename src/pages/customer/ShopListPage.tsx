@@ -9,11 +9,12 @@ import { apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { waitLabel } from '../../lib/format'
 import { FINISHED_KEEP_MS, finishedExpired, myOrders, type RememberedOrder } from '../../lib/session'
+import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import { orderQuery } from '../../lib/orderQuery'
 import type { CustomerOrder, OrderStatus, PublicShopList } from '../../lib/types'
 import { orderStatusText, wording } from '../../lib/wording'
 import { PausedNotice } from '../../components/PausedNotice'
-import { OrderNumberLookup } from './OrderNumberLookup'
+import { OrderClaim } from './OrderClaim'
 
 /** お客様: 出店している店の一覧と、それぞれの待ち状況。 */
 export function ShopListPage() {
@@ -30,7 +31,12 @@ export function ShopListPage() {
       <Header name={title} seal="祭" />
       <TerminalLine command="お店を表示" aside={data ? `${data.items.length}店` : undefined} />
       {data?.event?.paused && <PausedNotice message={data.event.pause_message} />}
-      <OrderNumberLookup />
+      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'wrap', paddingTop: 12 }}>
+        <a className="btn btn-text" href={CUSTOMER_GUIDE_URL} target="_blank" rel="noopener">
+          注文のしかた ↗
+        </a>
+        <OrderClaim shops={data?.items ?? []} />
+      </div>
 
       {remembered.length > 0 && (
         <section className="section fade-in">

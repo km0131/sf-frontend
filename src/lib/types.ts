@@ -135,6 +135,14 @@ export type CustomerOrder = Order & {
   estimated_wait_minutes: number | null
   /** お客様が自分でキャンセルできるか（調理前・未払いの Web 注文だけ） */
   cancellable: boolean
+  /** 「できあがりをメールで受け取る」欄。店舗がメールを使わない・終わった注文では null。email は伏せ字（例: t***@example.com） */
+  email_notify: { email: string | null } | null
+}
+
+/** レジの注文を、お客様のスマホに登録してもらうための QR（注文状況ページのトークン）と確認コード（4桁） */
+export type OrderClaim = {
+  token: string
+  code: string
 }
 
 export type ManagerOrder = Order & {
@@ -184,15 +192,6 @@ export type DisplaySnapshot = {
 }
 
 export type List<T> = { items: T[] }
-
-/** 番号での状態確認（GET /api/order-status）。注文の中身やお名前は含まない。 */
-export type NumberStatus = {
-  order_no: string
-  status: OrderStatus
-  shop: { slug: string; name: string; color: ShopColor; business_type: BusinessType }
-  waiting_ahead: number
-  estimated_wait_minutes: number | null
-}
 
 /** 全店舗の大画面（GET /api/display）。店ごとの番号一覧で、頭文字の順。 */
 export type AllDisplaySnapshot = {

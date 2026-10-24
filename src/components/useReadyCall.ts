@@ -11,7 +11,7 @@ import type { CustomerOrder } from '../lib/types'
 const POLL_MS = 7000
 
 /** お客様の今日の注文（受付中の番号と、開いている注文状況ページ）を見張り、
- *  「お渡し可能（ready）」に変わった瞬間に呼び出し音を1回鳴らして、呼び出しの一覧（calls）に加える。
+ *  「お渡し可能（ready）」に変わった瞬間に呼び出し音を1回鳴らし（振動できる端末では振動も）、呼び出しの一覧（calls）に加える。
  *  読み込んだ時点ですでに ready の注文は知らせない。dismiss で先頭の呼び出しを閉じる。 */
 export function useReadyCalls() {
   const location = useLocation()
@@ -51,9 +51,23 @@ export function useReadyCalls() {
   }
 
   useEffect(() => {
-    if (rings > 0) playCallSound()
+    if (rings > 0) {
+      playCallSound()
+      vibrate()
+    }
   }, [rings])
 
   const dismiss = useCallback(() => setCalls((list) => list.slice(1)), [])
-  return { call: calls[0]?.order, dismiss }
+  // 待っている注文（受付・調理中・お渡し待ち）があるか。あるあいだは画面が暗くならないようにする
+  const waiting = loaded.some((x) => x.order.status === 'waiting' || x.order.status === 'cooking' || x.order.status === 'ready')
+  return { call: calls[0]?.order, dismiss, waiting }
+}
+
+/** 呼び出しの振動（対応している端末だけ。iPhone の Safari は対応していない）。 */
+function vibrate() {
+  try {
+    navigator.vibrate?.([300, 150, 300, 150, 600])
+  } catch {
+    // 振動できなくても、音と画面で知らせている
+  }
 }

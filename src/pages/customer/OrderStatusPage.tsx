@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { ItemNote } from '../../components/LineNote'
@@ -10,15 +11,25 @@ import { storeStyle } from '../../lib/colors'
 import { hhmm, yen } from '../../lib/format'
 import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import { orderQuery } from '../../lib/orderQuery'
+import { myOrders } from '../../lib/session'
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
 import { CancelOrder } from './CancelOrder'
+import { NotifyEmail } from './NotifyEmail'
 
 /** お客様: 注文完了・お呼び出し（注文状況は自動で更新する）。 */
 export function OrderStatusPage() {
   const { token = '' } = useParams()
   // 取り直し（7秒ごと）は、お客様の画面の共通部分で呼び出しを見張るついでに行う
   const { data, error } = useQuery(orderQuery(token))
+  const active = data?.status === 'waiting' || data?.status === 'cooking' || data?.status === 'ready'
+
+  // 控えに入れる（レジで受け取った QR から開いたときも、ここでこのスマホに登録される）。終わった注文は新しく入れない
+  useEffect(() => {
+    if (data && active && !myOrders.has(token)) {
+      myOrders.add({ token, order_no: data.order_no, shop: data.shop.name, created_at: data.created_at })
+    }
+  }, [data, active, token])
 
   if (error instanceof ApiError && error.status === 404) {
     return <NotFoundPage message="受付が見つかりません。URL をお確かめください。" />
@@ -86,7 +97,14 @@ export function OrderStatusPage() {
           )}
         </VerticalLabel>
 
-        {(o.status === 'waiting' || o.status === 'cooking' || o.status === 'ready') && <CallSoundButton />}
+        {active && <CallSoundButton />}
+        {active && o.channel === 'pos' && (
+          <p className="field-hint">
+            レジの注文を、このスマホに登録しました。お店の一覧の「受付中の番号」からも、この画面に戻れます。
+          </p>
+        )}
+
+        <NotifyEmail token={token} order={o} />
 
         {o.status !== 'cancelled' && o.status !== 'unclaimed' && (
           <div className="progress" aria-label={`進み具合: ${steps[step]}`}>
