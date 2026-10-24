@@ -101,10 +101,17 @@ img {
   }
 }
 
+/* 終わった後まで動きを残さない（forwards で transform を残すと、中の position: fixed（下から出る入力欄など）が
+   画面ではなくこの要素を基準に置かれてしまう） */
 .fade-in {
-  opacity: 0;
-  transform: translateY(8px);
-  animation: in var(--dur-in) var(--ease) forwards;
+  animation: fade-up var(--dur-in) var(--ease) backwards;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

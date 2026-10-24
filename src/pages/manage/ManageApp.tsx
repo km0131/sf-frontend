@@ -4,6 +4,7 @@ import { Header } from '../../components/Header'
 import { TerminalLine } from '../../components/Terminal'
 import { apiFetch, errorMessage, setUnauthorizedHandler } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
+import { MANUAL_URL } from '../../lib/manual'
 import { userSession, type Session } from '../../lib/session'
 import type { LoginResponse } from '../../lib/types'
 import { ServerStatus } from './admin/ServerStatus'
@@ -67,15 +68,18 @@ export function ManageApp() {
 
   const isAdmin = session.role === 'system_admin'
   const nav = isAdmin ? adminNav : managerNav
-  // スタッフ用の画面（お客様の画面からはリンクしていない）。別のタブで開く
-  const screens = isAdmin
-    ? [{ href: '/display', label: '全店の大画面' }]
-    : session.shop
-      ? [
-          { href: `/s/${session.shop.slug}/pos`, label: 'レジ' },
-          { href: `/s/${session.shop.slug}/display`, label: '大画面' },
-        ]
-      : []
+  // スタッフ用の画面とマニュアル（お客様の画面からはリンクしていない）。別のタブで開く
+  const screens = [
+    ...(isAdmin
+      ? [{ href: '/display', label: '全店の大画面' }]
+      : session.shop
+        ? [
+            { href: `/s/${session.shop.slug}/pos`, label: 'レジ' },
+            { href: `/s/${session.shop.slug}/display`, label: '大画面' },
+          ]
+        : []),
+    { href: MANUAL_URL, label: 'マニュアル' },
+  ]
   if (location.pathname.replace(/\/$/, '') === '/manage') {
     return <Navigate to={nav[0].to} replace />
   }
@@ -102,7 +106,7 @@ export function ManageApp() {
                 {n.label}
               </NavLink>
             ))}
-            {screens.length > 0 && <span className="mnav-sep">画面を開く</span>}
+            <span className="mnav-sep">画面を開く</span>
             {screens.map((n) => (
               <a key={n.href} href={n.href} target="_blank" rel="noopener">
                 {n.label} ↗

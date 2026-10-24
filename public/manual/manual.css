@@ -578,6 +578,143 @@ main > .lead:first-child {
   color: var(--c-ink-sub);
 }
 
+/* ===== お客様向け（customer.html）。スマホで読む前提で、文字を大きめにして手順ごとに写真を添える ===== */
+.guide {
+  font-size: 17px;
+}
+
+.guide .lead {
+  font-size: 15px;
+}
+
+/* 1 注文する → 2 待つ → 3 受け取る */
+.guide-flow {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 4px 0 12px;
+}
+
+.guide-flow a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 4px;
+  border: 1px solid var(--c-shion-deep);
+  background: var(--c-card);
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+}
+
+.guide-flow-no,
+.guide-no {
+  display: inline-grid;
+  place-items: center;
+  width: 1.9em;
+  height: 1.9em;
+  border-radius: 50%;
+  background: var(--c-shion-deep);
+  color: #fff;
+  font-family: var(--f-mono);
+  font-size: 14px;
+  letter-spacing: 0;
+}
+
+.guide-no {
+  margin-right: 10px;
+  vertical-align: 0.15em;
+}
+
+.guide-more {
+  margin: 0 0 8px;
+  padding-left: 0;
+  list-style: none;
+  font-size: 15px;
+}
+
+.guide-more a {
+  display: inline-block;
+  padding: 4px 0; /* 指で押しやすく */
+}
+
+.guide-more a::before {
+  content: '› ';
+}
+
+.guide h3 {
+  margin-top: 8px;
+  font-size: 18px;
+}
+
+.guide-step {
+  margin: 28px 0 36px;
+}
+
+.guide-step + .guide-step {
+  padding-top: 28px;
+  border-top: 1px dashed var(--c-line);
+}
+
+/* スマホの画面の写真。読める大きさにしつつ、画面の幅いっぱいにはしない */
+figure.shot {
+  margin: 14px auto 0;
+  width: min(100%, 300px);
+}
+
+figure.shot img {
+  border-radius: 14px;
+  box-shadow: 0 6px 20px rgba(43, 38, 34, 0.12);
+}
+
+/* 2枚並べるのは広い画面だけ（スマホで並べると文字が読めない大きさになる） */
+@media (min-width: 560px) {
+  .shot-pair {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .shot-pair figure.shot {
+    width: 100%;
+    margin-top: 14px;
+  }
+}
+
+.guide-back {
+  margin: 40px 0 0;
+  text-align: center;
+}
+
+.guide-back a {
+  display: inline-block;
+  padding: 12px 28px;
+  border: 1px solid var(--c-shion-deep);
+  background: var(--c-card);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (min-width: 720px) {
+  .guide-step {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 28px;
+    align-items: start;
+  }
+
+  .guide-step:has(.shot-pair) {
+    grid-template-columns: 1fr 440px;
+  }
+
+  .guide-step figure.shot {
+    margin-top: 8px;
+  }
+}
+
 /* ===== 広い画面 ===== */
 @media (min-width: 720px) {
   :root {

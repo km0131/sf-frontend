@@ -8,6 +8,7 @@ import { VerticalLabel } from '../../components/VerticalLabel'
 import { ApiError, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import { hhmm, yen } from '../../lib/format'
+import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import { orderQuery } from '../../lib/orderQuery'
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
@@ -150,6 +151,11 @@ export function OrderStatusPage() {
         <p className="field-hint">
           このページは自動で更新されます。閉じてしまっても、
           <Link to="/">お店の一覧</Link>の「受付中の番号」から戻れます。
+          使い方は
+          <a href={`${CUSTOMER_GUIDE_URL}#wait`} target="_blank" rel="noopener">
+            注文のしかた
+          </a>
+          をご覧ください。
         </p>
       </section>
     </div>

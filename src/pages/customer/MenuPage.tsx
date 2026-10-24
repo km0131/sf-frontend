@@ -24,6 +24,7 @@ import {
 } from '../../lib/cart'
 import { LineNoteInput } from '../../components/LineNote'
 import { storeStyle } from '../../lib/colors'
+import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import { seq2, waitLabel, yen } from '../../lib/format'
 import { myOrders } from '../../lib/session'
 import type { BusinessType, CustomerOrder, MenuItem, PublicMenu } from '../../lib/types'
@@ -84,10 +85,14 @@ export function MenuPage() {
         command={w.menuCommand}
         aside={`待ち ${shop.waiting_count}組 ${waitLabel(shop.estimated_wait_minutes)}`}
       />
-      <div className="row" style={{ paddingTop: 12 }}>
+      <div className="row" style={{ justifyContent: 'space-between', paddingTop: 12 }}>
         <Link to="/" className="btn btn-text">
           ‹ お店の一覧に戻る
         </Link>
+        {/* 選んだ品が消えないよう、別のタブで開く */}
+        <a className="btn btn-text" href={`${CUSTOMER_GUIDE_URL}#order`} target="_blank" rel="noopener">
+          注文のしかた ↗
+        </a>
       </div>
       {shop.paused && <PausedNotice message={shop.pause_message} />}
 

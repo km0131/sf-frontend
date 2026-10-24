@@ -2,6 +2,7 @@ import { useCallback, useState, type FormEvent } from 'react'
 import { Sheet } from '../../components/Sheet'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
+import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import type { NumberStatus } from '../../lib/types'
 import { orderStatusText } from '../../lib/wording'
 
@@ -12,14 +13,18 @@ function lookupError(e: unknown): string {
   return errorMessage(e)
 }
 
-/** お客様: 控えをなくしたときに、整理番号から状態だけを確かめる。ふだんはボタンだけを出し、押すと入力欄を開く。 */
+/** お客様: 控えをなくしたときに、整理番号から状態だけを確かめる。ふだんはボタンだけを出し、押すと入力欄を開く。
+ *  同じ行の左に、お客様向けの使い方へのリンクを置く。 */
 export function OrderNumberLookup() {
   const [open, setOpen] = useState(false)
   const close = useCallback(() => setOpen(false), [])
 
   return (
     <>
-      <div className="row" style={{ justifyContent: 'flex-end', paddingTop: 12 }}>
+      <div className="row" style={{ justifyContent: 'space-between', paddingTop: 12 }}>
+        <a className="btn btn-text" href={CUSTOMER_GUIDE_URL} target="_blank" rel="noopener">
+          注文のしかた ↗
+        </a>
         <button type="button" className="btn btn-text" onClick={() => setOpen(true)}>
           番号で受付状況を確かめる
         </button>

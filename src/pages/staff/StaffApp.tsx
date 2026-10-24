@@ -8,6 +8,7 @@ import { installOrderSoundUnlock, orderSound, playOrderSound } from '../../lib/o
 import { staffSession, type Session } from '../../lib/session'
 import { streamEvents } from '../../lib/sse'
 import type { List, Order, StaffShop } from '../../lib/types'
+import { MANUAL_URL } from '../../lib/manual'
 import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
 import { OrderBoard } from './OrderBoard'
@@ -131,6 +132,10 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
             >
               {soundOn ? (soundReady ? '音：入' : '音：入（タップで有効）') : '音：切'}
             </button>
+            {/* マニュアルは public/manual/ の静的ページ。別のタブで開く */}
+            <a className="btn btn-text" href={MANUAL_URL} target="_blank" rel="noopener">
+              マニュアル ↗
+            </a>
             <button type="button" className="btn btn-text" onClick={onLogout}>
               ログアウト
             </button>
