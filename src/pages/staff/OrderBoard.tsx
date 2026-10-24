@@ -8,6 +8,7 @@ import { hhmm, minutesSince, yen } from '../../lib/format'
 import { clockOffset, useNow } from '../../lib/serverClock'
 import type { BusinessType, List, Order, OrderStatus } from '../../lib/types'
 import { wording } from '../../lib/wording'
+import { ClaimSheet } from './ClaimPanel'
 import { staffKeys } from './keys'
 
 /** 注文帳：飲食は 受付／調理中／お渡し待ち の3列、飲食以外は 待ち／呼び出し中 の2列。ワンタッチで次に進める。 */
@@ -18,6 +19,7 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
   const [confirming, setConfirming] = useState<Order | null>(null)
   const [cancelling, setCancelling] = useState<Order | null>(null)
   const [unclaiming, setUnclaiming] = useState<Order | null>(null)
+  const [claiming, setClaiming] = useState<Order | null>(null)
   const [busy, setBusy] = useState<string | null>(null)
   const [, setTick] = useState(0)
 
@@ -112,6 +114,7 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
                     }}
                     onCancel={() => setCancelling(o)}
                     onUnclaim={() => setUnclaiming(o)}
+                    onShowClaim={() => setClaiming(o)}
                     offset={offset}
                   />
                 ))}
@@ -148,6 +151,8 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
         </Sheet>
       )}
 
+      {claiming && <ClaimSheet orderId={claiming.id} orderNo={claiming.order_no} token={token} onClose={() => setClaiming(null)} />}
+
       {unclaiming && (
         <UnclaimSheet
           order={unclaiming}
@@ -182,6 +187,7 @@ function OrderCard({
   onAdvance,
   onCancel,
   onUnclaim,
+  onShowClaim,
   offset,
 }: {
   order: Order
@@ -190,6 +196,8 @@ function OrderCard({
   onAdvance: () => void
   onCancel: () => void
   onUnclaim: () => void
+  /** レジの注文の QR と確認コードを出す（お客様のスマホに登録してもらう） */
+  onShowClaim: () => void
   /** サーバーの時刻 − 端末の時刻（ミリ秒） */
   offset: number
 }) {
@@ -242,6 +250,11 @@ function OrderCard({
           </span>
         )}
         <span className="spacer" />
+        {o.channel === 'pos' && (
+          <button type="button" className="btn btn-text" onClick={onShowClaim}>
+            QR
+          </button>
+        )}
         {o.status === 'ready' && (
           <button type="button" className="btn btn-text" onClick={onUnclaim} disabled={busy}>
             未受取にする

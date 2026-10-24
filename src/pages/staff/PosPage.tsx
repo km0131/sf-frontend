@@ -9,8 +9,9 @@ import { apiFetch, errorMessage } from '../../lib/api'
 import { LineNoteInput } from '../../components/LineNote'
 import { addLine, cartCount, cartTotal, optionNames, setLineNote, toOrderItems, unitPrice, type CartLine } from '../../lib/cart'
 import { yen } from '../../lib/format'
-import type { Category, MenuItem, Order, StaffShop } from '../../lib/types'
+import type { Category, MenuItem, Order, OrderClaim, StaffShop } from '../../lib/types'
 import { wording } from '../../lib/wording'
+import { ClaimPanel } from './ClaimPanel'
 import { staffKeys } from './keys'
 import { SoldOutSheet } from './SoldOutSheet'
 
@@ -33,7 +34,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
   const [note, setNote] = useState('')
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [result, setResult] = useState<{ order: Order; ahead: number; change: number } | null>(null)
+  const [result, setResult] = useState<{ order: Order; ahead: number; change: number; claim: OrderClaim } | null>(null)
 
   const items = useMemo(() => new Map((menu.data?.items ?? []).map((i) => [i.id, i])), [menu.data])
   const total = cartTotal(lines, items)
@@ -82,12 +83,12 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
     setSending(true)
     setError(null)
     try {
-      const res = await apiFetch<{ order: Order; waiting_ahead: number }>('/api/staff/orders', {
+      const res = await apiFetch<{ order: Order; waiting_ahead: number; claim: OrderClaim }>('/api/staff/orders', {
         method: 'POST',
         token,
         body: { items: toOrderItems(lines), customer_name: name.trim() || undefined, note: note.trim() || undefined },
       })
-      setResult({ order: res.order, ahead: res.waiting_ahead, change })
+      setResult({ order: res.order, ahead: res.waiting_ahead, change, claim: res.claim })
       setLines([])
       setReceived('')
       setName('')
@@ -307,6 +308,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
                 {result.ahead > 0 ? `前に${result.ahead}組お待ちです` : wording(shop?.business_type).posSoon}
               </p>
             </VerticalLabel>
+            <ClaimPanel orderNo={result.order.order_no} claim={result.claim} />
             <div className="row" style={{ justifyContent: 'space-between' }}>
               <span className="field-label">お釣り</span>
               <span className="money">{yen(result.change)}</span>

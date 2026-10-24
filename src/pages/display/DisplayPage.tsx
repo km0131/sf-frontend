@@ -7,7 +7,8 @@ import { API_BASE_URL } from '../../lib/api'
 import { storeStyle } from '../../lib/colors'
 import type { BusinessType, DisplaySnapshot, OrderStatus, ShopColor } from '../../lib/types'
 import { wording } from '../../lib/wording'
-import { byNumber, chime, useWakeLock } from './screen'
+import { useWakeLock } from '../../lib/wakeLock'
+import { byNumber, chime } from './screen'
 
 type State = { shop: string; color?: ShopColor; businessType?: BusinessType; preparing: string[]; ready: string[] }
 

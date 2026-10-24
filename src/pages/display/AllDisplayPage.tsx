@@ -6,7 +6,8 @@ import { storeStyle } from '../../lib/colors'
 import type { AllDisplaySnapshot, OrderStatus } from '../../lib/types'
 import { wording } from '../../lib/wording'
 import { settingSpecs, useDisplaySettings, type DisplaySettings } from './displaySettings'
-import { byNumber, chime, useWakeLock } from './screen'
+import { useWakeLock } from '../../lib/wakeLock'
+import { byNumber, chime } from './screen'
 
 type Shops = AllDisplaySnapshot['shops']
 type Shop = Shops[number]

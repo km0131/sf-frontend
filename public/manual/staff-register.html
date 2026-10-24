@@ -46,6 +46,31 @@
   <p>レジの注文も注文帳に入ります（支払い済み）。あとは Web 注文と同じように進めます。</p>
 </section>
 
+<section id="claim">
+  <h2>お客さんのスマホに登録してもらう（QR と確認コード）</h2>
+  <p>レジで注文したお客さんも、自分のスマホで「できあがり」の呼び出しを受け取れます。会計が終わった画面に、<strong>QR</strong> と4桁の<strong>確認コード</strong>が出ます。</p>
+  <ol class="steps">
+    <li>整理番号を伝えるときに、「スマホでできあがりをお知らせできます」と QR を見せます。</li>
+    <li>お客さんがスマホのカメラで QR を読むと、その注文の画面が開き、スマホに登録されます。</li>
+    <li>QR を読めないときは、お客さんの画面の「お店の一覧」→ <span class="ui">レジの注文を登録</span> から、お店・番号・確認コードを入れてもらいます。<strong>確認コードを口頭で伝えてください</strong>。</li>
+    <li><span class="ui">次のお客様へ</span> を押したあとでも、注文帳のカードの <span class="ui">QR</span> から、同じ QR と確認コードをもう一度出せます。</li>
+  </ol>
+  <figure>
+    <a href="img/s-register-claim.png"><img src="img/s-register-claim.png" width="1180" height="820" alt="会計が終わりましたの画面。お呼び出し番号の下に、QR コードと4桁の確認コード" loading="lazy"></a>
+    <figcaption>会計が終わった画面（QR と確認コード）</figcaption>
+  </figure>
+  <figure>
+    <a href="img/s-board-claim.png"><img src="img/s-board-claim.png" width="1180" height="820" alt="注文帳のカードの QR を押したところ。同じ QR と確認コードが出る" loading="lazy"></a>
+    <figcaption>注文帳のカードの <span class="ui">QR</span> から、もう一度出す</figcaption>
+  </figure>
+  <div class="note">
+    <span class="note-title">確認コードは番号と一緒に伝えるものです</span>
+    <p>番号だけでは登録できません（ほかの人の注文を登録されないように）。確認コードは、その注文のお客さんにだけ伝えてください。</p>
+    <p>確認コードを5回続けて間違えると、その注文は15分ほど登録できなくなります。お渡し済み・取り消しの注文は登録できません。</p>
+  </div>
+  <p>お客さんは、注文の画面の「できあがりをメールで受け取る」から、あとでメールアドレスを登録することもできます（店長の店舗設定でメールを使っているときだけ）。</p>
+</section>
+
 <section id="s6-5">
   <h2>売り切れの設定</h2>
   <ol class="steps">
@@ -80,7 +105,7 @@
     <li>呼ばれると、音と画面いっぱいの表示で知らせます（画面を開いたまま待ってもらいます）。</li>
     <li>iPhone はマナーモードだと音が鳴らないことがあります。</li>
     <li>調理が始まる前なら、この画面から注文を取り消せます。</li>
-    <li>画面を閉じてしまった人は、お店の一覧の <span class="ui">番号で受付状況を確かめる</span> から、整理番号で今の状態を確かめられます。</li>
+    <li>画面を閉じてしまった人は、お店の一覧の「受付中の番号」から戻れます（同じスマホ・同じブラウザのとき）。レジの注文なら、QR か確認コードでもう一度登録できます。</li>
   </ul>
   <p>お客さん向けの使い方は <a href="customer.html">注文のしかた</a> にまとめています（お客さんの画面の <span class="ui">注文のしかた ↗</span> から開けます）。</p>
 </section>
