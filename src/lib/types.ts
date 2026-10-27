@@ -158,6 +158,8 @@ export type ShopEvent = {
   starts_on: string
   ends_on: string
   is_current: boolean
+  /** その開催回での整理番号の頭文字 */
+  order_prefix: string
 }
 
 export type ShopInfo = {

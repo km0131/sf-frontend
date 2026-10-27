@@ -41,6 +41,8 @@ export const router = createBrowserRouter([
       { path: 'all-sales', lazy: () => import('./pages/manage/admin/AllSalesPage').then((m) => ({ Component: m.AllSalesPage })) },
       { path: 'all-ledger', lazy: () => import('./pages/manage/admin/AllLedgerPage').then((m) => ({ Component: m.AllLedgerPage })) },
       { path: 'all-receipts', lazy: () => import('./pages/manage/admin/AllReceiptsPage').then((m) => ({ Component: m.AllReceiptsPage })) },
+      // 引換票の印刷（店長は自分の店、システム管理者は全店舗）
+      { path: 'tickets/print', lazy: () => import('./pages/manage/tickets/TicketPrintPage').then((m) => ({ Component: m.TicketPrintPage })) },
     ],
   },
   { path: '*', element: <NotFoundPage /> },

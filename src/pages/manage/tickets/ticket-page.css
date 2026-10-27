@@ -1,0 +1,24 @@
+/* お引換票の印刷ページを開いているあいだだけ読み込む（<link> で足し、ページを離れたら外す）。
+   ここに書いたものは、ほかの画面の印刷には効かない。 */
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff !important;
+  }
+
+  /* 印刷するシート（body の直下の .tp-print）のほかは、ヘッダー・メニュー・操作パネルを含めてすべて隠す */
+  body > :not(.tp-print) {
+    display: none !important;
+  }
+
+  .tp-print {
+    display: block !important;
+  }
+}

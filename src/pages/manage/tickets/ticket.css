@@ -1,0 +1,313 @@
+/* お引換票（A4縦・2列×4段＝8面）。寸法・色・フォント・文言はテンプレート（ticket-print-template.html）のまま。
+   ほかの画面に効かないよう、すべて .tp- で始まるクラスにだけ書く。
+   @page と、印刷時にほかの画面を隠す指定は ticket-page.css（印刷ページを開いているあいだだけ読み込む）に書く。 */
+.tp-sheet {
+  --tp-accent: #6b5e99; /* 紫苑（濃いめ・文字にも使える濃さ） */
+  --tp-ink: #26222e;
+  --tp-ink-sub: #4a4455;
+  --tp-rule: #6e6680;
+  --tp-cut: #9a93ae;
+
+  /* テンプレートの body の指定（画面の共通の文字の設定を受け継がないよう、ここで決め直す） */
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: normal;
+  letter-spacing: normal;
+  color: var(--tp-ink);
+  background: #fff;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+
+  /* シート（A4 1枚） */
+  position: relative;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: repeat(2, 105mm);
+  grid-template-rows: repeat(4, 74.25mm);
+  break-after: page;
+  page-break-after: always;
+}
+
+.tp-sheet:last-child {
+  break-after: auto;
+  page-break-after: auto;
+}
+
+.tp-sheet *,
+.tp-sheet *::before,
+.tp-sheet *::after {
+  box-sizing: border-box;
+}
+
+/* 切り取り線 */
+.tp-cut {
+  position: absolute;
+  pointer-events: none;
+}
+
+.tp-cut-v {
+  top: 0;
+  bottom: 0;
+  left: 105mm;
+  border-left: 0.3mm dashed var(--tp-cut);
+}
+
+.tp-cut-h {
+  left: 0;
+  right: 0;
+  border-top: 0.3mm dashed var(--tp-cut);
+}
+
+.tp-cut-h1 {
+  top: 74.25mm;
+}
+
+.tp-cut-h2 {
+  top: 148.5mm;
+}
+
+.tp-cut-h3 {
+  top: 222.75mm;
+}
+
+.tp-scissors {
+  position: absolute;
+  left: 1.6mm;
+  top: 72.2mm;
+  width: 4.2mm;
+  height: 4.2mm;
+  background: #fff;
+}
+
+/* ---------- 1面 ---------- */
+.tp-slip {
+  padding: 6.9mm 10.6mm; /* 上下26px / 左右40px 相当 */
+  display: flex;
+  flex-direction: column;
+  gap: 2.6mm;
+  min-width: 0;
+  min-height: 0;
+}
+
+.tp-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 1.6mm;
+  border-bottom: 0.4mm solid var(--tp-accent);
+}
+
+.tp-head-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5mm;
+}
+
+.tp-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tp-prompt {
+  font-size: 9pt;
+  color: var(--tp-accent);
+  letter-spacing: 0.04em;
+}
+
+.tp-sys {
+  font-size: 9pt;
+  color: var(--tp-ink-sub);
+}
+
+.tp-title {
+  font-family: 'Zen Old Mincho', serif;
+  font-weight: 700;
+  font-size: 16.5pt;
+  letter-spacing: 0.18em;
+}
+
+.tp-shop {
+  display: flex;
+  align-items: center;
+  gap: 2.1mm;
+  height: 5.8mm;
+}
+
+.tp-shop-label {
+  font-size: 9pt;
+  font-weight: 500;
+  color: var(--tp-ink-sub);
+  white-space: nowrap;
+}
+
+.tp-shop-value {
+  flex: 1;
+  min-width: 0;
+  height: 5.3mm;
+  border-bottom: 0.3mm dotted var(--tp-rule);
+  font-size: 11pt;
+  font-weight: 700;
+  line-height: 5.3mm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tp-boxes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3.2mm;
+  height: 22.2mm;
+}
+
+.tp-box {
+  position: relative;
+  border: 0.4mm solid var(--tp-accent);
+  border-radius: 1.6mm;
+}
+
+.tp-box-label {
+  position: absolute;
+  top: -0.3mm;
+  left: -0.3mm;
+  display: flex;
+  align-items: baseline;
+  gap: 1.6mm;
+  padding: 0.8mm 2.1mm;
+  background: var(--tp-accent);
+  color: #fff;
+  border-radius: 1.6mm 0 1.6mm 0;
+}
+
+.tp-box-label b {
+  font-size: 9pt;
+  letter-spacing: 0.08em;
+}
+
+.tp-box-label span {
+  font-size: 9pt;
+}
+
+/* 注文番号: [英字] - [手書き] */
+.tp-order-no {
+  position: absolute;
+  left: 2.6mm;
+  right: 2.6mm;
+  bottom: 2.4mm;
+  display: flex;
+  align-items: center;
+  gap: 1.6mm;
+}
+
+.tp-prefix {
+  flex: none;
+  width: 10mm;
+  height: 10.6mm;
+  border: 0.3mm dotted var(--tp-rule);
+  border-radius: 1mm;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 18pt;
+  color: var(--tp-ink);
+}
+
+/* 頭文字が2文字の店は、枠（10mm）に収まる大きさにする */
+.tp-prefix-2 {
+  font-size: 13pt;
+}
+
+.tp-dash {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 19.5pt;
+  line-height: 1;
+}
+
+.tp-write-line {
+  flex: 1;
+  height: 10.6mm;
+  border-bottom: 0.3mm dotted var(--tp-rule);
+}
+
+.tp-foot {
+  display: flex;
+  align-items: center;
+  gap: 2.6mm;
+  height: 15.9mm;
+}
+
+.tp-notes {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8mm;
+}
+
+.tp-notes p {
+  margin: 0;
+  font-size: 9pt;
+  line-height: 1.5;
+}
+
+.tp-notes p.tp-sub {
+  color: var(--tp-ink-sub);
+}
+
+.tp-notes .tp-url {
+  color: var(--tp-accent);
+}
+
+.tp-qr {
+  flex: none;
+  width: 15.9mm;
+  height: 15.9mm;
+  background: #fff;
+}
+
+/* ---------- 画面での見本（印刷はしない） ---------- */
+.tp-preview {
+  overflow-x: auto;
+  padding: 24px 0;
+  background: #e9e7ee;
+}
+
+.tp-preview .tp-sheet {
+  margin: 0 auto 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.tp-preview .tp-sheet:last-child {
+  margin-bottom: 0;
+}
+
+.tp-shop-head {
+  margin: 0 auto 8px;
+  width: 210mm;
+  font-size: 13px;
+  color: var(--c-ink-sub);
+}
+
+/* 印刷するシート（body の直下に置く）。画面では見本だけを出し、印刷では見本を含む画面全体を隠してこちらを出す */
+@media screen {
+  .tp-print {
+    display: none;
+  }
+}
+
+/* ---------- 操作パネル ---------- */
+.tp-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.tp-shop-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+}

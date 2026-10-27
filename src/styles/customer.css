@@ -360,3 +360,31 @@
   flex: 1;
   min-width: 0;
 }
+
+/* レジの注文の登録: お呼び出し番号（[頭の英字] - [数字]）。英字はお店を選ぶと入る */
+.claim-no {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.claim-no-prefix {
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  height: 44px;
+  padding: 0 6px;
+  border: 1px solid var(--c-line);
+  background: var(--c-card);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.claim-no-dash {
+  font-size: 18px;
+}
+
+.claim-no .input {
+  flex: 1;
+  min-width: 0;
+}

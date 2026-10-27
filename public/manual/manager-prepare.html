@@ -132,6 +132,57 @@
     <li>レシートを撮る係のスマホで、注文帳・レジの <span class="ui">レシート</span> を開けるか確かめます（→ <a href="receipts.html#staff">レシートの送り方</a>）。</li>
   </ol>
 </section>
+
+<section id="tickets">
+  <h2>引換票を印刷する（レジの注文用）</h2>
+  <p><strong>引換票</strong>は、レジで注文したお客さんに渡す紙です。A4 1枚に8枚分が並んでいて、切り分けて使います。</p>
+  <ul>
+    <li><strong>店舗名</strong>と、注文番号の<strong>頭の英字</strong>（例: A）は印刷されます。</li>
+    <li><strong>注文番号の数字</strong>と<strong>確認コード</strong>は空欄です。レジで会計のときに手で書き込みます（→ <a href="staff-register.html#claim">レジでの渡し方</a>）。</li>
+  </ul>
+  <ol class="steps">
+    <li>管理画面のメニューの <span class="ui">引換票を印刷</span> を押します。</li>
+    <li><strong>開催回</strong>を確かめます。ふだんは「（今の開催回）」のままで大丈夫です。頭の英字は開催回ごとに決まるので、次の開催回の分を前もって刷るときだけ切り替えます。</li>
+    <li><strong>枚数</strong>を入れます（1〜20シート。1シートで8枚分）。レジで受ける注文の数 ÷ 8 より少し多めにしておくと安心です。</li>
+    <li>下の見本で、店舗名と頭の英字が合っているか確かめます。</li>
+    <li><span class="ui">印刷する</span> を押すと、ブラウザの印刷の画面が開きます。</li>
+  </ol>
+  <figure>
+    <a href="img/m-tickets.png"><img src="img/m-tickets.png" width="1180" height="820" alt="引換票を印刷の画面。開催回、枚数、印刷するのボタン、その下に印刷の見本" loading="lazy"></a>
+    <figcaption>引換票を印刷の画面（下に見本が出ます）</figcaption>
+  </figure>
+
+  <h3>印刷の画面の設定（Chrome の場合）</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>項目</th><th>設定</th></tr></thead>
+      <tbody>
+        <tr><td>用紙サイズ</td><td>A4</td></tr>
+        <tr><td>向き</td><td>縦</td></tr>
+        <tr><td>倍率</td><td>100%（「デフォルト」のまま。「ページに合わせる」にしない）</td></tr>
+        <tr><td>余白</td><td>なし（選べないプリンターでは「最小」）</td></tr>
+        <tr><td>両面印刷</td><td>オフ</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>プレビューで <strong>1シートが1ページに収まっている</strong>か、ページ数が入れた枚数と同じかを確かめてから印刷します。</p>
+  <figure class="half">
+    <a href="img/m-tickets-sheet.png"><img src="img/m-tickets-sheet.png" width="794" height="1123" alt="引換票のシート。A4 に2列×4段で8枚分。店舗名サンプル焼き、頭の英字 A。点線の切り取り線" loading="lazy"></a>
+    <figcaption>印刷される1シート（点線で8枚に切り分けます）</figcaption>
+  </figure>
+
+  <h3>切り分ける</h3>
+  <p>点線（縦1本・横3本）に沿って切ると、同じ大きさの8枚になります。左のはさみの印から切り始めると分かりやすいです。</p>
+
+  <div class="warn">
+    <span class="note-title">うまく印刷できないとき</span>
+    <ul>
+      <li><strong>1シートが2ページに分かれる・小さく印刷される</strong>: 倍率が100%になっているか、余白が「なし」か「最小」かを確かめます。</li>
+      <li><strong>紫の色が出ない</strong>: 印刷の画面の「詳細設定」で「背景のグラフィック」をオンにします。</li>
+      <li><strong>印刷するが押せない</strong>: ボタンの下に理由が出ます。「頭文字が分かりません」などと出たときは、その開催回に出店していないので、システム管理者に連絡してください。</li>
+    </ul>
+  </div>
+</section>
 </main>
 
 <nav class="pager" aria-label="前後のページ"><a class="pager-prev" href="start.html"><small>前へ</small>はじめに・言葉の意味</a><a class="pager-next" href="manager-day.html"><small>次へ</small>当日と閉店後・注文の検索と修正</a></nav>
