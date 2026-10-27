@@ -19,7 +19,7 @@ function claimError(e: unknown): string {
       case 'turnstile_failed':
         return '確認が通りませんでした。ページを読み込み直して、もう一度お試しください。'
     }
-    if (e.status === 400) return '番号は「12」や「A-12」のように、確認コードは4桁の数字で入力してください。'
+    if (e.status === 400) return '番号は数字（例: 12）で、確認コードは4桁の数字で入力してください。'
   }
   return errorMessage(e)
 }
@@ -57,13 +57,14 @@ function ClaimForm({ shops }: { shops: PublicShop[] }) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!shop || !no.trim() || !code.trim() || !token || sending) return
+    if (!shop || !no || !code.trim() || !token || sending) return
     setSending(true)
     setError('')
     try {
       const r = await apiFetch<{ public_token: string }>('/api/order-claim', {
         method: 'POST',
-        body: { shop, order_no: no.trim(), code: code.trim(), turnstile_token: token },
+        // 番号は数字だけを送る（頭の英字は、選んだ店のものをサーバーが付ける）
+        body: { shop, order_no: no, code: code.trim(), turnstile_token: token },
       })
       navigate(`/o/${r.public_token}`)
     } catch (err) {
@@ -93,15 +94,25 @@ function ClaimForm({ shops }: { shops: PublicShop[] }) {
       <div className="row" style={{ gap: 12, alignItems: 'flex-start' }}>
         <label className="field" style={{ flex: 1 }}>
           <span className="field-label">お呼び出し番号</span>
-          <input
-            className="input"
-            value={no}
-            maxLength={10}
-            placeholder={prefix ? `例: ${prefix}-12` : '例: 12'}
-            autoCapitalize="characters"
-            autoComplete="off"
-            onChange={(e) => setNo(e.target.value)}
-          />
+          {/* 頭の英字はお店を選ぶと出す。お客様は数字だけを入れる */}
+          <span className="claim-no">
+            <span className="claim-no-prefix mono" aria-hidden={!prefix}>
+              {prefix ?? '?'}
+            </span>
+            <span className="claim-no-dash mono" aria-hidden="true">
+              -
+            </span>
+            <input
+              className="input mono"
+              value={no}
+              inputMode="numeric"
+              placeholder="12"
+              autoComplete="off"
+              disabled={!prefix}
+              aria-label={prefix ? `お呼び出し番号（${prefix}- のあとの数字）` : 'お呼び出し番号（先にお店を選んでください）'}
+              onChange={(e) => setNo(digitsOnly(e.target.value))}
+            />
+          </span>
         </label>
         <label className="field" style={{ flex: 1 }}>
           <span className="field-label">確認コード</span>
@@ -123,9 +134,18 @@ function ClaimForm({ shops }: { shops: PublicShop[] }) {
           {error}
         </p>
       )}
-      <button type="submit" className="btn btn-primary btn-block" disabled={!shop || !no.trim() || code.trim().length !== 4 || !token || sending}>
+      <button type="submit" className="btn btn-primary btn-block" disabled={!shop || !no || code.trim().length !== 4 || !token || sending}>
         {sending ? '登録しています' : '登録する'}
       </button>
     </form>
   )
+}
+
+/** 数字だけにする（全角の数字は半角にし、ほかの文字は捨てる）。「A-12」と貼り付けられても数字だけ残す。
+ *  番号は4桁まで（maxLength で切ると、英字やハイフンの分だけ数字が消えるので、ここで切る）。 */
+function digitsOnly(s: string): string {
+  return s
+    .replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+    .replace(/\D/g, '')
+    .slice(0, 4)
 }

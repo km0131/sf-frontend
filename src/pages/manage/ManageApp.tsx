@@ -17,6 +17,7 @@ const managerNav = [
   { to: 'ledger', label: '収支' },
   { to: 'receipts', label: 'レシート' },
   { to: 'settings', label: '店舗設定' },
+  { to: 'tickets/print', label: '引換票を印刷' },
   { to: 'account', label: 'アカウント' },
 ]
 
@@ -27,6 +28,7 @@ const adminNav = [
   { to: 'all-sales', label: '全店の売上' },
   { to: 'all-ledger', label: '全店の収支' },
   { to: 'all-receipts', label: '全店のレシート' },
+  { to: 'tickets/print', label: '引換票を印刷' },
   { to: 'account', label: 'アカウント' },
 ]
 
