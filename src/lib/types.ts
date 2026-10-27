@@ -75,6 +75,8 @@ export type PublicMenu = {
     business_type: BusinessType
     /** 呼び出し後の取り置き時間（分） */
     pickup_hold_minutes: number
+    /** 開催回の終了から、お名前・メールアドレス・ご希望を消すまでの日数（バックエンドの PII_RETENTION_DAYS） */
+    pii_retention_days: number
     /** Web 注文1回あたりの合計数量の上限（実際に使われる値） */
     web_order_max_quantity: number
     order_prefix: string
@@ -136,7 +138,7 @@ export type CustomerOrder = Order & {
   /** お客様が自分でキャンセルできるか（調理前・未払いの Web 注文だけ） */
   cancellable: boolean
   /** 「できあがりをメールで受け取る」欄。店舗がメールを使わない・終わった注文では null。email は伏せ字（例: t***@example.com） */
-  email_notify: { email: string | null } | null
+  email_notify: { email: string | null; retention_days: number } | null
 }
 
 /** レジの注文を、お客様のスマホに登録してもらうための QR（注文状況ページのトークン）と確認コード（4桁） */
