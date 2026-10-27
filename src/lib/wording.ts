@@ -23,8 +23,10 @@ export type Wording = {
   confirmTitle: string
   confirmSubmit: string
   totalUnpaid: string
-  noteHint: string
-  emailHint: string
+  /** ご希望の欄の案内（days: 開催回の終了から消すまでの日数。バックエンドの PII_RETENTION_DAYS） */
+  noteHint: (days: number) => string
+  /** メールアドレスの欄の案内（days は noteHint と同じ） */
+  emailHint: (days: number) => string
 
   // ---- お客様：注文状況 ----
   steps: string[]
@@ -119,9 +121,10 @@ const food: Wording = {
   confirmTitle: 'ご注文の確認',
   confirmSubmit: '注文を確定する',
   totalUnpaid: '合計（お受け取りの際にお支払い）',
-  noteHint: '抜いてほしいものなどがあれば書いてください（200文字まで）。ご希望はお作りするときにだけ使い、学園祭の終了から30日後に消去します。',
-  emailHint:
-    '入力すると、整理番号の控えと、できあがりのお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から30日後に消去します。',
+  noteHint: (days) =>
+    `抜いてほしいものなどがあれば書いてください（200文字まで）。ご希望はお作りするときにだけ使い、学園祭の終了から${days}日後に消去します。`,
+  emailHint: (days) =>
+    `入力すると、整理番号の控えと、できあがりのお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から${days}日後に消去します。`,
 
   steps: ['受付', '調理', '仕上げ', 'お渡し'],
   stepIndex: { waiting: 0, cooking: 1, ready: 2, done: 3, cancelled: -1, unclaimed: -1 },
@@ -209,9 +212,10 @@ const nonFood: Wording = {
   confirmTitle: '受付内容の確認',
   confirmSubmit: '受付を確定する',
   totalUnpaid: '合計（ご来店時にお支払い）',
-  noteHint: 'ご要望などがあれば書いてください（200文字まで）。ご希望はご案内のときにだけ使い、学園祭の終了から30日後に消去します。',
-  emailHint:
-    '入力すると、整理番号の控えと、順番のお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から30日後に消去します。',
+  noteHint: (days) =>
+    `ご要望などがあれば書いてください（200文字まで）。ご希望はご案内のときにだけ使い、学園祭の終了から${days}日後に消去します。`,
+  emailHint: (days) =>
+    `入力すると、整理番号の控えと、順番のお知らせを送ります。お名前・メールアドレスはこの目的にだけ使い、学園祭の終了から${days}日後に消去します。`,
 
   steps: ['受付', 'お呼び出し', '完了'],
   stepIndex: { waiting: 0, cooking: 0, ready: 1, done: 2, cancelled: -1, unclaimed: -1 },

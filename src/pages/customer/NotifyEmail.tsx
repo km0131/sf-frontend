@@ -98,7 +98,7 @@ export function NotifyEmail({ token, order }: { token: string; order: CustomerOr
         </form>
       )}
       <p className="field-hint">
-        {what}のお知らせにだけ使い、学園祭の終了から30日後に削除します。
+        {what}のお知らせにだけ使い、学園祭の終了から{notify.retention_days}日後に削除します。
       </p>
       {notice && (
         <p className="notice-text" role="status">

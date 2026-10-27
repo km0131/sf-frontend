@@ -18,7 +18,7 @@ type Event = {
   paused_at: string | null
   pause_message: string
 }
-type EventShop = { shop_id: number; slug: string; name: string; order_prefix: string; is_active: boolean }
+type EventShop = { shop_id: number; slug: string; name: string; order_prefix: string; sort_order: number; is_active: boolean }
 
 /** システム管理者: 開催回の作成・「今の開催回」の切り替え・出店する店舗と整理番号の頭文字。 */
 export function EventsPage() {
@@ -250,6 +250,8 @@ function EventShops({ eventId, name }: { eventId: number; name: string }) {
     <Panel title={`「${name}」に出店する店舗`}>
       <p className="field-hint" style={{ marginBottom: 12 }}>
         出店する店舗に、整理番号の頭文字（A〜Z、1〜2文字）を割り当てます。同じ開催回の中で頭文字は重ねられません。
+        <br />
+        並びは、お客様の店舗一覧や集計で店舗を並べる順です（小さい番号ほど先。同じ番号なら頭文字順）。空けて出店させると最後に入ります。
       </p>
       <Notice error={error} />
       <div className="table-wrap">
@@ -258,20 +260,27 @@ function EventShops({ eventId, name }: { eventId: number; name: string }) {
             <tr>
               <th>店名</th>
               <th>頭文字</th>
+              <th>並び</th>
               <th />
             </tr>
           </thead>
           <tbody>
-            {shops.data?.map((s) => {
-              const j = joined.data?.find((x) => x.shop_id === s.id)
+            {/* 出店している店舗を並び順に、そのあとに出店していない店舗 */}
+            {[
+              ...(joined.data ?? []).map((j) => ({ id: j.shop_id, name: j.name, j })),
+              ...(shops.data ?? []).filter((s) => !joined.data?.some((x) => x.shop_id === s.id)).map((s) => ({ id: s.id, name: s.name, j: undefined })),
+            ].map(({ id, name, j }) => {
               return (
                 <PrefixRow
-                  key={`${s.id}-${j?.order_prefix ?? ''}`}
-                  name={s.name}
+                  key={`${id}-${j?.order_prefix ?? ''}-${j?.sort_order ?? ''}`}
+                  name={name}
                   prefix={j?.order_prefix ?? ''}
+                  sortOrder={j?.sort_order}
                   joined={Boolean(j)}
-                  onSave={(p) => act(() => apiFetch(`/api/admin/events/${eventId}/shops/${s.id}`, { method: 'PUT', token, body: { order_prefix: p } }))}
-                  onRemove={() => act(() => apiFetch(`/api/admin/events/${eventId}/shops/${s.id}`, { method: 'DELETE', token }))}
+                  onSave={(p, order) =>
+                    act(() => apiFetch(`/api/admin/events/${eventId}/shops/${id}`, { method: 'PUT', token, body: { order_prefix: p, sort_order: order } }))
+                  }
+                  onRemove={() => act(() => apiFetch(`/api/admin/events/${eventId}/shops/${id}`, { method: 'DELETE', token }))}
                 />
               )
             })}
@@ -285,17 +294,22 @@ function EventShops({ eventId, name }: { eventId: number; name: string }) {
 function PrefixRow({
   name,
   prefix,
+  sortOrder,
   joined,
   onSave,
   onRemove,
 }: {
   name: string
   prefix: string
+  sortOrder?: number
   joined: boolean
-  onSave: (p: string) => void
+  /** order が undefined なら並び順を送らない（新しく出店するときは最後に入る） */
+  onSave: (p: string, order?: number) => void
   onRemove: () => void
 }) {
   const [value, setValue] = useState(prefix)
+  const [order, setOrder] = useState(sortOrder === undefined ? '' : String(sortOrder))
+  const dirty = value !== prefix || order !== (sortOrder === undefined ? '' : String(sortOrder))
   return (
     <tr>
       <td className="mincho">{name}</td>
@@ -309,10 +323,27 @@ function PrefixRow({
           aria-label={`${name}の頭文字`}
         />
       </td>
+      <td>
+        <input
+          className="input mono"
+          style={{ width: 80 }}
+          inputMode="numeric"
+          value={order}
+          maxLength={4}
+          placeholder={joined ? '' : '最後'}
+          onChange={(e) => setOrder(e.target.value.replace(/\D/g, ''))}
+          aria-label={`${name}の並び`}
+        />
+      </td>
       <td style={{ textAlign: 'right' }}>
         <div className="row" style={{ justifyContent: 'flex-end' }}>
-          <button type="button" className="btn btn-secondary" disabled={!value || value === prefix} onClick={() => onSave(value)}>
-            {joined ? '頭文字を変える' : '出店させる'}
+          <button
+            type="button"
+            className="btn btn-secondary"
+            disabled={!value || (joined && (!dirty || order === ''))}
+            onClick={() => onSave(value, order === '' ? undefined : Number(order))}
+          >
+            {joined ? '変更を保存' : '出店させる'}
           </button>
           {joined && (
             <button type="button" className="btn btn-text" onClick={onRemove}>

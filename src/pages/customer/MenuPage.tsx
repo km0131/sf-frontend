@@ -101,6 +101,8 @@ export function MenuPage() {
       </section>
 
       <section className="fade-in" aria-label={w.menuTitle}>
+        {/* 写真のある品があるときだけ、写真は見本であることを添える */}
+        {data.items.some((i) => i.image_url) && <p className="photo-note">※ 画像はイメージです</p>}
         <div>
           {groups.map((g) => (
             <div key={g.name}>
@@ -201,6 +203,7 @@ export function MenuPage() {
           shopName={shop.name}
           businessType={shop.business_type}
           pickupHoldMinutes={shop.pickup_hold_minutes}
+          retentionDays={shop.pii_retention_days}
           lines={validLines}
           items={items}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
@@ -218,6 +221,8 @@ type CheckoutProps = {
   businessType: BusinessType
   /** 呼び出し後の取り置き時間（分） */
   pickupHoldMinutes: number
+  /** 開催回の終了から、お名前・メールアドレス・ご希望を消すまでの日数 */
+  retentionDays: number
   lines: CartLine[]
   items: Map<number, MenuItem>
   onRemove: (key: string) => void
@@ -225,7 +230,7 @@ type CheckoutProps = {
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retentionDays, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
   const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -314,7 +319,7 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, lines,
             placeholder="例: 〇〇抜き、氷少なめ"
             onChange={(e) => setNote(e.target.value)}
           />
-          <span className="field-hint">{w.noteHint}</span>
+          <span className="field-hint">{w.noteHint(retentionDays)}</span>
         </label>
         <label className="field">
           <span className="field-label">お名前（任意）</span>
@@ -332,7 +337,7 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, lines,
             onChange={(e) => setEmail(e.target.value)}
           />
           <span className="field-hint">
-            {w.emailHint}
+            {w.emailHint(retentionDays)}
           </span>
         </label>
 
