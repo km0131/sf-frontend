@@ -3,6 +3,7 @@ import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { ItemNote } from '../../components/LineNote'
 import { DiscountTotals, OrderDiscountEditor } from '../../components/OrderDiscountEditor'
+import { discountedByLabel } from '../../lib/discount'
 import { Sheet } from '../../components/Sheet'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
@@ -301,7 +302,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                     <span className="discount-note">
                       {it.discount_name ?? `自由入力（${it.discount_reason ?? ''}）`}　−{yen(it.discount_amount)}
                       <span className="sub" style={{ marginLeft: 12 }}>
-                        {it.discounted_by === 'manager' ? '店長' : 'スタッフ'} {mdhm(it.discounted_at)}
+                        {discountedByLabel(it.discounted_by)} {mdhm(it.discounted_at)}
                       </span>
                     </span>
                   )}
@@ -319,7 +320,7 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                   <span className="discount-note">
                     {o.order_discount.name ?? `自由入力（${o.order_discount.reason ?? ''}）`}
                     <span className="sub" style={{ marginLeft: 12 }}>
-                      {o.order_discount.by === 'manager' ? '店長' : 'スタッフ'} {mdhm(o.order_discount.at)}
+                      {discountedByLabel(o.order_discount.by)} {mdhm(o.order_discount.at)}
                     </span>
                   </span>
                 </span>

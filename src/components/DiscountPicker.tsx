@@ -9,14 +9,16 @@ type Props = {
   /** 自由入力の上限額（0 なら自由入力は出さない、null なら上限なし＝店長） */
   freeLimit: number | null
   value: DiscountChoice | undefined
+  /** 店長が自動で適用している値引き（選ばなければこれが付く。外すことはできない） */
+  auto?: DiscountPreset | null
   /** 値引き前の金額（自由入力の目安に出す） */
   base: number
   onChoose: (choice: DiscountChoice | undefined) => void
 }
 
 /** 値引きを選ぶ：店長が登録したプリセットから選ぶ。自由入力は上限額が設定されているときだけ。 */
-export function DiscountPicker({ scope, presets, freeLimit, value, base, onChoose }: Props) {
-  const usable = presets.filter((p) => p.scope === scope && p.active)
+export function DiscountPicker({ scope, presets, freeLimit, value, auto, base, onChoose }: Props) {
+  const usable = presets.filter((p) => p.scope === scope && p.active && p.id !== auto?.id)
   const current = value && 'presetId' in value ? value.presetId : null
   const [amount, setAmount] = useState(value && !('presetId' in value) ? String(value.amount) : '')
   const [reason, setReason] = useState(value && !('presetId' in value) ? value.reason : '')
@@ -29,12 +31,18 @@ export function DiscountPicker({ scope, presets, freeLimit, value, base, onChoos
       <p className="field-hint">
         {scope === 'item' ? 'この商品（数量分）に付ける値引きを選んでください。' : '注文全体（商品の値引きのあとの合計）に付ける値引きを選んでください。'}
         値引きは1つまでです。
+        {auto && ' 店長が自動で付けている値引きがあります。別の値引きを選ぶと、そちらに置き換わります。'}
       </p>
       <fieldset className="opt-group">
         <legend className="field-label">値引き</legend>
         <button type="button" className={`opt ${value == null ? 'is-on' : ''}`} aria-pressed={value == null} onClick={() => onChoose(undefined)}>
           <span className="opt-mark" aria-hidden="true" />
-          <span className="opt-name">値引きなし</span>
+          <span className="opt-name">{auto ? `自動の値引き（${auto.name}）` : '値引きなし'}</span>
+          {auto && (
+            <span className="mono sub" style={{ fontSize: 12 }}>
+              {kindLabel(auto.kind, auto.value, auto.scope)}
+            </span>
+          )}
         </button>
         {usable.map((p) => (
           <button

@@ -130,16 +130,20 @@ export function OrderDiscountEditor({ order, presets, freeLimit, save, onSaved }
   )
 }
 
-/** 定価・値引き・お支払いを並べて出す。 */
-export function DiscountTotals({ list, total }: { list: number; total: number }) {
+/** 定価・値引き・お支払いを並べて出す。hidePay ならお支払いの行は出さない（下に合計の行があるとき）。 */
+export function DiscountTotals({ list, total, hidePay }: { list: number; total: number; hidePay?: boolean }) {
   return (
     <div className="discount-totals">
       <span>定価</span>
       <span className="mono">{yen(list)}</span>
       <span>値引き</span>
       <span className="mono">{list - total > 0 ? `−${yen(list - total)}` : yen(0)}</span>
-      <span className="discount-totals-pay">お支払い</span>
-      <span className="mono discount-totals-pay">{yen(total)}</span>
+      {!hidePay && (
+        <>
+          <span className="discount-totals-pay">お支払い</span>
+          <span className="mono discount-totals-pay">{yen(total)}</span>
+        </>
+      )}
     </div>
   )
 }

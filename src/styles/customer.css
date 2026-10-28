@@ -396,3 +396,25 @@
   font-size: 12px;
   color: var(--c-ink-sub);
 }
+
+/* 値引き中のお知らせ。面は塗らず、紫苑の線で囲む（中止のお知らせより控えめ） */
+.sale-notice {
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 1px solid var(--c-shion);
+  border-left-width: 3px;
+}
+
+.sale-notice-title {
+  margin: 0;
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.2em;
+  color: var(--c-shion-deep);
+}
+
+.sale-notice-body {
+  margin: 4px 0 0;
+  font-size: 13px;
+}

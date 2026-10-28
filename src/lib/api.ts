@@ -106,5 +106,6 @@ const messages: Record<string, string> = {
   stock_conflict: 'その間に注文が入りました。今の残りを確かめて、入力し直してください。',
   adjust_limit_exceeded: '一度に変えられる数を超えています。',
   limit_below_sold: '販売済みの数より少なくはできません。',
+  auto_discount_exists: '同じ範囲（商品ごと／注文全体）で自動で適用している値引きが、ほかにあります。先にそちらをやめてください。',
   unsupported_image: 'JPEG・PNG・WebP の画像を選んでください。',
 }
