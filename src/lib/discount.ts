@@ -1,5 +1,5 @@
 import { yen } from './format'
-import type { DiscountKind, DiscountPreset, OrderDiscount, OrderItem } from './types'
+import type { AutoDiscounts, DiscountKind, DiscountPreset, OrderDiscount, OrderItem } from './types'
 
 // 値引きの選択と、画面に出す目安の計算。金額はサーバーが計算し直す（ここの計算は表示用。バックエンドの discount パッケージと同じ式）
 
@@ -70,4 +70,20 @@ export function choiceOfOrder(od: OrderDiscount | null): DiscountChoice | undefi
   if (!od) return undefined
   if (od.preset_id != null) return { presetId: od.preset_id }
   return { amount: od.amount, reason: od.reason ?? '' }
+}
+
+/** 店舗が自動で適用している値引き（有効なもの）を、プリセットの一覧から取り出す。 */
+export function autoOf(presets: DiscountPreset[]): AutoDiscounts {
+  const find = (scope: 'item' | 'order') => presets.find((p) => p.active && p.auto_apply && p.scope === scope) ?? null
+  return { item: find('item'), order: find('order') }
+}
+
+/** 選んだ値引きがなければ、自動の値引き（あれば）を使う。 */
+export function withAuto(choice: DiscountChoice | undefined, auto: DiscountPreset | null): DiscountChoice | undefined {
+  return choice ?? (auto ? { presetId: auto.id } : undefined)
+}
+
+/** 誰が値引きを付けたかの表示。 */
+export function discountedByLabel(by: string | null | undefined): string {
+  return by === 'auto' ? '自動' : by === 'manager' ? '店長' : 'スタッフ'
 }

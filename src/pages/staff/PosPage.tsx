@@ -11,7 +11,7 @@ import { VerticalLabel } from '../../components/VerticalLabel'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { LineNoteInput } from '../../components/LineNote'
 import { addLine, cartCount, itemLimit, optionNames, quantityOf, setLineNote, toOrderItems, unitPrice, type CartLine } from '../../lib/cart'
-import { choiceName, lineDiscount, lineDiscountBody, orderDiscount, orderDiscountBody, type DiscountChoice } from '../../lib/discount'
+import { autoOf, choiceName, lineDiscount, lineDiscountBody, orderDiscount, orderDiscountBody, withAuto, type DiscountChoice } from '../../lib/discount'
 import { yen } from '../../lib/format'
 import { applyStock, isLowStock } from '../../lib/stock'
 import type { Category, MenuItem, Order, OrderClaim, Shortage, StaffDiscounts, StaffShop, StockLevel } from '../../lib/types'
@@ -37,6 +37,8 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
     queryFn: () => apiFetch<StaffDiscounts>('/api/staff/discounts', { token }),
   })
   const presets = discounts.data?.items ?? []
+  // 店長が自動で適用している値引き（値引きを選んでいない明細・注文に付く）
+  const auto = autoOf(presets)
   const [lines, setLines] = useState<CartLine[]>([])
   const [orderChoice, setOrderChoice] = useState<DiscountChoice | undefined>()
   const [picking, setPicking] = useState<MenuItem | null>(null)
@@ -61,12 +63,12 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
     const item = items.get(l.itemId)
     const unit = item ? unitPrice(item, l.optionIds) : 0
     const list = unit * l.quantity
-    const d = lineDiscount(l.discount, presets, unit, l.quantity)
+    const d = lineDiscount(withAuto(l.discount, auto.item), presets, unit, l.quantity)
     return { line: l, item, list, discount: d }
   })
   const listTotal = priced.reduce((s, p) => s + p.list, 0)
   const base = priced.reduce((s, p) => s + p.list - p.discount, 0)
-  const wholeDiscount = orderDiscount(orderChoice, presets, base)
+  const wholeDiscount = orderDiscount(withAuto(orderChoice, auto.order), presets, base)
   const total = base - wholeDiscount
   const zeroBlocked = total === 0 && listTotal > total && discounts.data?.allow_zero_price === false
   const receivedNum = received === '' ? total : Number(received)
@@ -271,9 +273,9 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
                           {yen(list - discount)}
                         </span>
                       </span>
-                      {l.discount && (
+                      {(l.discount || auto.item) && discount > 0 && (
                         <span className="discount-note">
-                          {choiceName(l.discount, presets)}　−{yen(discount)}
+                          {l.discount ? choiceName(l.discount, presets) : `${auto.item?.name}（自動）`}　−{yen(discount)}
                         </span>
                       )}
                       <span className="row" style={{ gap: 4 }}>
@@ -299,14 +301,14 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
                 <div className="lines-row" style={{ alignItems: 'center' }}>
                   <span style={{ flex: 1 }}>
                     注文全体の値引き
-                    {orderChoice && (
+                    {(orderChoice || auto.order) && (
                       <span className="discount-note">
-                        {choiceName(orderChoice, presets)}　−{yen(wholeDiscount)}
+                        {orderChoice ? choiceName(orderChoice, presets) : `${auto.order?.name}（自動）`}　−{yen(wholeDiscount)}
                       </span>
                     )}
                   </span>
                   <button type="button" className="btn btn-text" onClick={() => setDiscountTarget({ kind: 'order' })}>
-                    {orderChoice ? '変える' : '＋ 値引き'}
+                    {orderChoice || auto.order ? '変える' : '＋ 値引き'}
                   </button>
                 </div>
               )}
@@ -400,6 +402,7 @@ export function PosPage({ slug, token, shop }: { slug: string; token: string; sh
             scope={discountTarget.kind}
             presets={presets}
             freeLimit={discounts.data?.free_limit ?? 0}
+            auto={discountTarget.kind === 'item' ? auto.item : auto.order}
             value={targetLine ? targetLine.line.discount : orderChoice}
             base={targetLine ? targetLine.list : base}
             onChoose={(c) => {

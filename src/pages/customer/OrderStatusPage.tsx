@@ -3,6 +3,7 @@ import { useEffect } from 'react'
 import { Link, useParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { ItemNote } from '../../components/LineNote'
+import { DiscountTotals } from '../../components/OrderDiscountEditor'
 import { CallSoundButton } from '../../components/ReadyCall'
 import { Log, type LogEntry } from '../../components/Terminal'
 import { VerticalLabel } from '../../components/VerticalLabel'
@@ -129,10 +130,21 @@ export function OrderStatusPage() {
                 {it.options.length > 0 && <span className="sub">（{it.options.map((x) => x.name).join('、')}）</span>}
                 <span className="mono sub"> × {it.quantity}</span>
                 <ItemNote note={it.note} />
+                {it.discount_amount > 0 && it.discount_name && <span className="discount-note">{it.discount_name}　−{yen(it.discount_amount)}</span>}
               </span>
-              <span className="mono">{yen(it.subtotal)}</span>
+              <span className="price-stack">
+                {it.discount_amount > 0 && <s className="mono sub">{yen(it.subtotal)}</s>}
+                <span className="mono">{yen(it.subtotal - it.discount_amount)}</span>
+              </span>
             </div>
           ))}
+          {o.order_discount && o.order_discount.amount > 0 && (
+            <div className="lines-row">
+              <span>{o.order_discount.name ?? '値引き'}（お会計全体）</span>
+              <span className="mono">−{yen(o.order_discount.amount)}</span>
+            </div>
+          )}
+          {o.discount_total > 0 && <DiscountTotals list={o.list_total} total={o.total} hidePay />}
           <div className="lines-total">
             {o.total === 0 ? (
               <span>料金はかかりません</span>

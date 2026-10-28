@@ -12,7 +12,6 @@ import { ApiError, apiFetch, errorMessage, mediaUrl } from '../../lib/api'
 import {
   addLine,
   cartCount,
-  cartTotal,
   clampItem,
   itemLimit,
   optionNames,
@@ -31,7 +30,9 @@ import { seq2, waitLabel, yen } from '../../lib/format'
 import { myOrders } from '../../lib/session'
 import { streamEvents } from '../../lib/sse'
 import { applyStock, isLowStock } from '../../lib/stock'
-import type { BusinessType, CustomerOrder, MenuItem, PublicMenu, Shortage, StockLevel } from '../../lib/types'
+import { DiscountTotals } from '../../components/OrderDiscountEditor'
+import { kindLabel, lineDiscount, orderDiscount } from '../../lib/discount'
+import type { AutoDiscounts, BusinessType, CustomerOrder, MenuItem, PublicMenu, Shortage, StockLevel } from '../../lib/types'
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
 
@@ -52,7 +53,8 @@ export function MenuPage() {
   // メニューが更新されたら、売り切れになった品をカートから外し、限定の品は残り数までに減らす
   const validLines = useMemo(() => (data ? pruneLines(lines, items) : lines), [data, lines, items])
   const count = cartCount(validLines)
-  const total = cartTotal(validLines, items)
+  const auto = data?.discounts ?? noDiscounts
+  const total = priceCart(validLines, items, auto).total
 
   // 限定の品があるときだけ、残り数の配信を受ける（売り切れの切り替えでもお品書きを取り直す）
   const hasLimited = !!data?.items.some((i) => i.is_limited)
@@ -129,6 +131,7 @@ export function MenuPage() {
         </a>
       </div>
       {shop.paused && <PausedNotice message={shop.pause_message} />}
+      {(auto.item || auto.order) && <SaleNotice auto={auto} />}
 
       <section className="intro fade-in">
         <VerticalLabel text={w.menuTitle} note={shop.description || w.menuLimitNote(maxQty)} />
@@ -159,7 +162,17 @@ export function MenuPage() {
                         <span>{item.name}</span>
                         <span className="dot" aria-hidden="true" />
                       </div>
-                      <div className="item-price">{soldOut ? '売り切れ' : yen(item.price)}</div>
+                      <div className="item-price">
+                        {soldOut ? (
+                          '売り切れ'
+                        ) : auto.item ? (
+                          <>
+                            <s className="sub">{yen(item.price)}</s> {yen(item.price - lineDiscount({ presetId: auto.item.id }, [auto.item], item.price, 1))}
+                          </>
+                        ) : (
+                          yen(item.price)
+                        )}
+                      </div>
                       {item.is_limited && (
                         <div className="row" style={{ gap: '2px 8px', marginTop: 2, flexWrap: 'wrap' }}>
                           <span className="tag tag-limited">限定</span>
@@ -254,6 +267,7 @@ export function MenuPage() {
           retentionDays={shop.pii_retention_days}
           lines={validLines}
           items={items}
+          auto={auto}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
           onNote={(key, note) => setLines((prev) => setLineNote(prev, key, note))}
           onShortage={applyShortages}
@@ -275,6 +289,8 @@ type CheckoutProps = {
   retentionDays: number
   lines: CartLine[]
   items: Map<number, MenuItem>
+  /** 自動で適用中の値引き */
+  auto: AutoDiscounts
   onRemove: (key: string) => void
   onNote: (key: string, note: string) => void
   /** 在庫切れで受け付けられなかった（カートを残り数まで減らす） */
@@ -284,7 +300,8 @@ type CheckoutProps = {
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retentionDays, lines, items, onRemove, onNote, onShortage, onLimit, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retentionDays, lines, items, auto, onRemove, onNote, onShortage, onLimit, onClose }: CheckoutProps) {
+  const priced = priceCart(lines, items, auto)
   const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -362,7 +379,10 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
                   <LineNoteInput value={l.note} label={item.name} onChange={(note) => onNote(l.key, note)} />
                 </span>
                 <span className="row" style={{ gap: 8 }}>
-                  <span className="mono">{yen(unitPrice(item, l.optionIds) * l.quantity)}</span>
+                  <span className="price-stack">
+                    {(priced.rows.get(l.key)?.discount ?? 0) > 0 && <s className="mono sub">{yen(unitPrice(item, l.optionIds) * l.quantity)}</s>}
+                    <span className="mono">{yen(unitPrice(item, l.optionIds) * l.quantity - (priced.rows.get(l.key)?.discount ?? 0))}</span>
+                  </span>
                   <button type="button" className="btn btn-text" onClick={() => onRemove(l.key)}>
                     外す
                   </button>
@@ -370,13 +390,20 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
               </div>
             )
           })}
+          {priced.orderDiscount > 0 && auto.order && (
+            <div className="lines-row">
+              <span>{auto.order.name}（お会計全体）</span>
+              <span className="mono">−{yen(priced.orderDiscount)}</span>
+            </div>
+          )}
+          {priced.list > priced.total && <DiscountTotals list={priced.list} total={priced.total} hidePay />}
           <div className="lines-total">
-            {cartTotal(lines, items) === 0 ? (
+            {priced.total === 0 ? (
               <span>料金はかかりません</span>
             ) : (
               <>
                 <span>{w.totalUnpaid}</span>
-                <span className="mono">{yen(cartTotal(lines, items))}</span>
+                <span className="mono">{yen(priced.total)}</span>
               </>
             )}
           </div>
@@ -415,7 +442,7 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
         </label>
 
         <p className="field-hint">
-          {cartTotal(lines, items) > 0 && w.payNote}
+          {priced.total > 0 && w.payNote}
           {w.cancelLimitNote}
           {pickupHoldMinutes > 0 && w.holdNote(pickupHoldMinutes)}
         </p>
@@ -437,5 +464,44 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
         </button>
       </div>
     </Sheet>
+  )
+}
+
+const noDiscounts: AutoDiscounts = { item: null, order: null }
+
+/** カートの金額（自動で適用中の値引きを付けた目安。実際の金額は注文のときにサーバーが計算する）。 */
+function priceCart(lines: CartLine[], items: Map<number, MenuItem>, auto: AutoDiscounts) {
+  const rows = new Map<string, { list: number; discount: number }>()
+  let list = 0
+  let base = 0
+  for (const l of lines) {
+    const item = items.get(l.itemId)
+    if (!item) continue
+    const unit = unitPrice(item, l.optionIds)
+    const discount = auto.item ? lineDiscount({ presetId: auto.item.id }, [auto.item], unit, l.quantity) : 0
+    rows.set(l.key, { list: unit * l.quantity, discount })
+    list += unit * l.quantity
+    base += unit * l.quantity - discount
+  }
+  const od = auto.order ? orderDiscount({ presetId: auto.order.id }, [auto.order], base) : 0
+  return { rows, list, orderDiscount: od, total: base - od }
+}
+
+/** 値引き中のお知らせ（店長が自動で適用している値引き）。 */
+function SaleNotice({ auto }: { auto: AutoDiscounts }) {
+  return (
+    <div className="sale-notice" role="note">
+      <p className="sale-notice-title">値引き中</p>
+      {auto.item && (
+        <p className="sale-notice-body">
+          {auto.item.name}：全品 {kindLabel(auto.item.kind, auto.item.value, 'item')}
+        </p>
+      )}
+      {auto.order && (
+        <p className="sale-notice-body">
+          {auto.order.name}：お会計から {kindLabel(auto.order.kind, auto.order.value, 'order')}
+        </p>
+      )}
+    </div>
   )
 }

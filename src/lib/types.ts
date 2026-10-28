@@ -103,7 +103,12 @@ export type DiscountPreset = {
   value: number
   scope: DiscountScope
   active: boolean
+  /** 新しい注文（Web・レジとも）に自動で付けるか。範囲ごとに1つまで */
+  auto_apply: boolean
 }
+
+/** 自動で適用中の値引き（範囲ごとに1つまで） */
+export type AutoDiscounts = { item: DiscountPreset | null; order: DiscountPreset | null }
 
 /** レジで選べる値引き（GET /api/staff/discounts）。free_limit は自由入力の上限額（0 なら使えない、null なら上限なし＝店長） */
 export type StaffDiscounts = {
@@ -136,6 +141,8 @@ export type PublicMenu = {
   }
   categories: Category[]
   items: MenuItem[]
+  /** 自動で適用中の値引き（実際の金額は注文のときにサーバーが計算する） */
+  discounts: AutoDiscounts
 }
 
 export type OptionSnapshot = {
@@ -161,7 +168,7 @@ export type OrderItem = {
   discount_name: string | null
   /** 自由入力の理由（お客様向けには出ない） */
   discount_reason?: string | null
-  discounted_by?: 'staff' | 'manager' | null
+  discounted_by?: 'staff' | 'manager' | 'auto' | null
   discounted_at?: string | null
 }
 
@@ -171,7 +178,7 @@ export type OrderDiscount = {
   preset_id: number | null
   name: string | null
   reason?: string | null
-  by?: 'staff' | 'manager'
+  by?: 'staff' | 'manager' | 'auto'
   at: string
 }
 

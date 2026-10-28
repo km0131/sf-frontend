@@ -30,6 +30,18 @@ export function DiscountsPage() {
     queryFn: () => apiFetch<List<DiscountPreset>>('/api/manage/discounts', { token }).then((r) => r.items),
   })
 
+  // 自動で適用する・やめる（閉店前のセールなど。Web・レジの新しい注文すべてに付く）
+  const toggleAuto = async (p: DiscountPreset) => {
+    setError(null)
+    if (!p.auto_apply && !window.confirm(`「${p.name}」をこれからの注文（Web・レジとも）に自動で付けますか？`)) return
+    try {
+      await apiFetch(`/api/manage/discounts/${p.id}`, { method: 'PUT', token, body: { ...p, auto_apply: !p.auto_apply } })
+      void queryClient.invalidateQueries({ queryKey: key })
+    } catch (e) {
+      setError(errorMessage(e))
+    }
+  }
+
   const toggle = async (p: DiscountPreset) => {
     setError(null)
     try {
@@ -53,6 +65,17 @@ export function DiscountsPage() {
           スタッフはここで登録した値引きから選びます。金額を自由に入れる値引きは、店舗設定で上限額を決めたときだけ使えます。
           1つの商品・1つの注文に付けられる値引きは1つまでです。
         </p>
+        <p className="field-hint" style={{ marginBottom: 12 }}>
+          <strong>自動で適用</strong>にした値引きは、Web 注文・レジのこれからの注文すべてに付きます（閉店前のセールなど）。商品ごとの値引きはすべての商品に、注文全体の値引きはお会計に付き、お客さんの画面には「値引き中」と値引き後の値段が出ます。商品ごと・注文全体それぞれ1つまでです。
+        </p>
+        {data?.some((p) => p.auto_apply) && (
+          <div className="sale-notice" style={{ marginBottom: 12 }}>
+            <p className="sale-notice-title">自動で適用中</p>
+            <p className="sale-notice-body">
+              {data.filter((p) => p.auto_apply).map((p) => `${p.name}（${scopes.find((s) => s.value === p.scope)?.label}・${kindLabel(p.kind, p.value, p.scope)}）`).join('　')}
+            </p>
+          </div>
+        )}
         <Notice error={error ?? (loadError ? errorMessage(loadError) : null)} />
         <div className="table-wrap">
           <table className="table table-cards">
@@ -62,6 +85,7 @@ export function DiscountsPage() {
                 <th>範囲</th>
                 <th>内容</th>
                 <th>状態</th>
+                <th>自動で適用</th>
                 <th />
               </tr>
             </thead>
@@ -74,6 +98,21 @@ export function DiscountsPage() {
                     {kindLabel(p.kind, p.value, p.scope)}
                   </td>
                   <td data-label="状態">{p.active ? <span className="tag">使える</span> : <span className="tag">無効</span>}</td>
+                  <td data-label="自動で適用">
+                    {p.active && (
+                      <button
+                        type="button"
+                        className={`btn ${p.auto_apply ? 'btn-secondary' : 'btn-text'}`}
+                        aria-pressed={p.auto_apply}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void toggleAuto(p)
+                        }}
+                      >
+                        {p.auto_apply ? '適用中（やめる）' : '自動で適用する'}
+                      </button>
+                    )}
+                  </td>
                   <td>
                     <button
                       type="button"
@@ -107,6 +146,7 @@ function PresetEditor({ preset, onClose }: { preset: DiscountPreset | null; onCl
     value: preset ? String(preset.value) : '',
     scope: preset?.scope ?? ('item' as DiscountScope),
     active: preset?.active ?? true,
+    auto_apply: preset?.auto_apply ?? false,
   })
   const [error, setError] = useState<string | null>(null)
   const value = Number(form.value)
@@ -122,7 +162,7 @@ function PresetEditor({ preset, onClose }: { preset: DiscountPreset | null; onCl
   const save = async () => {
     setError(null)
     try {
-      const body = { name: form.name.trim(), kind: form.kind, value, scope: form.scope, active: form.active }
+      const body = { name: form.name.trim(), kind: form.kind, value, scope: form.scope, active: form.active, auto_apply: form.active && form.auto_apply }
       if (preset) await apiFetch(`/api/manage/discounts/${preset.id}`, { method: 'PUT', token, body })
       else await apiFetch('/api/manage/discounts', { method: 'POST', token, body })
       void queryClient.invalidateQueries({ queryKey: key })
@@ -173,6 +213,10 @@ function PresetEditor({ preset, onClose }: { preset: DiscountPreset | null; onCl
         <label className="check">
           <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
           レジで使える（外すと無効。過去の注文の値引きはそのまま）
+        </label>
+        <label className="check">
+          <input type="checkbox" checked={form.auto_apply} disabled={!form.active} onChange={(e) => setForm({ ...form, auto_apply: e.target.checked })} />
+          自動で適用する（Web 注文・レジのこれからの注文すべてに付ける）
         </label>
         {preset && <p className="field-hint">内容を変えても、すでに付けた値引きの額は変わりません。</p>}
         <Notice error={error ?? valueError} />

@@ -77,7 +77,9 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
         } else if (m.type === 'hello') {
           void queryClient.invalidateQueries({ queryKey: ['staff', slug] })
         } else if (m.type === 'menu') {
+          // 自動で適用する値引きが変わったときも届くので、値引きの一覧も取り直す
           void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
+          void queryClient.invalidateQueries({ queryKey: staffKeys.discounts(slug) })
         } else if (m.type === 'stock') {
           // 限定商品の残り数（注文・取り消し・修正のたびに届く）
           queryClient.setQueryData<{ categories: Category[]; items: MenuItem[] }>(staffKeys.menu(slug), (old) => applyStock(old, m.data as StockLevel))
