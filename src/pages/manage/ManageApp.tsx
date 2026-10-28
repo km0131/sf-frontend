@@ -12,6 +12,7 @@ import type { ManageContext } from './context'
 
 const managerNav = [
   { to: 'products', label: '商品' },
+  { to: 'discounts', label: '値引き' },
   { to: 'orders', label: '注文' },
   { to: 'sales', label: '売上' },
   { to: 'ledger', label: '収支' },

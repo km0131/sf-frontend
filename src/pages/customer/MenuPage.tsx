@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { Header } from '../../components/Header'
 import { OptionPicker } from '../../components/OptionPicker'
@@ -13,6 +13,8 @@ import {
   addLine,
   cartCount,
   cartTotal,
+  clampItem,
+  itemLimit,
   optionNames,
   pruneLines,
   quantityOf,
@@ -27,7 +29,9 @@ import { storeStyle } from '../../lib/colors'
 import { CUSTOMER_GUIDE_URL } from '../../lib/manual'
 import { seq2, waitLabel, yen } from '../../lib/format'
 import { myOrders } from '../../lib/session'
-import type { BusinessType, CustomerOrder, MenuItem, PublicMenu } from '../../lib/types'
+import { streamEvents } from '../../lib/sse'
+import { applyStock, isLowStock } from '../../lib/stock'
+import type { BusinessType, CustomerOrder, MenuItem, PublicMenu, Shortage, StockLevel } from '../../lib/types'
 import { wording } from '../../lib/wording'
 import { NotFoundPage } from '../NotFoundPage'
 
@@ -43,11 +47,36 @@ export function MenuPage() {
   const [picking, setPicking] = useState<MenuItem | null>(null)
   const [checkout, setCheckout] = useState(false)
 
+  const queryClient = useQueryClient()
   const items = useMemo(() => new Map((data?.items ?? []).map((i) => [i.id, i])), [data])
-  // メニューが更新されたら、売り切れになった品をカートから外す
+  // メニューが更新されたら、売り切れになった品をカートから外し、限定の品は残り数までに減らす
   const validLines = useMemo(() => (data ? pruneLines(lines, items) : lines), [data, lines, items])
   const count = cartCount(validLines)
   const total = cartTotal(validLines, items)
+
+  // 限定の品があるときだけ、残り数の配信を受ける（売り切れの切り替えでもお品書きを取り直す）
+  const hasLimited = !!data?.items.some((i) => i.is_limited)
+  useEffect(() => {
+    if (!hasLimited) return
+    const refetch = () =>
+      // 大勢が同時に取り直さないよう、少しずらす
+      setTimeout(() => void queryClient.invalidateQueries({ queryKey: ['menu', slug] }), Math.random() * 2000)
+    const s = streamEvents(`/api/shops/${encodeURIComponent(slug)}/menu/events`, undefined, (m) => {
+      if (m.type === 'stock') queryClient.setQueryData<PublicMenu>(['menu', slug], (old) => applyStock(old, m.data as StockLevel))
+      else if (m.type === 'menu') refetch()
+    })
+    return () => s.stop()
+  }, [hasLimited, slug, queryClient])
+
+  // 注文が在庫切れで受け付けられなかった: 残り数を反映し、カートの品を残り数まで減らす（0 なら外す）
+  const applyShortages = (shortages: Shortage[]) => {
+    for (const sh of shortages) {
+      queryClient.setQueryData<PublicMenu>(['menu', slug], (old) =>
+        applyStock(old, { menu_item_id: sh.menu_item_id, business_date: '', remaining: sh.remaining }),
+      )
+    }
+    setLines((prev) => shortages.reduce((acc, sh) => clampItem(acc, sh.menu_item_id, sh.remaining), pruneLines(prev, items)))
+  }
 
   if (error instanceof ApiError && error.code === 'shop_not_open') {
     return <NotFoundPage message="このお店は、いま受付をしていません。" />
@@ -71,8 +100,13 @@ export function MenuPage() {
   const maxQty = shop.web_order_max_quantity
   const atLimit = count >= maxQty
 
+  // その品をあと何個入れられるか（限定の品の残り数・1回の購入上限）
+  const roomFor = (item: MenuItem) => {
+    const lim = itemLimit(item)
+    return lim == null ? Infinity : lim - quantityOf(validLines, item.id)
+  }
   const plus = (item: MenuItem) => {
-    if (atLimit || shop.paused) return
+    if (atLimit || shop.paused || roomFor(item) <= 0) return
     if (item.option_groups.length > 0) setPicking(item)
     else setLines((prev) => addLine(pruneLines(prev, items), item.id, [], 1))
   }
@@ -110,7 +144,8 @@ export function MenuPage() {
               {g.items.map((item) => {
                 seq += 1
                 const q = quantityOf(validLines, item.id)
-                const soldOut = !item.is_available
+                const soldOut = !item.orderable
+                const low = isLowStock(item, shop.low_stock_threshold)
                 return (
                   <div key={item.id} className={`item ${q > 0 ? 'is-selected' : ''} ${soldOut ? 'is-soldout' : ''}`}>
                     <span className="item-seq">{seq2(seq)}</span>
@@ -125,6 +160,19 @@ export function MenuPage() {
                         <span className="dot" aria-hidden="true" />
                       </div>
                       <div className="item-price">{soldOut ? '売り切れ' : yen(item.price)}</div>
+                      {item.is_limited && (
+                        <div className="row" style={{ gap: '2px 8px', marginTop: 2, flexWrap: 'wrap' }}>
+                          <span className="tag tag-limited">限定</span>
+                          {!soldOut && (
+                            <span className={`stock-left ${low ? 'is-low' : ''}`}>
+                              {low ? `残りわずか・${item.remaining}個` : `残り${item.remaining}個`}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      {item.purchase_limit_per_order != null && !soldOut && (
+                        <div className="item-opts">1回の注文で {item.purchase_limit_per_order}個まで</div>
+                      )}
                       {item.option_groups.length > 0 && !soldOut && (
                         <div className="item-opts">{item.option_groups.map((g) => g.name).join('・')}を選べます</div>
                       )}
@@ -148,7 +196,7 @@ export function MenuPage() {
                             type="button"
                             className="qty"
                             aria-label={`${item.name}を増やす`}
-                            disabled={atLimit || shop.paused}
+                            disabled={atLimit || shop.paused || roomFor(item) <= 0}
                             onClick={() => plus(item)}
                           >
                             +
@@ -188,9 +236,9 @@ export function MenuPage() {
         <Sheet title={picking.name} onClose={() => setPicking(null)}>
           <OptionPicker
             item={picking}
-            maxQuantity={Math.max(1, maxQty - count)}
+            maxQuantity={Math.max(1, Math.min(maxQty - count, roomFor(picking)))}
             onAdd={(ids, qty) => {
-              setLines((prev) => addLine(pruneLines(prev, items), picking.id, ids, Math.min(qty, maxQty - count)))
+              setLines((prev) => addLine(pruneLines(prev, items), picking.id, ids, Math.min(qty, maxQty - count, roomFor(picking))))
               setPicking(null)
             }}
           />
@@ -208,6 +256,8 @@ export function MenuPage() {
           items={items}
           onRemove={(key) => setLines((prev) => prev.filter((l) => l.key !== key))}
           onNote={(key, note) => setLines((prev) => setLineNote(prev, key, note))}
+          onShortage={applyShortages}
+          onLimit={(id, max) => setLines((prev) => clampItem(prev, id, max))}
           onClose={() => setCheckout(false)}
         />
       )}
@@ -227,10 +277,14 @@ type CheckoutProps = {
   items: Map<number, MenuItem>
   onRemove: (key: string) => void
   onNote: (key: string, note: string) => void
+  /** 在庫切れで受け付けられなかった（カートを残り数まで減らす） */
+  onShortage: (shortages: Shortage[]) => void
+  /** 1回の購入上限を超えていた（カートをその数まで減らす） */
+  onLimit: (itemId: number, max: number) => void
   onClose: () => void
 }
 
-function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retentionDays, lines, items, onRemove, onNote, onClose }: CheckoutProps) {
+function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retentionDays, lines, items, onRemove, onNote, onShortage, onLimit, onClose }: CheckoutProps) {
   const w = wording(businessType)
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -238,6 +292,8 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
   const [email, setEmail] = useState('')
   const [note, setNote] = useState('')
   const [token, setToken] = useState<string | null>(null)
+  // Turnstile のトークンは1回しか使えないので、送って失敗したら作り直す（key を変えて描き直す）
+  const [turnstileKey, setTurnstileKey] = useState(0)
   const [sending, setSending] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const onToken = useCallback((t: string | null) => setToken(t), [])
@@ -264,9 +320,26 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
     } catch (e) {
       const max = e instanceof ApiError && e.code === 'too_many_items' ? Number(e.details?.max_quantity) : NaN
       setError(Number.isFinite(max) ? w.limitReached(max) : errorMessage(e))
+      if (e instanceof ApiError && e.code === 'out_of_stock') {
+        const shortages = (e.details?.items ?? []) as Shortage[]
+        setError(
+          shortages
+            .map((sh) => `申し訳ありません。${sh.name}が売り切れました（残り${sh.remaining}個）。`)
+            .join('\n') + (shortages.some((sh) => sh.remaining > 0) ? '数を減らしました。' : '') + 'ご確認のうえ、もう一度お進みください。',
+        )
+        onShortage(shortages)
+      } else if (e instanceof ApiError && e.code === 'purchase_limit_exceeded') {
+        const id = Number(e.details?.menu_item_id)
+        const limit = Number(e.details?.limit)
+        setError(`${String(e.details?.name ?? '')}は1回の注文で${limit}個までです。数を減らしました。`)
+        onLimit(id, limit)
+      }
       if (e instanceof ApiError && (e.code === 'too_many_items' || e.code === 'item_unavailable' || e.code === 'option_unavailable' || e.code === 'event_paused')) {
         void queryClient.invalidateQueries({ queryKey: ['menu', slug] })
       }
+      // 使ったトークンはもう使えないので、確認を取り直す
+      setToken(null)
+      setTurnstileKey((k) => k + 1)
     } finally {
       setSending(false)
     }
@@ -347,8 +420,12 @@ function CheckoutSheet({ slug, shopName, businessType, pickupHoldMinutes, retent
           {pickupHoldMinutes > 0 && w.holdNote(pickupHoldMinutes)}
         </p>
 
-        <Turnstile action={TURNSTILE_ACTION_WEB_ORDER} onToken={onToken} />
-        {error && <p className="error-text">{error}</p>}
+        <Turnstile key={turnstileKey} action={TURNSTILE_ACTION_WEB_ORDER} onToken={onToken} />
+        {error && (
+          <p className="error-text" role="alert" style={{ whiteSpace: 'pre-line' }}>
+            {error}
+          </p>
+        )}
 
         <button
           type="button"

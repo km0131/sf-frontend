@@ -2,10 +2,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router'
 import { ItemNote } from '../../components/LineNote'
+import { DiscountTotals, OrderDiscountEditor } from '../../components/OrderDiscountEditor'
 import { Sheet } from '../../components/Sheet'
 import { apiFetch, errorMessage } from '../../lib/api'
 import { mdhm, yen } from '../../lib/format'
-import type { ManagerOrder, OrderStatus, ShopEvent } from '../../lib/types'
+import type { DiscountPreset, List, ManagerOrder, Order, OrderStatus, ShopEvent } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage, useShopWording } from './context'
 
@@ -214,6 +215,12 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
   const [reason, setReason] = useState('')
   const [msg, setMsg] = useState<string | null>(null)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [discounting, setDiscounting] = useState(false)
+  const presets = useQuery({
+    queryKey: ['manage', 'discounts'],
+    queryFn: () => apiFetch<List<DiscountPreset>>('/api/manage/discounts', { token }).then((r) => r.items),
+    enabled: discounting,
+  })
 
   const save = async () => {
     if (!o) return
@@ -290,15 +297,80 @@ function OrderDetail({ id, onClose }: { id: string; onClose: () => void }) {
                     {yen(it.unit_price)} × {it.quantity}
                   </span>
                   <ItemNote note={it.note} />
+                  {it.discounted_at && (
+                    <span className="discount-note">
+                      {it.discount_name ?? `自由入力（${it.discount_reason ?? ''}）`}　−{yen(it.discount_amount)}
+                      <span className="sub" style={{ marginLeft: 12 }}>
+                        {it.discounted_by === 'manager' ? '店長' : 'スタッフ'} {mdhm(it.discounted_at)}
+                      </span>
+                    </span>
+                  )}
                 </span>
-                <span className="mono">{yen(it.subtotal)}</span>
+                <span className="price-stack">
+                  {it.discount_amount > 0 && <s className="mono sub">{yen(it.subtotal)}</s>}
+                  <span className="mono">{yen(it.subtotal - it.discount_amount)}</span>
+                </span>
               </div>
             ))}
-            <div className="lines-total">
-              <span>合計</span>
-              <span className="mono">{yen(o.total)}</span>
-            </div>
+            {o.order_discount && (
+              <div className="lines-row">
+                <span>
+                  注文全体の値引き
+                  <span className="discount-note">
+                    {o.order_discount.name ?? `自由入力（${o.order_discount.reason ?? ''}）`}
+                    <span className="sub" style={{ marginLeft: 12 }}>
+                      {o.order_discount.by === 'manager' ? '店長' : 'スタッフ'} {mdhm(o.order_discount.at)}
+                    </span>
+                  </span>
+                </span>
+                <span className="mono">−{yen(o.order_discount.amount)}</span>
+              </div>
+            )}
+            {o.discount_total > 0 ? (
+              <DiscountTotals list={o.list_total} total={o.total} />
+            ) : (
+              <div className="lines-total">
+                <span>合計</span>
+                <span className="mono">{yen(o.total)}</span>
+              </div>
+            )}
           </div>
+
+          {o.status !== 'cancelled' && o.status !== 'unclaimed' && (
+            <div className="panel" style={{ background: 'transparent' }}>
+              <h3 className="panel-title">値引き</h3>
+              {discounting ? (
+                <>
+                  <OrderDiscountEditor
+                    order={o}
+                    presets={presets.data ?? []}
+                    freeLimit={null}
+                    save={(body) => apiFetch<Order>(`/api/manage/orders/${id}/discounts`, { method: 'PUT', token, body })}
+                    onSaved={(updated) => {
+                      queryClient.setQueryData(['manage', 'order', id], { ...o, ...updated })
+                      void queryClient.invalidateQueries({ queryKey: ['manage', 'orders'] })
+                      setDiscounting(false)
+                      setMsg('値引きを直しました。')
+                    }}
+                  />
+                  <button type="button" className="btn btn-text" onClick={() => setDiscounting(false)}>
+                    やめる
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="field-hint" style={{ marginBottom: 10 }}>
+                    {o.paid
+                      ? '会計済みの注文です。値引きを変えると支払額が変わります（返金・追加の受け取りは店頭で行ってください）。'
+                      : '会計前の注文です。レジ（注文帳の受け取り）でも値引きを付けられます。'}
+                  </p>
+                  <button type="button" className="btn btn-secondary" onClick={() => setDiscounting(true)}>
+                    値引きを直す
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           <div className="panel" style={{ background: 'transparent' }}>
             <h3 className="panel-title">修正</h3>

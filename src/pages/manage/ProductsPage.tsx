@@ -7,6 +7,7 @@ import type { Category, List, MenuItem } from '../../lib/types'
 import { Notice, PageHead, Panel } from './common'
 import { useManage } from './context'
 import { OutlookBar } from './OutlookBar'
+import { AdjustmentsTable, LimitedStockPanel } from './StockPanel'
 
 const keys = {
   categories: ['manage', 'categories'] as const,
@@ -73,11 +74,19 @@ export function ProductsPage() {
                     {it.option_groups.map((g) => g.name).join('・') || '—'}
                   </td>
                   <td data-label="状態">
+                    {it.is_limited && !it.is_archived && (
+                      <span className="stock-left" style={{ display: 'block', marginBottom: 2 }}>
+                        <span className="tag tag-limited" style={{ marginRight: 6 }}>
+                          限定
+                        </span>
+                        今日 残り{it.remaining ?? 0}・販売{it.sold ?? 0}
+                      </span>
+                    )}
                     {it.is_archived ? (
                       <span className="tag">削除済み</span>
                     ) : it.is_available ? (
                       <>
-                        <span className="tag">販売中</span>
+                        <span className="tag">{it.orderable ? '販売中' : '本日分は売り切れ'}</span>
                         {it.option_groups.some((g) => g.options.some((o) => !o.is_available)) && (
                           <span className="sub" style={{ display: 'block', fontSize: 11 }}>
                             一部の選択肢が売り切れ
@@ -98,6 +107,13 @@ export function ProductsPage() {
       </Panel>
 
       <CategoriesPanel categories={categories.data ?? []} />
+
+      {items.data?.some((it) => it.is_limited) && (
+        <Panel title="限定数の修正の記録">
+          <p className="field-hint" style={{ marginBottom: 12 }}>レジ・この画面で残りを直した記録です（新しい順）。</p>
+          <AdjustmentsTable />
+        </Panel>
+      )}
 
       {editing && (
         <ItemEditor
@@ -246,6 +262,9 @@ function ItemEditor({ item, categories, onClose }: { item: MenuItem | null; cate
     category_id: item?.category_id ?? null,
     is_available: item?.is_available ?? true,
     sort_order: String(item?.sort_order ?? 0),
+    is_limited: item?.is_limited ?? false,
+    // 空欄なら1注文あたりの上限なし
+    purchase_limit_per_order: item?.purchase_limit_per_order == null ? '' : String(item.purchase_limit_per_order),
   })
   const [groups, setGroups] = useState<GroupDraft[]>(() => toDraft(item))
   const [error, setError] = useState<string | null>(null)
@@ -275,6 +294,8 @@ function ItemEditor({ item, categories, onClose }: { item: MenuItem | null; cate
         category_id: form.category_id,
         is_available: form.is_available,
         sort_order: Number(form.sort_order) || 0,
+        is_limited: form.is_limited,
+        purchase_limit_per_order: form.purchase_limit_per_order === '' ? null : Number(form.purchase_limit_per_order),
         option_groups: groups.map((g) => ({
           name: g.name.trim(),
           required: g.required,
@@ -387,6 +408,34 @@ function ItemEditor({ item, categories, onClose }: { item: MenuItem | null; cate
           <input type="checkbox" checked={form.is_available} onChange={(e) => setForm({ ...form, is_available: e.target.checked })} />
           販売中（外すと売り切れ）
         </label>
+
+        <div className="field">
+          <span className="field-label">限定</span>
+          <label className="check">
+            <input type="checkbox" checked={form.is_limited} onChange={(e) => setForm({ ...form, is_limited: e.target.checked })} />
+            限定商品（営業日ごとの限定数まで売る。残りが 0 になると自動で売り切れ）
+          </label>
+          <label className="row" style={{ gap: 8, fontSize: 13 }}>
+            1回の注文で
+            <input
+              className="input mono"
+              style={{ width: 72 }}
+              inputMode="numeric"
+              placeholder="—"
+              aria-label="1注文あたりの購入上限"
+              value={form.purchase_limit_per_order}
+              onChange={(e) => setForm({ ...form, purchase_limit_per_order: e.target.value.replace(/\D/g, '').slice(0, 2) })}
+            />
+            個まで
+            <span className="sub" style={{ fontSize: 12 }}>（空欄なら上限なし。1〜99）</span>
+          </label>
+          {form.is_limited &&
+            (current?.is_limited ? (
+              <LimitedStockPanel itemId={current.id} />
+            ) : (
+              <span className="field-hint">保存すると、営業日ごとの限定数を入れられます。</span>
+            ))}
+        </div>
 
         <div className="field">
           <span className="field-label">選択肢（サイズ・トッピングなど）</span>

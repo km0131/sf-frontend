@@ -558,3 +558,13 @@
 .claim-panel .field-hint .mono {
   white-space: nowrap;
 }
+
+/* レジの商品のマス（商品のボタンと、限定の品の「残り」のボタン） */
+.pos-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.pos-cell .pos-item {
+  flex: 1;
+}

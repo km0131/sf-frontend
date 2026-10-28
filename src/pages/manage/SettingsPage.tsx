@@ -22,6 +22,14 @@ type Settings = {
   web_order_max_quantity_effective: number
   web_order_max_quantity_default: number
   web_order_max_quantity_limit: number
+  /** スタッフが自由入力できる値引きの上限額（円。0 なら自由入力できない） */
+  staff_free_discount_limit: number
+  /** 値引きで支払額を 0 円にしてよいか */
+  allow_zero_price: boolean
+  /** 「残りわずか」と出す残り数 */
+  low_stock_threshold: number
+  /** スタッフが1回に増減できる限定数 */
+  staff_stock_adjust_limit: number
   pin_set: boolean
   pin_updated_at: string | null
   current_event: { id: number; name: string; starts_on: string; ends_on: string; order_prefix: string | null } | null
@@ -89,6 +97,10 @@ export function SettingsPage() {
           （変更はシステム管理者に依頼してください）
         </p>
         <ShopInfoForm initial={data} />
+      </Panel>
+
+      <Panel title="値引き・限定商品">
+        <SalesRulesForm initial={data} />
       </Panel>
 
       <Panel title="スタッフ用 PIN">
@@ -256,6 +268,71 @@ function ShopInfoForm({ initial }: { initial: Settings }) {
         <input type="checkbox" checked={form.email_enabled} onChange={(e) => setForm({ ...form, email_enabled: e.target.checked })} />
         {wording(initial.business_type).emailOption}
       </label>
+      <Notice error={saveError} ok={saved} />
+      <div>
+        <button type="submit" className="btn btn-primary" style={{ minWidth: 200 }}>
+          保存する
+        </button>
+      </div>
+    </form>
+  )
+}
+
+/** 値引き・限定商品の設定（自由入力の値引きの上限、0 円、残りわずか、スタッフの限定数の修正の上限）。 */
+function SalesRulesForm({ initial }: { initial: Settings }) {
+  const { token } = useManage()
+  const queryClient = useQueryClient()
+  const [form, setForm] = useState({
+    staff_free_discount_limit: String(initial.staff_free_discount_limit),
+    allow_zero_price: initial.allow_zero_price,
+    low_stock_threshold: String(initial.low_stock_threshold),
+    staff_stock_adjust_limit: String(initial.staff_stock_adjust_limit),
+  })
+  const [saved, setSaved] = useState<string | null>(null)
+  const [saveError, setSaveError] = useState<string | null>(null)
+
+  const save = async (e: FormEvent) => {
+    e.preventDefault()
+    setSaved(null)
+    setSaveError(null)
+    const nums = {
+      staff_free_discount_limit: Number(form.staff_free_discount_limit || 0),
+      low_stock_threshold: Number(form.low_stock_threshold || 0),
+      staff_stock_adjust_limit: Number(form.staff_stock_adjust_limit || 0),
+    }
+    if (nums.staff_free_discount_limit > 100000 || nums.low_stock_threshold > 999 || nums.staff_stock_adjust_limit > 999) {
+      setSaveError('値が大きすぎます（自由入力の上限は 100,000円まで、個数は 999 まで）。')
+      return
+    }
+    try {
+      const s = await apiFetch<Settings>('/api/manage/shop', { method: 'PATCH', token, body: { ...nums, allow_zero_price: form.allow_zero_price } })
+      queryClient.setQueryData(['manage', 'shop'], s)
+      setSaved('保存しました。')
+    } catch (err) {
+      setSaveError(errorMessage(err))
+    }
+  }
+
+  const num = (k: 'staff_free_discount_limit' | 'low_stock_threshold' | 'staff_stock_adjust_limit', unit: string, label: string, hint: string) => (
+    <label className="field">
+      <span className="field-label">{label}</span>
+      <span className="price-input" style={{ maxWidth: 180 }}>
+        <input className="input mono" inputMode="numeric" value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value.replace(/\D/g, '') })} />
+        <span aria-hidden="true">{unit}</span>
+      </span>
+      <span className="field-hint">{hint}</span>
+    </label>
+  )
+
+  return (
+    <form className="stack" onSubmit={save}>
+      {num('staff_free_discount_limit', '円', 'スタッフが自由入力できる値引きの上限', '0 にすると、スタッフは登録した値引き（「値引き」の画面）からしか選べません。店長は上限なしです。')}
+      <label className="check">
+        <input type="checkbox" checked={form.allow_zero_price} onChange={(e) => setForm({ ...form, allow_zero_price: e.target.checked })} />
+        値引きでお支払いを 0 円にしてもよい
+      </label>
+      {num('low_stock_threshold', '個', '「残りわずか」と出す残り数', 'お客様の画面で、限定の品の残りがこの数以下になると「残りわずか」と強調します。')}
+      {num('staff_stock_adjust_limit', '個', 'スタッフが一度に増減できる限定数', 'レジで限定数を直すときの1回あたりの上限です（「実数に合わせる」は変わる数で数えます）。店長は上限なしです。')}
       <Notice error={saveError} ok={saved} />
       <div>
         <button type="submit" className="btn btn-primary" style={{ minWidth: 200 }}>
