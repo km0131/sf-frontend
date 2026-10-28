@@ -64,6 +64,52 @@ export type MenuItem = {
   sort_order: number
   option_groups: OptionGroup[]
   updated_at: string
+  /** 限定商品（営業日ごとの限定数の範囲で売る）か */
+  is_limited: boolean
+  /** 1注文あたりの購入上限（なければ null） */
+  purchase_limit_per_order: number | null
+  /** 今日の残り数（限定商品だけ。限定でなければ null） */
+  remaining: number | null
+  /** 今日の販売済み数（レジ・管理画面だけ） */
+  sold?: number
+  /** 今注文できるか（手動の売り切れでなく、限定商品なら残りが 1 以上） */
+  orderable: boolean
+}
+
+/** 限定商品の在庫（SSE の stock イベント・在庫の修正の結果）。お客様向けには sold がなく in_stock がある */
+export type StockLevel = {
+  menu_item_id: number
+  business_date: string
+  remaining: number
+  sold?: number
+  in_stock?: boolean
+}
+
+/** 在庫切れで受け付けなかった商品（409 out_of_stock の details.items） */
+export type Shortage = {
+  menu_item_id: number
+  name: string
+  requested: number
+  remaining: number
+}
+
+export type DiscountKind = 'amount' | 'percent' | 'fixed_price'
+export type DiscountScope = 'item' | 'order'
+
+export type DiscountPreset = {
+  id: number
+  name: string
+  kind: DiscountKind
+  value: number
+  scope: DiscountScope
+  active: boolean
+}
+
+/** レジで選べる値引き（GET /api/staff/discounts）。free_limit は自由入力の上限額（0 なら使えない、null なら上限なし＝店長） */
+export type StaffDiscounts = {
+  items: DiscountPreset[]
+  free_limit: number | null
+  allow_zero_price: boolean
 }
 
 export type PublicMenu = {
@@ -85,6 +131,8 @@ export type PublicMenu = {
     estimated_wait_minutes: number | null
     paused: boolean
     pause_message: string
+    /** 限定商品で「残りわずか」と出す残り数（以下） */
+    low_stock_threshold: number
   }
   categories: Category[]
   items: MenuItem[]
@@ -97,6 +145,7 @@ export type OptionSnapshot = {
 }
 
 export type OrderItem = {
+  id: number
   menu_item_id: number | null
   name: string
   unit_price: number
@@ -105,6 +154,25 @@ export type OrderItem = {
   subtotal: number
   /** この商品へのご希望（例: ネギ抜き） */
   note: string | null
+  /** この明細の値引き額（数量分の合計）。値引き後は subtotal - discount_amount */
+  discount_amount: number
+  discount_preset_id: number | null
+  /** プリセットの名前（自由入力なら null） */
+  discount_name: string | null
+  /** 自由入力の理由（お客様向けには出ない） */
+  discount_reason?: string | null
+  discounted_by?: 'staff' | 'manager' | null
+  discounted_at?: string | null
+}
+
+/** 注文全体の値引き */
+export type OrderDiscount = {
+  amount: number
+  preset_id: number | null
+  name: string | null
+  reason?: string | null
+  by?: 'staff' | 'manager'
+  at: string
 }
 
 export type Order = {
@@ -115,7 +183,13 @@ export type Order = {
   customer_name: string | null
   /** お客様・レジで入力したご希望（例: 〇〇抜き） */
   note: string | null
+  /** 支払額（値引き後） */
   total: number
+  /** 定価の合計 */
+  list_total: number
+  /** 値引きの合計（明細＋注文全体） */
+  discount_total: number
+  order_discount: OrderDiscount | null
   paid: boolean
   cancel_reason: string | null
   created_at: string
@@ -185,6 +259,9 @@ export type StaffShop = ShopInfo & {
   pause_message: string
   order_prefix: string
   event_name: string
+  low_stock_threshold: number
+  /** スタッフが1回に増減できる限定数 */
+  staff_stock_adjust_limit: number
 }
 
 export type DisplaySnapshot = {

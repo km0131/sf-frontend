@@ -85,12 +85,38 @@ export function toOrderItems(lines: CartLine[]) {
   return lines.map((l) => ({ menu_item_id: l.itemId, quantity: l.quantity, option_ids: l.optionIds, note: l.note?.trim() || undefined }))
 }
 
-/** メニューが更新されて、消えた商品・売り切れの商品を含む行を取り除く。 */
+/** メニューが更新されて、消えた商品・売り切れの商品を含む行を取り除き、限定商品は残り数・購入上限までに減らす。 */
 export function pruneLines(lines: CartLine[], items: Map<number, MenuItem>): CartLine[] {
-  return lines.filter((l) => {
+  const kept = lines.filter((l) => {
     const item = items.get(l.itemId)
-    if (!item || !item.is_available) return false
+    if (!item || !item.orderable) return false
     const opts = item.option_groups.flatMap((g) => g.options)
     return l.optionIds.every((id) => opts.find((o) => o.id === id)?.is_available)
   })
+  let out = kept
+  for (const item of items.values()) {
+    const max = itemLimit(item)
+    if (max != null) out = clampItem(out, item.id, max)
+  }
+  return out
+}
+
+/** その商品をカートに入れられる最大数（限定商品の残り数と、1注文あたりの購入上限の小さいほう）。上限がなければ null。 */
+export function itemLimit(item: MenuItem): number | null {
+  const limits = [item.is_limited ? (item.remaining ?? 0) : null, item.purchase_limit_per_order].filter((v): v is number => v != null)
+  return limits.length ? Math.min(...limits) : null
+}
+
+/** その商品の行の合計数量を max までに減らす（後ろの行から減らし、0 になった行は外す）。 */
+export function clampItem(lines: CartLine[], itemId: number, max: number): CartLine[] {
+  let over = quantityOf(lines, itemId) - Math.max(0, max)
+  if (over <= 0) return lines
+  const out = [...lines]
+  for (let i = out.length - 1; i >= 0 && over > 0; i--) {
+    if (out[i].itemId !== itemId) continue
+    const cut = Math.min(over, out[i].quantity)
+    over -= cut
+    out[i] = { ...out[i], quantity: out[i].quantity - cut }
+  }
+  return out.filter((l) => l.quantity > 0)
 }

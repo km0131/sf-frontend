@@ -1061,3 +1061,106 @@
   height: auto;
   border: 1px solid var(--c-line);
 }
+
+/* ===== 限定商品・値引き ===== */
+/* 「限定」の印。面は塗らず、紫苑の線で囲む */
+.tag-limited {
+  border-color: var(--c-shion);
+  color: var(--c-shion-deep);
+  font-family: var(--f-mincho);
+  letter-spacing: 0.15em;
+}
+
+/* 残り数（ターミナルの数字と同じ等幅）。残りわずかは濃紫苑で強める */
+.stock-left {
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--c-ink-sub);
+  white-space: nowrap;
+}
+
+.stock-left.is-low {
+  color: var(--c-shion-deep);
+  font-weight: 600;
+}
+
+.stock-now,
+.stock-preview {
+  font-family: var(--f-mincho);
+  font-size: 15px;
+}
+
+.stock-now .mono,
+.stock-preview .mono {
+  font-size: 20px;
+  margin: 0 2px;
+}
+
+/* レジの商品の下の「残り○個」（押すと修正の画面） */
+.stock-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--c-card-line);
+  border-top: 0;
+  background: transparent;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  color: var(--c-ink-sub);
+  cursor: pointer;
+  transition: border-color var(--dur-hover), color var(--dur-hover);
+}
+
+.stock-chip:hover {
+  border-color: var(--c-shion-deep);
+  color: var(--c-shion-deep);
+}
+
+.stock-chip.is-low {
+  color: var(--c-shion-deep);
+  font-weight: 600;
+}
+
+/* 値引きの内容（明細の下に小さく） */
+.discount-note {
+  display: block;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--c-shion-deep);
+}
+
+/* 定価（取り消し線）と値引き後の金額を縦に並べる */
+.price-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  line-height: 1.4;
+  white-space: nowrap;
+}
+
+.price-stack s {
+  font-size: 12px;
+}
+
+/* 定価・値引き・お支払い */
+.discount-totals {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-shion-soft);
+  font-size: 14px;
+}
+
+.discount-totals-pay {
+  font-family: var(--f-mincho);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.discount-totals .mono.discount-totals-pay {
+  font-family: var(--f-mono);
+}
