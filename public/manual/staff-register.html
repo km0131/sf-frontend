@@ -27,6 +27,7 @@
   <ol class="steps">
     <li>商品を押すと、右（スマホでは下）の「お会計」に入ります。選択肢のある商品は、選ぶ画面が出ます。</li>
     <li>数は <span class="ui">−</span> <span class="ui">+</span> で変えます。品ごとのご希望は <span class="ui">＋ ご希望</span> から。</li>
+    <li>値引きするときは、品の下の <span class="ui">＋ 値引き</span>（その品だけ）か、「注文全体の値引き」の <span class="ui">＋ 値引き</span> を押して、店長が登録した値引きから選びます。値引きは1つの品・1つの注文に1つまでです。</li>
     <li><strong>お預かり</strong>に受け取った金額を入れます（<span class="ui">ちょうど</span> <span class="ui">¥1,000</span> などのボタンも使えます）。お釣りが出ます。</li>
     <li><span class="ui">会計を確定</span> を押します。</li>
     <li>「会計が終わりました」に出る<strong>整理番号</strong>をお客さんに伝えて、<span class="ui">次のお客様へ</span> を押します。</li>
@@ -95,6 +96,38 @@
     <figcaption>選択肢ごとの売り切れ</figcaption>
   </figure>
   <p>切り替えは、すぐお客さんの画面にも反映されます。売り切れにした時刻と戻した時刻は記録され、店長が売上の画面で見られます。</p>
+  <div class="note">
+    <span class="note-title">売り切れは2種類あります</span>
+    <ul>
+      <li><strong>自動の売り切れ</strong>: 限定の品の残りが 0 になったとき（「本日分は売り切れ」）。残りを 1 以上に直すと、<strong>自動で解除</strong>されます。</li>
+      <li><strong>手動の売り切れ</strong>: <span class="ui">売り切れを設定する</span> で切り替えたもの。残りを増やしても、<strong>だれかが販売中に戻すまで</strong>売り切れのままです。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="discount">
+  <h2>値引き</h2>
+  <ul>
+    <li>会計の欄に<strong>定価・値引き・お支払い</strong>が並んで出ます。お預かりとお釣りは、お支払いの金額で計算されます。</li>
+    <li>金額を入れる値引き（自由入力）は、店長が上限を決めたときだけ出ます。<strong>理由の入力が必要</strong>で、上限を超える金額は入れられません。</li>
+    <li>会計を確定したあとの値引きは、レジでは変えられません。間違えたときは店長に連絡してください（店長が管理画面で直せます）。</li>
+  </ul>
+</section>
+
+<section id="stock">
+  <h2>限定数を直す（限定の品）</h2>
+  <p>限定の品には「限定」の印があり、下に <span class="ui">残り ○個</span> と販売済みの数が出ます（注文が入るたびに自動で変わります）。追加で焼けた・失敗した・数え直したときは、ここから直します。</p>
+  <ol class="steps">
+    <li><span class="ui">残り ○個</span> を押します。</li>
+    <li><strong>増やす・減らす</strong>（<span class="ui">−</span> <span class="ui">+</span> か、+5・-3 のように入力）か、<strong>実数に合わせる</strong>（数え直した残りの個数を入力）を選びます。</li>
+    <li><strong>理由</strong>を選びます（追加で焼けた／失敗・廃棄／数え直し／その他。その他はメモも必要）。</li>
+    <li>「残り ○個 → ○個」を確かめて <span class="ui">この内容で直す</span> を押します。</li>
+  </ol>
+  <ul>
+    <li>スタッフが直せるのは<strong>今日の分だけ</strong>、1回に<strong>10個まで</strong>（店長が変えられます）。それより多いときは、何回かに分けるか店長に頼んでください。</li>
+    <li>「実数に合わせる」の途中で注文が入ると、「その間に注文が入りました」と今の残りが出ます。もう一度数えて入れ直してください。</li>
+    <li>直した内容はすべて記録され、店長が見られます。</li>
+  </ul>
 </section>
 
 <section id="s6-8">
