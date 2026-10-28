@@ -8,7 +8,12 @@ import { Notice, PageHead, Panel } from './common'
 import { useManage, useShopWording } from './context'
 
 type Summary = {
+  /** 実売上（お支払いの合計） */
   revenue: number
+  /** 定価ベースの売上 */
+  list_revenue: number
+  /** 値引きの総額 */
+  discount_total: number
   orders: number
   average_order_value: number
   items_sold: number
@@ -16,7 +21,8 @@ type Summary = {
   by_channel: { channel: string; revenue: number; orders: number }[]
 }
 type Items = {
-  items: { menu_item_id: number | null; name: string; quantity: number; revenue: number }[]
+  /** revenue は明細の値引きを引いた売上（注文全体の値引きは商品に割り振らない）。discount は明細の値引き */
+  items: { menu_item_id: number | null; name: string; quantity: number; revenue: number; list_revenue: number; discount: number }[]
   options: { group: string; name: string; quantity: number }[]
 }
 type Hourly = { date: string; start: string; orders: number; revenue: number }
@@ -42,6 +48,8 @@ type Losses = {
   waste: number
 }
 type SoldOut = { item_name: string; date: string; sold_out_at: string; restocked_at: string | null }
+type DiscountRow = { preset_id: number | null; name: string; scope: 'item' | 'order'; count: number; amount: number }
+type LimitedRow = { menu_item_id: number; name: string; business_date: string; limit: number; sold: number; remaining: number; waste: number }
 type EventRow = { event_id: number; name: string; starts_on: string; revenue: number; orders: number; average_order_value: number }
 
 const minutes = (s: number | null) => (s == null ? '—' : `${Math.round(s / 60)}分`)
@@ -76,6 +84,8 @@ export function SalesPage() {
   const waits = useQuery({ queryKey: ['sales', 'waits', scope], queryFn: () => get<WaitTimes>('wait-times'), ...opts })
   const losses = useQuery({ queryKey: ['sales', 'losses', scope], queryFn: () => get<Losses>('losses'), ...opts })
   const soldOuts = useQuery({ queryKey: ['sales', 'sold-outs', scope], queryFn: () => get<{ items: SoldOut[] }>('sold-outs'), ...opts })
+  const discountRows = useQuery({ queryKey: ['sales', 'discounts', scope], queryFn: () => get<{ items: DiscountRow[] }>('discounts'), ...opts })
+  const limitedRows = useQuery({ queryKey: ['sales', 'limited', scope], queryFn: () => get<{ items: LimitedRow[] }>('limited'), ...opts })
 
   const days = summary.data?.by_day.map((d) => d.date) ?? []
   const selectedDay = day && days.includes(day) ? day : days.at(-1) ?? ''
@@ -159,11 +169,18 @@ export function SalesPage() {
 
       <div className="stack" style={{ gap: 32, opacity: fetching ? 0.6 : 1, transition: 'opacity var(--dur-hover)' }}>
         <div className="stats">
-          <Stat label="売上" value={s ? yen(s.revenue) : '—'} note="支払い済み・取り消しを除く" />
+          <Stat label="売上（実売上）" value={s ? yen(s.revenue) : '—'} note="お支払いの合計。支払い済み・取り消しを除く" />
           <Stat label="注文" value={s ? `${s.orders}件` : '—'} />
           <Stat label="客単価" value={s ? yen(s.average_order_value) : '—'} />
           <Stat label="販売個数" value={s ? `${s.items_sold}個` : '—'} />
         </div>
+        {s && s.discount_total > 0 && (
+          <div className="stats">
+            <Stat label="定価ベースの売上" value={yen(s.list_revenue)} note="値引きがなかった場合" />
+            <Stat label="値引き総額" value={yen(s.discount_total)} note="商品ごと＋注文全体" />
+            <Stat label="実売上" value={yen(s.revenue)} note="定価ベース − 値引き" />
+          </div>
+        )}
 
         <Panel title="日別の売上">
           {s && s.by_day.length > 0 ? (
@@ -203,6 +220,7 @@ export function SalesPage() {
                 <tr>
                   <th>品名</th>
                   <th className="num">個数</th>
+                  <th className="num">値引き</th>
                   <th className="num">売上</th>
                   <th style={{ width: '30%' }} />
                 </tr>
@@ -212,6 +230,7 @@ export function SalesPage() {
                   <tr key={`${it.menu_item_id}-${it.name}`}>
                     <td className="mincho">{it.name}</td>
                     <td className="num">{it.quantity}</td>
+                    <td className="num sub">{it.discount > 0 ? `−${yen(it.discount)}` : '—'}</td>
                     <td className="num">{yen(it.revenue)}</td>
                     <td style={{ verticalAlign: 'middle' }}>
                       <InlineBar value={it.revenue} max={maxItem} />
@@ -302,6 +321,68 @@ export function SalesPage() {
             </table>
           )}
         </Panel>
+
+        <Panel title="値引き">
+          <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>
+            値引きごとの件数と金額です（商品ごとの値引きは明細の数、注文全体の値引きは注文の数）。自由入力はまとめて1行です。
+          </p>
+          {discountRows.data?.items.length === 0 ? (
+            <p className="empty">値引きはありません</p>
+          ) : (
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>値引き</th>
+                  <th>範囲</th>
+                  <th className="num">件数</th>
+                  <th className="num">金額</th>
+                </tr>
+              </thead>
+              <tbody>
+                {discountRows.data?.items.map((d) => (
+                  <tr key={`${d.preset_id}-${d.scope}`}>
+                    <td>{d.name}</td>
+                    <td>{d.scope === 'item' ? '商品ごと' : '注文全体'}</td>
+                    <td className="num">{d.count}件</td>
+                    <td className="num">{yen(d.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Panel>
+
+        {limitedRows.data && limitedRows.data.items.length > 0 && (
+          <Panel title="限定商品">
+            <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>
+              営業日ごとの限定数（販売済み＋残り）・販売数・失敗/廃棄の数です。販売数は取り消しを除いた注文の数です。
+            </p>
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>商品</th>
+                  <th>日</th>
+                  <th className="num">限定数</th>
+                  <th className="num">販売数</th>
+                  <th className="num">残り</th>
+                  <th className="num">失敗・廃棄</th>
+                </tr>
+              </thead>
+              <tbody>
+                {limitedRows.data.items.map((r) => (
+                  <tr key={`${r.menu_item_id}-${r.business_date}`}>
+                    <td className="mincho">{r.name}</td>
+                    <td className="mono">{r.business_date.slice(5).replace('-', '/')}</td>
+                    <td className="num">{r.limit}</td>
+                    <td className="num">{r.sold}</td>
+                    <td className="num">{r.remaining}</td>
+                    <td className="num">{r.waste}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
+        )}
 
         <Panel title={`売り切れ（${soldOuts.data?.items.length ?? 0}回）`}>
           <p className="sub" style={{ fontSize: 13, marginBottom: 12 }}>商品を売り切れにした時刻と、販売に戻した時刻です（レジ・商品の画面の売り切れのボタンで記録）。</p>

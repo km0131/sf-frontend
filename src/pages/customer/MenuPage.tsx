@@ -161,7 +161,7 @@ export function MenuPage() {
                       </div>
                       <div className="item-price">{soldOut ? '売り切れ' : yen(item.price)}</div>
                       {item.is_limited && (
-                        <div className="row" style={{ gap: 8, marginTop: 2 }}>
+                        <div className="row" style={{ gap: '2px 8px', marginTop: 2, flexWrap: 'wrap' }}>
                           <span className="tag tag-limited">限定</span>
                           {!soldOut && (
                             <span className={`stock-left ${low ? 'is-low' : ''}`}>

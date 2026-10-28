@@ -29,6 +29,7 @@ export const router = createBrowserRouter([
     lazy: () => import('./pages/manage/ManageApp').then((m) => ({ Component: m.ManageApp })),
     children: [
       { path: 'products', lazy: () => import('./pages/manage/ProductsPage').then((m) => ({ Component: m.ProductsPage })) },
+      { path: 'discounts', lazy: () => import('./pages/manage/DiscountsPage').then((m) => ({ Component: m.DiscountsPage })) },
       { path: 'orders', lazy: () => import('./pages/manage/OrdersPage').then((m) => ({ Component: m.OrdersPage })) },
       { path: 'sales', lazy: () => import('./pages/manage/SalesPage').then((m) => ({ Component: m.SalesPage })) },
       { path: 'ledger', lazy: () => import('./pages/manage/LedgerPage').then((m) => ({ Component: m.LedgerPage })) },
