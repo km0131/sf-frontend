@@ -1,12 +1,13 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { ItemNote } from '../../components/LineNote'
+import { DiscountTotals, OrderDiscountEditor } from '../../components/OrderDiscountEditor'
 import { Sheet } from '../../components/Sheet'
 import { Log, TerminalLine } from '../../components/Terminal'
 import { ApiError, apiFetch, errorMessage } from '../../lib/api'
 import { hhmm, minutesSince, yen } from '../../lib/format'
 import { clockOffset, useNow } from '../../lib/serverClock'
-import type { BusinessType, List, Order, OrderStatus } from '../../lib/types'
+import type { BusinessType, List, Order, OrderStatus, StaffDiscounts } from '../../lib/types'
 import { wording } from '../../lib/wording'
 import { ClaimSheet } from './ClaimPanel'
 import { staffKeys } from './keys'
@@ -17,6 +18,8 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
   const queryClient = useQueryClient()
   const [error, setError] = useState<string | null>(null)
   const [confirming, setConfirming] = useState<Order | null>(null)
+  // 受け取りの会計で値引きを付けている（会計前の Web 注文だけ）
+  const [discounting, setDiscounting] = useState(false)
   const [cancelling, setCancelling] = useState<Order | null>(null)
   const [unclaiming, setUnclaiming] = useState<Order | null>(null)
   const [claiming, setClaiming] = useState<Order | null>(null)
@@ -37,6 +40,11 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
   const done = useQuery({
     queryKey: staffKeys.done(slug),
     queryFn: () => apiFetch<List<Order>>('/api/staff/orders?status=done', { token }),
+  })
+  const discounts = useQuery({
+    queryKey: staffKeys.discounts(slug),
+    queryFn: () => apiFetch<StaffDiscounts>('/api/staff/discounts', { token }),
+    enabled: confirming != null,
   })
 
   const orders = active.data?.items ?? []
@@ -130,24 +138,52 @@ export function OrderBoard({ slug, token, businessType }: { slug: string; token:
       </div>
 
       {confirming && (
-        <Sheet title={`${confirming.order_no} ${w.finishTitle}`} onClose={() => setConfirming(null)}>
-          <div className="stack">
-            <p>
-              {w.unpaidNotice}
-              <br />
-              <span className="money">{yen(confirming.total)}</span> を受け取りましたか？
-            </p>
-            <button
-              type="button"
-              className="btn btn-done btn-block"
-              onClick={() => {
-                void advance(confirming, 'done', true)
-                setConfirming(null)
-              }}
-            >
-              {w.finishButton}
-            </button>
-          </div>
+        <Sheet
+          title={`${confirming.order_no} ${w.finishTitle}`}
+          onClose={() => {
+            setConfirming(null)
+            setDiscounting(false)
+          }}
+        >
+          {discounting ? (
+            <div className="stack">
+              <OrderDiscountEditor
+                order={confirming}
+                presets={discounts.data?.items ?? []}
+                freeLimit={discounts.data?.free_limit ?? 0}
+                save={(body) => apiFetch<Order>(`/api/staff/orders/${confirming.id}/discounts`, { method: 'PUT', token, body })}
+                onSaved={(o) => {
+                  setConfirming(o)
+                  setDiscounting(false)
+                }}
+              />
+              <button type="button" className="btn btn-text" onClick={() => setDiscounting(false)}>
+                ‹ 会計に戻る
+              </button>
+            </div>
+          ) : (
+            <div className="stack">
+              {confirming.discount_total > 0 && <DiscountTotals list={confirming.list_total} total={confirming.total} />}
+              <p>
+                {w.unpaidNotice}
+                <br />
+                <span className="money">{yen(confirming.total)}</span> を受け取りましたか？
+              </p>
+              <button
+                type="button"
+                className="btn btn-done btn-block"
+                onClick={() => {
+                  void advance(confirming, 'done', true)
+                  setConfirming(null)
+                }}
+              >
+                {w.finishButton}
+              </button>
+              <button type="button" className="btn btn-text" onClick={() => setDiscounting(true)}>
+                {confirming.discount_total > 0 ? '値引きを変える' : '値引きを付ける'}
+              </button>
+            </div>
+          )}
         </Sheet>
       )}
 
@@ -244,6 +280,7 @@ function OrderCard({
         ) : (
           <span className="tag tag-strong">未払い {yen(o.total)}</span>
         )}
+        {o.discount_total > 0 && <span className="tag">値引き −{yen(o.discount_total)}</span>}
         {left != null && (
           <span className={`tag pickup-timer ${overdue ? 'tag-strong' : ''}`} role="timer">
             {overdue ? `期限切れ（${Math.ceil(-left / 60000)}分超過）` : `期限まで ${countdown(left)}`}

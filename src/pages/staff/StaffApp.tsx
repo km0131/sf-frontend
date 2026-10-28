@@ -7,7 +7,8 @@ import { storeStyle } from '../../lib/colors'
 import { installOrderSoundUnlock, orderSound, playOrderSound } from '../../lib/orderSound'
 import { staffSession, type Session } from '../../lib/session'
 import { streamEvents } from '../../lib/sse'
-import type { List, Order, StaffShop } from '../../lib/types'
+import { applyStock } from '../../lib/stock'
+import type { Category, List, MenuItem, Order, StaffShop, StockLevel } from '../../lib/types'
 import { MANUAL_URL } from '../../lib/manual'
 import { wording } from '../../lib/wording'
 import { staffKeys } from './keys'
@@ -77,6 +78,9 @@ function StaffShell({ slug, token, onLogout }: { slug: string; token: string; on
           void queryClient.invalidateQueries({ queryKey: ['staff', slug] })
         } else if (m.type === 'menu') {
           void queryClient.invalidateQueries({ queryKey: staffKeys.menu(slug) })
+        } else if (m.type === 'stock') {
+          // 限定商品の残り数（注文・取り消し・修正のたびに届く）
+          queryClient.setQueryData<{ categories: Category[]; items: MenuItem[] }>(staffKeys.menu(slug), (old) => applyStock(old, m.data as StockLevel))
         } else if (m.type === 'order') {
           // 一覧になかった注文が届いたら、新しい注文として音で知らせる（つなぎ直したときの取り直しでは鳴らさない）
           if (applyOrder(queryClient, slug, m.data as Order)) playOrderSound()

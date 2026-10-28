@@ -1,3 +1,4 @@
+import type { DiscountChoice } from './discount'
 import type { MenuItem, OptionGroup } from './types'
 
 /** カートの1行。同じ商品でもオプションが違えば別の行。 */
@@ -8,6 +9,8 @@ export type CartLine = {
   quantity: number
   /** この行（数量の全部）へのご希望。確認・お会計の画面で入力する */
   note?: string
+  /** この行の値引き（レジだけ） */
+  discount?: DiscountChoice
 }
 
 /** 商品ごとのご希望の上限（バックエンドと同じ） */
