@@ -2,7 +2,7 @@
    ほかの画面に効かないよう、すべて .tp- で始まるクラスにだけ書く。
    @page と、印刷時にほかの画面を隠す指定は ticket-page.css（印刷ページを開いているあいだだけ読み込む）に書く。 */
 .tp-sheet {
-  --tp-accent: #6b5e99; /* 紫苑（濃いめ・文字にも使える濃さ） */
+  --tp-accent: #6b5e99; /* 紫苑（濃いめ・文字にも使える濃さ）。印刷ページで店舗色を選ぶと style で差し替える */
   --tp-ink: #26222e;
   --tp-ink-sub: #4a4455;
   --tp-rule: #6e6680;
@@ -213,7 +213,7 @@
   font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   font-size: 18pt;
-  color: var(--tp-ink);
+  color: var(--tp-accent); /* 頭文字は引換票の色（店舗色）にする */
 }
 
 /* 頭文字が2文字の店は、枠（10mm）に収まる大きさにする */

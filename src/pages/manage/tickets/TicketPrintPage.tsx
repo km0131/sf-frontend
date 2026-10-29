@@ -11,7 +11,8 @@ import { useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { apiFetch, errorMessage } from '../../../lib/api'
-import type { List } from '../../../lib/types'
+import { shopColors } from '../../../lib/colors'
+import type { List, ShopColor } from '../../../lib/types'
 import { PageHead, Panel } from '../common'
 import { useManage } from '../context'
 import { TicketSheet, type TicketShop } from './TicketSheet'
@@ -22,10 +23,11 @@ const MAX_SHEETS = 20
 /** 開催回（店長: GET /api/manage/events、管理者: GET /api/admin/events。新しい順） */
 type TicketEvent = { id: number; name: string; is_current: boolean; order_prefix?: string }
 /** 開催回に出店する店舗（GET /api/admin/events/:id/shops） */
-type EventShop = { shop_id: number; name: string; order_prefix: string; is_active: boolean }
+type EventShop = { shop_id: number; name: string; color: ShopColor; order_prefix: string; is_active: boolean }
 
 /** 引換票の印刷（/manage/tickets/print）。店長は自分の店、システム管理者は出店している全店舗。
  *  開催回を選べる（既定は今の開催回。頭文字は開催回ごとに決まるため）。
+ *  色は、店長は紫苑と店舗色から選び、システム管理者は各店舗に設定されている店舗色を使う。
  *  店舗名と頭文字はシステムのデータから入れ、注文番号の数字と確認コードは手書き用に空けておく。 */
 export function TicketPrintPage() {
   const { token, session } = useManage()
@@ -35,6 +37,12 @@ export function TicketPrintPage() {
   // 印刷しない店舗（管理者）。開催回ごとに頭文字が変わるので「開催回ID:頭文字」で持つ
   const [excluded, setExcluded] = useState<Set<string>>(() => new Set())
   const [printing, setPrinting] = useState(false)
+  // 引換票の色（店長）。null はテンプレートの紫苑
+  const [color, setColor] = useState<ShopColor | null>(null)
+  const accentOf = (s: TicketShop) => {
+    const c = isAdmin ? s.color : color
+    return c ? shopColors[c]?.hex : undefined
+  }
   usePageStylesheet(pageCssUrl)
 
   // 開催回の一覧。店長は自分の店が出店した開催回だけ（API がトークンの店舗だけを返す）
@@ -117,6 +125,7 @@ export function TicketPrintPage() {
                         })
                       }
                     />
+                    {s.color && <span className="dot" style={{ background: shopColors[s.color]?.hex }} title={shopColors[s.color]?.label} />}
                     <span>
                       <span className="mono">{s.prefix}</span> {s.name}
                     </span>
@@ -124,6 +133,14 @@ export function TicketPrintPage() {
                 ))}
               </div>
             </fieldset>
+          )}
+          {isAdmin ? (
+            <p className="field-hint">引換票の色は、各店舗に設定されている店舗色を使います。</p>
+          ) : (
+            <div className="field">
+              <span className="field-label">色</span>
+              <TicketColorPicker value={color} onChange={setColor} />
+            </div>
           )}
           <div className="row" style={{ gap: 12, flexWrap: 'wrap' }}>
             <label className="row" style={{ gap: 8 }}>
@@ -164,7 +181,7 @@ export function TicketPrintPage() {
                   <span className="mono">{shop.prefix}</span> {shop.name}（{sheets}シート）
                 </p>
               )}
-              <TicketSheet shop={shop} />
+              <TicketSheet shop={shop} accent={accentOf(shop)} />
             </div>
           ))}
         </div>
@@ -174,7 +191,7 @@ export function TicketPrintPage() {
         createPortal(
           <div className="tp-print">
             {pages.map((p) => (
-              <TicketSheet key={p.key} shop={p.shop} />
+              <TicketSheet key={p.key} shop={p.shop} accent={accentOf(p.shop)} />
             ))}
           </div>,
           document.body,
@@ -182,6 +199,27 @@ export function TicketPrintPage() {
     </div>
   )
 }
+
+/** 引換票の色を、紫苑（テンプレートの色）と店舗色の4色から選ぶ。 */
+function TicketColorPicker({ value, onChange }: { value: ShopColor | null; onChange: (c: ShopColor | null) => void }) {
+  const options: { key: ShopColor | null; hex: string; label: string }[] = [
+    { key: null, hex: SHION, label: '紫苑' },
+    ...(Object.keys(shopColors) as ShopColor[]).map((c) => ({ key: c, ...shopColors[c] })),
+  ]
+  return (
+    <div className="swatches" role="group" aria-label="引換票の色">
+      {options.map((o) => (
+        <button key={o.key ?? 'shion'} type="button" className="swatch" aria-pressed={value === o.key} onClick={() => onChange(o.key)}>
+          <span className="dot dot-lg" style={{ background: o.hex }} aria-hidden="true" />
+          {o.label}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** テンプレートの色（ticket.css の --tp-accent と同じ） */
+const SHION = '#6b5e99'
 
 /** 枚数を 1〜MAX_SHEETS に収める（空欄・数字でない入力は1） */
 function clampSheets(n: number): number {
@@ -214,7 +252,7 @@ function ticketShops(
 
   if (isAdmin) {
     const shops = (eventShops.data ?? []).flatMap((s) =>
-      s.is_active && validPrefix(s.order_prefix) ? [{ name: s.name, prefix: s.order_prefix.toUpperCase() }] : [],
+      s.is_active && validPrefix(s.order_prefix) ? [{ name: s.name, prefix: s.order_prefix.toUpperCase(), color: s.color }] : [],
     )
     return shops.length > 0 ? { shops, reason: null } : { shops, reason: `「${event.name}」に出店している店舗がないため、印刷できません。` }
   }

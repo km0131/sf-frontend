@@ -1,15 +1,21 @@
+import type { CSSProperties } from 'react'
+import type { ShopColor } from '../../../lib/types'
+
 /** お引換票の印刷に使う1店舗分の情報。 */
 export type TicketShop = {
   /** 店舗名 */
   name: string
   /** 整理番号の頭の英字（大文字。1〜2文字） */
   prefix: string
+  /** 店舗色（システム管理者が印刷するとき、引換票の色に使う） */
+  color?: ShopColor
 }
 
-/** A4 1枚分（2列 × 4段 = 8面）。切り取り線はシートごとに1組。 */
-export function TicketSheet({ shop }: { shop: TicketShop }) {
+/** A4 1枚分（2列 × 4段 = 8面）。切り取り線はシートごとに1組。
+ *  accent は見出しの線・枠・ラベルの色（省略時はテンプレートの紫苑）。 */
+export function TicketSheet({ shop, accent }: { shop: TicketShop; accent?: string }) {
   return (
-    <section className="tp-sheet">
+    <section className="tp-sheet" style={accent ? ({ '--tp-accent': accent } as CSSProperties) : undefined}>
       {Array.from({ length: 8 }, (_, i) => (
         <Slip key={i} shop={shop} />
       ))}
